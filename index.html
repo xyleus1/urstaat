@@ -3,21 +3,25 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#030504">
+    <meta name="theme-color" content="#000000">
     <meta name="description" content="Urstaat. Coming soon. Get in touch at nima@urstaat.com.">
     <title>Urstaat — Coming soon</title>
     <link rel="icon" href="./favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="./styles.css">
+    <script src="./vendor/reveal/reveal.js" defer></script>
+    <script src="./type.js" defer></script>
     <script src="./traces.js" defer></script>
   </head>
   <body>
     <canvas id="circuit" aria-hidden="true"></canvas>
-    <header class="wordmark">URSTAAT</header>
+    <header class="wordmark">urstaat</header>
     <main>
       <div class="announcement">
-        <div class="signal" aria-hidden="true"><span></span><span></span><span></span></div>
-        <h1>Coming soon<span class="period">.</span></h1>
-        <a class="email" href="mailto:nima@urstaat.com">nima@urstaat.com<span class="arrow" aria-hidden="true">↗</span></a>
+        <div class="type-area">
+          <h1>Coming soon</h1>
+          <div id="type-deck" class="reveal" aria-hidden="true" inert tabindex="-1"><div class="slides"></div></div>
+        </div>
+        <a class="email" href="mailto:nima@urstaat.com">nima@urstaat.com</a>
       </div>
     </main>
   </body>
