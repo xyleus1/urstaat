@@ -21,38 +21,14 @@ body { margin: 0; min-width: 280px; min-height: 100svh; isolation: isolate; }
 main { position: relative; z-index: 1; display: grid; place-items: center; min-height: 100svh; padding: 90px 24px; }
 .announcement { text-align: center; }
 
-.type-area {
-  position: relative;
+h1 {
+  margin: 0;
   font-size: clamp(38px, 5.4vw, 76px);
   line-height: 1.2;
   font-weight: 400;
   letter-spacing: -.025em;
   white-space: nowrap;
 }
-h1 { margin: 0; font: inherit; }
-
-/* Only the letters animate. The plain heading is visible from first paint. */
-#type-deck { display: none; position: absolute; inset: 0; pointer-events: none; }
-.type-ready #type-deck { display: block; }
-.type-ready h1 { color: transparent; }
-#type-deck .slides { position: relative; width: 100%; height: 100%; }
-#type-deck .slides > section {
-  position: absolute;
-  inset: 0;
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  visibility: hidden;
-  opacity: 0;
-  font: inherit;
-}
-#type-deck .slides > section.present { visibility: visible; opacity: 1; }
-.glyph { position: relative; display: inline-block; transform-origin: 50% 75%; }
-.glyph.space { width: .275em; }
-
-/* Keep reveal.js infrastructure inside this decorative type canvas. */
-#type-deck .backgrounds, #type-deck .controls, #type-deck .progress,
-#type-deck .aria-status, #type-deck .pause-overlay, #type-deck .slide-number { display: none; }
 
 .email {
   display: inline-block;
@@ -67,8 +43,3 @@ h1 { margin: 0; font: inherit; }
 .email:hover { color: #e0e0d9; }
 .email:focus-visible { outline: 1px dashed #d3d4b0; outline-offset: 6px; }
 ::selection { background: #7d803b; color: #fff; }
-
-@media (prefers-reduced-motion: reduce) {
-  .type-ready #type-deck { display: none; }
-  .type-ready h1 { color: inherit; }
-}
