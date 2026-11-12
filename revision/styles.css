@@ -21,7 +21,7 @@ figure, p { margin: 0; }
 nav { display: flex; align-items: center; gap: 40px; font-size: 15px; }
 nav a { padding-block: 12px; }
 nav a:hover { text-decoration: underline; text-underline-offset: 5px; }
-.hero { min-height: 655px; padding-block: 40px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 54px; align-items: center; border-bottom: 1px solid var(--ink); }
+.hero { min-height: 655px; padding-block: 40px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 54px; align-items: center; }
 .hero-copy { display: flex; flex-direction: column; align-items: flex-start; }
 h1 { margin: 0 0 26px; font-size: 72px; font-weight: 400; line-height: 76px; letter-spacing: -3.3px; overflow-wrap: break-word; min-width: 0; }
 h1 span { display: block; }
