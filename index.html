@@ -1,23 +1,117 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#000000">
-    <meta name="description" content="Urstaat. Coming soon. Get in touch at nima@urstaat.com.">
-    <title>Urstaat — Coming soon</title>
-    <link rel="icon" href="./favicon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="./styles.css">
-    <script src="./traces.js" defer></script>
-  </head>
-  <body>
-    <canvas id="circuit" aria-hidden="true"></canvas>
-    <header class="wordmark">urstaat</header>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Run before you walk — Why we should solve the hardest problem first. Research by Nima Kamali and Ava Poole.">
+  <meta name="theme-color" content="#080A0B">
+  <title>Run before you walk</title>
+  <link rel="stylesheet" href="revision/styles.css">
+  <link rel="stylesheet" href="hero/hero.css">
+  <link rel="stylesheet" href="site/site.css">
+  <link rel="stylesheet" href="site/videos.css">
+  <link rel="stylesheet" href="site/graph.css">
+  <link rel="stylesheet" href="site/footer.css">
+</head>
+<body>
+  <a class="skip" href="#research">Skip to research</a>
+  <div class="page">
+    <header class="header">
+      <a class="subject" href="#research">Robotics and<br>Embodied Intelligence</a>
+      <nav aria-label="Main navigation">
+        <a href="research/">Research</a>
+        <a href="#contents">Contents</a>
+        <a href="#trajectories">Trajectories</a>
+      </nav>
+    </header>
+
     <main>
-      <div class="announcement">
-        <h1>Coming soon</h1>
-        <a class="email" href="mailto:nima@urstaat.com">nima@urstaat.com</a>
-      </div>
+      <section class="hero hero-study" id="research" aria-labelledby="research-title">
+        <div class="hero-art" id="hero-art" aria-hidden="true">
+          <div class="hero-waves" id="hero-waves"></div>
+          <div class="hero-motor" id="hero-motor">
+            <img class="hero-poster" id="hero-poster" src="hero/exports/motor-poster@2x.png" alt="" width="1000" height="370" fetchpriority="high">
+          </div>
+        </div>
+        <h1 class="hero-title" id="research-title" data-hero-copy><span>Run before</span> <span>you walk</span></h1>
+<div class="hero-information" data-hero-copy>
+          <p class="subtitle">Why we should solve<br class="desktop-break"> the hardest problem first</p>
+<div class="authors">
+            <p>Nima Kamali <span>UCLA</span></p>
+            <p>Ava Poole <span>Cornell</span></p>
+          </div>
+          <a class="research-door" href="research/" aria-label="Read the research"><span><span>Read the</span><span>research</span></span><img src="site/media/arrow-up-right.svg" alt=""></a>
+        </div>
+      </section>
+
+      <section class="contents" id="contents" aria-labelledby="contents-title">
+        <div class="section-heading">
+          <h2 id="contents-title">Contents</h2>
+          <p><span class="desktop-preview-hint">Hover to preview</span><span class="mobile-preview-hint">Tap to preview</span></p>
+        </div>
+        <div class="contents-grid">
+          <a class="contents-tile" data-section-key="1" href="research/#axioms-of-robotics-development">
+            <div class="contents-image">
+              <img src="site/media/axioms.jpg" width="640" height="360" alt="Boston Dynamics Stretch unloading cardboard boxes inside a DHL trailer." loading="lazy">
+            </div>
+            <h3>Axioms of robotics development</h3>
+          </a>
+          <a class="contents-tile" data-section-key="2" href="research/#the-fundamental-flywheel-of-robotics">
+            <div class="contents-image">
+              <img src="site/media/flywheel.jpg" width="640" height="360" alt="Real Dex-Net robot demonstration: a gripper picking up an orange object." loading="lazy">
+            </div>
+            <h3>The fundamental flywheel of robotics</h3>
+          </a>
+          <a class="contents-tile" data-section-key="3" href="research/#data-scaling-is-finally-working">
+            <div class="contents-image">
+              <img src="site/media/data-scaling.jpg" width="640" height="360" alt="A grid of robot camera views showing Dyna manipulation tasks." loading="lazy">
+            </div>
+            <h3>Data scaling is finally working</h3>
+          </a>
+          <a class="contents-tile" data-section-key="4" href="research/#failure-as-an-asset">
+            <div class="contents-image">
+              <img src="site/media/failure.jpg" width="640" height="360" alt="Physical Intelligence robot arms working at an espresso station." loading="lazy">
+            </div>
+            <h3>Failure as an asset</h3>
+          </a>
+          <a class="contents-tile" data-section-key="5" href="research/#what-humans-got-right">
+            <div class="contents-image">
+              <img src="site/media/humans.jpg" width="640" height="360" alt="A mimic robotic hand using a small tool for precise manipulation." loading="lazy">
+            </div>
+            <h3>What humans got right</h3>
+          </a>
+          <a class="contents-tile" data-section-key="6" href="research/#generalization">
+            <div class="contents-image">
+              <img src="site/media/generalization.jpg" width="640" height="360" alt="Two Generalist robot arms opening a jar." loading="lazy">
+            </div>
+            <h3>Generalization</h3>
+          </a>
+          <a class="contents-tile" data-section-key="7" href="research/#hardware-gaps">
+            <div class="contents-image hardware-image">
+              <img src="site/media/hardware.jpg" width="640" height="360" alt="A real robotic finger backdrivability test, demonstrating compliant hardware." loading="lazy">
+            </div>
+            <h3>Hardware gaps</h3>
+          </a>
+          <a class="contents-tile" data-section-key="8" href="research/#economic-vs-human-value">
+            <div class="contents-image">
+              <img src="site/media/economic-value.jpg" width="640" height="360" alt="A Figure humanoid performing household work at a kitchen sink." loading="lazy">
+            </div>
+            <h3>Economic vs human value</h3>
+          </a>
+        </div>
+      </section>
+      <section id="trajectories" aria-label="Robotics trajectories"><div id="robotics-graph"></div></section>
     </main>
-  </body>
+    <footer class="site-footer footer-refined" id="research-footer">
+  <span class="footer-name">Run before you walk</span>
+  <nav aria-label="Footer">
+    <a class="footer-read" href="research/">Read the research<img src="site/media/arrow-up-right.svg" width="16" height="16" alt=""></a>
+    <a href="sources/">Sources</a>
+    <a href="#research">Back to top</a>
+  </nav>
+</footer>
+  </div>
+  <script type="module" src="hero/mount.js"></script>
+  <script type="module" src="site/app.js"></script>
+</body>
 </html>

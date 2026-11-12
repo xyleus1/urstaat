@@ -1,0 +1,55 @@
+EXPLODED PLANETARY ACTUATOR STUDY
+
+Mechanical CAD: Mini-Cheetah-Actuator by Saketh vegesna (SakethGG).
+Copyright (c) 2025 Saketh vegesna. MIT License; see LICENSE-MiniCheetah.txt.
+https://github.com/SakethGG/Mini-Cheetah-Actuator
+Revision: b328c3cb0a57462f9913feda79b7f9047c63cd43
+
+Representative populated controller: moteus C1 by mjbots, Apache License 2.0.
+See LICENSE-Moteus.txt.
+https://github.com/mjbots/moteus
+Source revision: f8623f701f35ce26449465cb56017d9ac06391f8
+Public KiCad GLB export: GoForFab, run 483.
+https://goforfab.com/pcb/mjbots/moteus
+KiCad library models have the CC-BY-SA 4.0 generated-design exception:
+https://www.kicad.org/libraries/license/
+
+Architecture reference: Benjamin Katz (2018), Figure 2-2, PDF page 26.
+Motor, planetary transmission, bearings, and controller within a single actuator module.
+https://dspace.mit.edu/entities/publication/b85069e2-f1cd-470e-a92a-9bf0dadfa7ee
+The thesis figure is not reproduced in the website. This is a sourced mechanical
+study using independently published CAD and a representative controller, not an
+exact reconstruction of Katz's original hardware or controller.
+
+Changes: STEP tessellation through CadQuery/OpenCascade; rigid alignment and
+translations for the exploded presentation; the controller's material primitives
+merged without changing their geometry; presentation materials changed to steel
+greys. The visualization uses 69 meshes and 973,838 source triangles. No original
+mechanical shapes were authored. The assembled mix is not a dimensionally
+validated or buildable actuator design.
+
+Portable asset: actuator.meshopt.glb (7,565,356 bytes).
+SHA-256: 8f5c44694c2c91b19c5a8d0b46ae7393ea230354098e2d783e753c6934b00a65
+Meshopt compression without quantization or simplification; every vertex
+attribute and oriented triangle was checked after decompression.
+
+ASCII renderer and Swell background: Asciify 4.33.0 by ayangabryl, MIT.
+https://github.com/ayangabryl/asciify-engine
+Unmodified engine and preset, with its stock fluid pointer response at reduced
+strength. See LICENSE-Asciify.txt.
+
+3D asset loader and scene renderer: Three.js 0.182.0, MIT.
+https://github.com/mrdoob/three.js
+See LICENSE-Three.txt.
+
+Meshopt compression and decoder: meshoptimizer by Arseny Kapoulkine, MIT.
+https://github.com/zeux/meshoptimizer
+See LICENSE-Meshoptimizer.txt.
+
+ASCII typeface: IBM Plex Mono Regular by IBM, SIL Open Font License 1.1.
+https://github.com/IBM/plex
+See OFL-Plex.txt.
+
+The previous motor.glb is an unused historical asset. DJI Phantom 4 BLDC Motor
+by Flikd Design / Rowan Design, CC-BY-4.0, is not rendered by the current website.
+https://sketchfab.com/3d-models/dji-phantom-4-bldc-motor-bd5e4fb4da604041962d4f4963027fde

@@ -1,0 +1,80 @@
+/* Hallmark · custom research site · dark steel · existing Geist and Plex · v2.0.0 */
+/* Critique: the actuator carries the complexity; the writing and navigation remain direct. */
+:root {
+  color-scheme: dark;
+  --paper: #080A0B;
+  --ink: #C7CDD0;
+  --bright: #E0E5E7;
+  --muted: #8D969C;
+  --accent: #F07855;
+  --line: rgba(199,205,208,.2);
+  --link: #A7B9F0;
+  --surface: #101416;
+  --site-font: Geist, Arial, sans-serif;
+  --site-mono: "IBM Plex Mono", monospace;
+}
+body { background: var(--paper); color: var(--ink); }
+.skip { color: var(--paper); background: var(--bright); }
+.header, .hero.hero-study, .contents { border-color: var(--line); }
+.header { color: var(--ink); }
+.header a:hover { color: var(--bright); }
+.hero-study .hero-title { color: var(--bright); }
+.hero-study .hero-motor { top: 170px; width: min(1000px,100%); height: 370px; }
+.hero-study .hero-tools { display: none; }
+.hero-study .hero-information { grid-template-columns: 1.4fr 1fr auto; align-items: center; top: 550px; }
+.hero-study .subtitle { color: var(--ink); }
+.hero-study .authors { justify-self: center; align-self: center; margin: 0; color: var(--muted); }
+.research-door {
+  position: relative;
+  justify-self: end;
+  display: flex;
+  align-items: flex-start;
+  gap: 28px;
+  min-height: 60px;
+  padding-left: 22px;
+  color: var(--bright);
+  border-left: 1px solid var(--accent);
+  font-size: 25px;
+  line-height: 28px;
+  letter-spacing: -.65px;
+}
+.research-door span span { display: block; }
+.research-door img { width: 26px; height: 26px; margin-top: 2px; transition: transform 240ms ease; }
+.research-door > span { transition: transform 240ms ease; }
+.research-door:hover > span { transform: translateX(3px); }
+.research-door:hover img { transform: translate(3px,-3px); }
+.research-door:active { color: var(--accent); }
+.contents { padding-top: 40px; padding-bottom: 56px; }
+.section-heading p { color: var(--muted); }
+.contents-image { background: var(--surface); }
+.contents-tile h3 { color: var(--ink); }
+.contents-tile:hover h3, .contents-tile:focus-visible h3 { color: var(--bright); }
+.contents-image > img { opacity: .62; }
+.contents-tile:hover .contents-image::after, .contents-tile:focus-visible .contents-image::after { box-shadow: inset 0 0 0 1px var(--accent); }
+#trajectories { padding-top: 0; }
+#trajectories .robotics-graph { border-top: 0; padding-top: 56px; }
+.site-footer { margin-top: 72px; border-top: 1px solid var(--line); padding: 28px 0 36px; display: flex; justify-content: space-between; gap: 24px; color: var(--muted); font-size: 13px; }
+.site-footer a:hover { color: var(--bright); text-decoration: underline; text-underline-offset: 4px; }
+.site-footer nav { gap: 28px; font-size: inherit; }
+.site-footer nav a:first-child { display: block; }
+.mobile-preview-hint { display: none; }
+@media (max-width: 1000px) {
+  .hero-study .hero-information { grid-template-columns: 1fr auto; gap: 18px; }
+  .hero-study .authors { grid-column: 1; grid-row: 2; justify-self: start; flex-direction: row; gap: 28px; }
+  .research-door { grid-column: 2; grid-row: 1 / 3; align-self: center; font-size: 22px; line-height: 25px; }
+  .hero-study .hero-motor { top: 178px; height: 350px; }
+}
+@media (max-width: 520px) {
+  .hero-study .hero-motor { top: 158px; height: 300px; }
+  .hero-study .hero-information { top: 488px; grid-template-columns: 1fr auto; gap: 24px 16px; }
+  .hero-study .subtitle { grid-column: 1 / 3; font-size: 18px; line-height: 24px; }
+  .hero-study .authors { grid-column: 1; grid-row: 2; flex-direction: row; font-size: 11px; gap: 20px; align-self: center; }
+  .hero-study .authors span { font-size: 10px; }
+  .research-door { grid-column: 2; grid-row: 2; font-size: 18px; line-height: 21px; gap: 8px; padding-left: 12px; min-height: 44px; }
+  .research-door img { width: 20px; height: 20px; }
+  .site-footer { flex-direction: column; gap: 18px; }
+  #trajectories .robotics-graph { padding-top: 40px; }
+  .desktop-preview-hint { display: none; }
+  .mobile-preview-hint { display: inline; }
+}
+@media (prefers-reduced-motion: reduce) { .research-door:hover > span, .research-door:hover img { transform: none; } }

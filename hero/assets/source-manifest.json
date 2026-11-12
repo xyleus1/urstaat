@@ -1,0 +1,177 @@
+{
+  "model": {
+    "file": "actuator.meshopt.glb",
+    "bytes": 7565356,
+    "sha256": "8f5c44694c2c91b19c5a8d0b46ae7393ea230354098e2d783e753c6934b00a65",
+    "compression": "EXT_meshopt_compression; no quantization or geometry simplification",
+    "sourceMeshes": 69,
+    "attributeValuesVerifiedExact": 4745143,
+    "trianglesVerifiedSame": 973838,
+    "title": "Exploded planetary actuator study",
+    "description": "Published Mini-Cheetah replica CAD plus a representative populated moteus C1 controller; not the exact Katz actuator or electronics.",
+    "architectureReference": {
+      "creator": "Benjamin Katz",
+      "year": 2018,
+      "figure": "2-2",
+      "pdfPage": 26,
+      "caption": "Motor, planetary transmission, bearings, and controller within a single actuator module.",
+      "source": "https://dspace.mit.edu/entities/publication/b85069e2-f1cd-470e-a92a-9bf0dadfa7ee",
+      "usage": "Architecture reference only; the thesis image is not reproduced in the website."
+    },
+    "mechanicalSource": {
+      "title": "Mini-Cheetah-Actuator",
+      "creator": "Saketh vegesna (SakethGG)",
+      "source": "https://github.com/SakethGG/Mini-Cheetah-Actuator",
+      "commit": "b328c3cb0a57462f9913feda79b7f9047c63cd43",
+      "cadDirectory": "https://github.com/SakethGG/Mini-Cheetah-Actuator/tree/b328c3cb0a57462f9913feda79b7f9047c63cd43/Hardware/step%20files",
+      "license": "MIT",
+      "licenseFile": "LICENSE-MiniCheetah.txt",
+      "originalFiles": [
+        {
+          "file": "front housing.STEP",
+          "bytes": 752440,
+          "sha256": "bb1aaba2c28d171d4b86314bc224952040be0f22ba91b851efa423e8402dd85c"
+        },
+        {
+          "file": "6708 ball bearing.STEP",
+          "bytes": 358903,
+          "sha256": "755e7562891bcad5853868d475083ac004f3813bc6575af3e4753321347a643d"
+        },
+        {
+          "file": "PLANETARY SETUP.STEP",
+          "bytes": 5438724,
+          "sha256": "9dd737b50b369d32dceaa34a53b38b3effcc55cba1b629b9707628023bb36a80"
+        },
+        {
+          "file": "stator.STEP",
+          "bytes": 716138,
+          "sha256": "c73624475e4bd98062d6ab0a4b02471888f290d2ab17861d9b29d068272605e4"
+        },
+        {
+          "file": "rotor.STEP",
+          "bytes": 782708,
+          "sha256": "376946fb82bebcaf2dd1f058f4dda5df0e936e6fffb30fe7df35601ee3eadcdf"
+        },
+        {
+          "file": "back housing.STEP",
+          "bytes": 541674,
+          "sha256": "2eaf5651bb5b6fd4b4150fac3cb9dfb8d6eeb2a25b0dc1b5397654672bdb667e"
+        },
+        {
+          "file": "sun gear holder.STEP",
+          "bytes": 41453,
+          "sha256": "cc9f43228c438733c7754dddc93ad92740d4e98e3e7cf0101fa658f8e4d0ccde"
+        },
+        {
+          "file": "6702 ball bearing.STEP",
+          "bytes": 91041,
+          "sha256": "df33f5830c3b13748efde05f44b50267b293553c5f3574d7deaddd1122e7d0c1"
+        }
+      ]
+    },
+    "controllerSource": {
+      "title": "moteus C1",
+      "creator": "mjbots",
+      "source": "https://github.com/mjbots/moteus",
+      "commit": "f8623f701f35ce26449465cb56017d9ac06391f8",
+      "cadDirectory": "https://github.com/mjbots/moteus/tree/f8623f701f35ce26449465cb56017d9ac06391f8/hw/c1",
+      "license": "Apache-2.0",
+      "licenseFile": "LICENSE-Moteus.txt",
+      "exportProvider": "GoForFab, public KiCad export",
+      "exportPage": "https://goforfab.com/pcb/mjbots/moteus",
+      "download": "https://goforfab.com/projects/moteus/runs/483/outputs/9543/view",
+      "exportRun": 483,
+      "sourceComponents": 104,
+      "sourceBoardMillimeters": [
+        38,
+        38
+      ],
+      "originalFile": {
+        "file": "moteus-c1.glb",
+        "bytes": 18033632,
+        "sha256": "5441514becbf4105bfa1b624a9d7c2e548370020e026955784280a26eb77ee40"
+      },
+      "libraryModels": "KiCad libraries; CC-BY-SA-4.0 with generated-design exception",
+      "libraryLicense": "https://www.kicad.org/libraries/license/"
+    },
+    "conversion": {
+      "script": "../actuator-source/convert-actuator.py",
+      "cadConverter": "CadQuery / OpenCascade STEP tessellation",
+      "meshExporter": "trimesh",
+      "linearTolerance": 0.07,
+      "angularTolerance": 0.12,
+      "sourceTriangleCount": 973838,
+      "meshNodes": 69,
+      "componentGroups": [
+        "back",
+        "carrier",
+        "controller",
+        "front",
+        "motor-bearing",
+        "needle-bearings",
+        "output-bearing",
+        "pins",
+        "planets",
+        "ring",
+        "rotor",
+        "shaft",
+        "stator",
+        "sun"
+      ],
+      "changes": "STEP tessellation, rigid source-part alignment and exploded translations; source controller primitives merged without changing geometry; presentation materials changed to steel greys. No invented mechanical geometry.",
+      "uncompressed": {
+        "file": "actuator.glb",
+        "bytes": 23115380,
+        "sha256": "aef0459fcc0895cad0840c874f1f1d6725fd74d82ae9c8da3aba8d7c30d1cffa"
+      },
+      "compressionScript": "../actuator-source/compress-actuator.mjs",
+      "compressionVerification": "All 4,745,143 attribute values identical after decoding; all 973,838 oriented triangles preserved."
+    }
+  },
+  "renderer": {
+    "package": "asciify-engine",
+    "version": "4.33.0",
+    "license": "MIT",
+    "source": "https://github.com/ayangabryl/asciify-engine",
+    "researchedSourceCommit": "7adff62dcbaf5ef4dcf0f939c4807b24f6dc553e",
+    "entrypoint": "asciify-engine/field",
+    "wavePreset": "Swell",
+    "waveHover": "Stock fluid hover, reduced force and refraction",
+    "engineModified": false
+  },
+  "three": {
+    "package": "three",
+    "version": "0.182.0",
+    "license": "MIT"
+  },
+  "meshopt": {
+    "encoderPackage": "meshoptimizer",
+    "encoderVersion": "1.3.0",
+    "decoder": "Three.js bundled MeshoptDecoder",
+    "source": "https://github.com/zeux/meshoptimizer",
+    "license": "MIT",
+    "licenseFile": "LICENSE-Meshoptimizer.txt"
+  },
+  "font": {
+    "file": "IBMPlexMono-Regular.ttf",
+    "name": "IBM Plex Mono Regular",
+    "license": "OFL-1.1",
+    "source": "https://github.com/IBM/plex"
+  },
+  "presentation": {
+    "ink": "#C7CDD0",
+    "paper": "#080A0B",
+    "loopSeconds": 20,
+    "targetFps": 30,
+    "visibleGlyphCellCssPx": 4,
+    "renderingPixelRatio": 2,
+    "glyphCellDevicePx": 8,
+    "lowDprMethod": "CSS canvas supersampling and inverse transform, using the unmodified engine",
+    "waveOpacity": 0.08,
+    "desktopViewport": [
+      1000,
+      370
+    ],
+    "mobileViewport": "Container width by 300px; diagonal composition"
+  }
+}

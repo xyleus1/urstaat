@@ -1,0 +1,101 @@
+/* Interactive rendering of the existing research diagram. */
+.robotics-graph {
+  --graph-paper: #080A0B;
+  --graph-ink: #C7CDD0;
+  --graph-muted: #929A9F;
+  --graph-rule: #343B40;
+  --graph-grid: #20272C;
+  --graph-accent: #F07855;
+  color: var(--graph-ink);
+  padding: 42px 0 32px;
+  border-top: 1px solid var(--graph-rule);
+  font-family: inherit;
+}
+.robotics-graph * { box-sizing: border-box; }
+.robotics-graph .graph-heading { display: flex; justify-content: space-between; align-items: start; gap: 36px; margin-bottom: 38px; }
+.robotics-graph .graph-heading h2 { margin: 0; font-size: 30px; line-height: 1.2; font-weight: 400; letter-spacing: -.8px; }
+.robotics-graph .graph-heading p { max-width: 440px; margin: 0; font-size: 16px; line-height: 24px; }
+.robotics-graph .graph-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 0 0 20px; }
+.robotics-graph .graph-toolbar button { color: var(--graph-ink); border: 1px solid var(--graph-rule); background: transparent; font: inherit; font-size: 13px; line-height: 18px; padding: 11px 18px; min-height: 42px; cursor: pointer; transition: color 200ms ease, background-color 200ms ease, border-color 200ms ease; }
+.robotics-graph .graph-toolbar button:hover { border-color: var(--graph-ink); }
+.robotics-graph .graph-toolbar button[aria-pressed="true"] { background: var(--graph-ink); color: var(--graph-paper); border-color: var(--graph-ink); }
+.robotics-graph .graph-toolbar button:active { transform: translateY(1px); }
+.robotics-graph button:focus-visible, .robotics-graph input:focus-visible, .robotics-graph summary:focus-visible { outline: 2px solid var(--graph-accent); outline-offset: 5px; }
+.robotics-graph .graph-status { color: var(--graph-muted); font-size: 11px; margin-left: auto; }
+.robotics-graph .graph-stage { position: relative; width: 100%; }
+.robotics-graph .graph-svg { display: block; width: 100%; overflow: visible; touch-action: pan-y; }
+.robotics-graph .graph-svg text { font-family: inherit; user-select: none; }
+.robotics-graph .graph-grid-line { stroke: var(--graph-grid); stroke-width: .6; }
+.robotics-graph .graph-grid-line.major { stroke: var(--graph-rule); stroke-width: .8; }
+.robotics-graph .graph-axis-text { fill: var(--graph-muted); font-size: 11px; }
+.robotics-graph .graph-axis-caption { fill: var(--graph-muted); font-size: 10px; }
+.robotics-graph .graph-era-label { fill: var(--graph-muted); font-size: 10px; }
+.robotics-graph .graph-future-field { fill: var(--graph-ink); fill-opacity: .022; }
+.robotics-graph .graph-series { opacity: 1; transition: opacity 260ms ease; }
+.robotics-graph .graph-series.is-muted { opacity: .13; }
+.robotics-graph .graph-main-line { stroke-width: 1.7; transition: stroke-width 260ms ease; }
+.robotics-graph .graph-series.is-selected .graph-main-line { stroke-width: 2.4; }
+.robotics-graph .graph-scenario-line { opacity: .2; stroke-width: .7; }
+.robotics-graph .graph-series path { fill: none; stroke-linejoin: round; stroke-linecap: round; }
+.robotics-graph .graph-divider { stroke: var(--graph-ink); stroke-opacity: .4; stroke-width: 1; }
+.robotics-graph .graph-divider-label { fill: var(--graph-muted); font-size: 11px; }
+.robotics-graph .graph-crosshair { stroke: var(--graph-ink); stroke-opacity: .6; stroke-width: 1; stroke-dasharray: 2 4; }
+.robotics-graph .graph-dot { stroke: var(--graph-paper); stroke-width: 2; transition: opacity 260ms ease, r 200ms ease; }
+.robotics-graph .graph-dot.is-muted { opacity: .14; }
+.robotics-graph .graph-dot-halo { opacity: .12; transition: opacity 260ms ease; }
+.robotics-graph .graph-dot-halo.is-muted { opacity: 0; }
+.robotics-graph .graph-cursor-year rect { fill: var(--graph-ink); }
+.robotics-graph .graph-cursor-year text { fill: var(--graph-paper); font-size: 11px; font-variant-numeric: tabular-nums; }
+.robotics-graph .graph-pointer-surface { fill: transparent; cursor: crosshair; }
+.robotics-graph .graph-labels { position: absolute; inset: 0; pointer-events: none; }
+.robotics-graph .graph-label { position: absolute; display: flex; flex-direction: column; align-items: flex-start; text-align: left; border: 0; padding: 0 0 0 15px; margin: 0; background: transparent; color: var(--series-color); font-family: inherit; font-weight: 400; cursor: pointer; pointer-events: auto; opacity: 1; transition: opacity 260ms ease; }
+.robotics-graph .graph-label::before { content: ''; position: absolute; top: 7px; left: 0; width: 5px; height: 5px; background: var(--series-color); border-radius: 50%; }
+.robotics-graph .graph-label.is-muted { opacity: .22; }
+.robotics-graph .graph-label:hover { opacity: 1; }
+.robotics-graph .graph-label-name { font-size: 12px; line-height: 17px; }
+.robotics-graph .graph-label-definition { color: var(--graph-muted); font-size: 9px; line-height: 15px; }
+.robotics-graph .graph-label-value { font-size: 10px; line-height: 15px; font-variant-numeric: tabular-nums; }
+.robotics-graph .graph-scrubber { display: flex; align-items: center; gap: 18px; margin: 1px 0 16px; }
+.robotics-graph .graph-scrubber label { color: var(--graph-muted); font-size: 12px; white-space: nowrap; }
+.robotics-graph .graph-scrubber output { color: var(--graph-ink); font-size: 13px; min-width: 48px; font-variant-numeric: tabular-nums; }
+.robotics-graph .graph-scrubber input { appearance: none; height: 24px; flex: 1; min-width: 0; margin: 0; background: transparent; cursor: ew-resize; }
+.robotics-graph .graph-scrubber input::-webkit-slider-runnable-track { height: 1px; background: var(--graph-rule); }
+.robotics-graph .graph-scrubber input::-webkit-slider-thumb { appearance: none; width: 9px; height: 9px; margin-top: -4px; border-radius: 50%; background: var(--graph-ink); border: 0; }
+.robotics-graph .graph-scrubber input::-moz-range-track { height: 1px; background: var(--graph-rule); }
+.robotics-graph .graph-scrubber input::-moz-range-thumb { width: 9px; height: 9px; border-radius: 50%; background: var(--graph-ink); border: 0; }
+.robotics-graph .graph-detail { display: flex; justify-content: space-between; align-items: center; gap: 12px 24px; }
+.robotics-graph .graph-detail-title { margin: 0; font-size: 14px; line-height: 22px; color: var(--graph-accent); font-weight: 400; }
+.robotics-graph .graph-detail-description { margin: 0; font-size: 16px; line-height: 24px; max-width: 640px; }
+.robotics-graph .graph-key { display: flex; align-items: center; gap: 18px; color: var(--graph-muted); font-size: 11px; line-height: 20px; margin: 0; }
+.robotics-graph .graph-key > span { white-space: nowrap; }
+.robotics-graph .graph-key-line { display: inline-block; vertical-align: middle; width: 20px; margin: 0 6px 2px 0; border-top: 1px solid var(--graph-muted); }
+.robotics-graph .graph-key-line.dashed { border-top-style: dashed; }
+.robotics-graph .graph-note { margin: 29px 0 0; color: var(--graph-muted); font-size: 12px; line-height: 20px; max-width: 850px; }
+.robotics-graph .graph-method { margin-top: 10px; color: var(--graph-muted); font-size: 12px; line-height: 20px; max-width: 850px; }
+.robotics-graph .graph-method summary { cursor: pointer; width: fit-content; }
+.robotics-graph .graph-method p { margin: 10px 0 0; }
+@media (max-width: 1000px) {
+  .robotics-graph .graph-heading { gap: 24px; }
+  .robotics-graph .graph-heading p { max-width: 340px; }
+  .robotics-graph .graph-toolbar { gap: 8px; }
+  .robotics-graph .graph-toolbar button { padding-inline: 13px; }
+  .robotics-graph .graph-status { flex-basis: 100%; margin-left: 0; padding-top: 5px; }
+}
+@media (max-width: 760px) {
+  .robotics-graph { padding-top: 32px; padding-bottom: 24px; }
+  .robotics-graph .graph-heading { flex-direction: column; gap: 16px; margin-bottom: 27px; }
+  .robotics-graph .graph-heading h2 { font-size: 28px; }
+  .robotics-graph .graph-heading p { font-size: 15px; line-height: 22px; max-width: 430px; }
+  .robotics-graph .graph-toolbar button { font-size: 12px; padding: 10px 12px; min-height: 39px; }
+  .robotics-graph .graph-scrubber { margin-bottom: 16px; gap: 12px; }
+  .robotics-graph .graph-detail { flex-wrap: wrap; gap: 6px 24px; }
+  .robotics-graph .graph-detail-description { font-size: 15px; line-height: 23px; }
+}
+.robotics-graph.is-compact .graph-labels { position: static; display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 18px 20px; margin: 5px 0 26px; }
+.robotics-graph.is-compact .graph-label { position: relative; left: auto !important; top: auto !important; width: auto !important; min-height: 39px; }
+.robotics-graph.is-compact .graph-label-definition { display: none; }
+.robotics-graph.is-compact .graph-label-name { font-size: 12px; line-height: 17px; }
+.robotics-graph.is-compact .graph-label-value { font-size: 11px; line-height: 18px; }
+@media (prefers-reduced-motion: reduce) {
+  .robotics-graph *, .robotics-graph *::before { transition: none !important; }
+}

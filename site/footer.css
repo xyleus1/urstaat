@@ -1,0 +1,25 @@
+/* Compact closing navigation integrated with the page's existing typography. */
+.site-footer.footer-refined {
+  margin-top: 0;
+  padding: 24px 0 32px;
+  border-top: 0;
+  align-items: center;
+  font-size: 13px;
+  line-height: 20px;
+}
+.footer-refined .footer-name { color: var(--ink); letter-spacing: -.15px; }
+.site-footer.footer-refined nav { display: flex; align-items: center; gap: 28px; }
+.site-footer.footer-refined nav a { min-height: 44px; display: inline-flex; align-items: center; gap: 10px; text-decoration: none; }
+.footer-refined .footer-read { color: var(--bright); }
+.footer-refined a img { transition: transform 180ms ease; }
+.footer-refined a:hover { color: var(--bright); text-decoration: underline !important; text-underline-offset: 5px; }
+.footer-refined .footer-read:hover img { transform: translate(2px,-2px); }
+.footer-refined a:focus-visible { outline: 1px solid var(--accent); outline-offset: 5px; }
+@media (max-width: 760px) {
+  .site-footer.footer-refined { align-items: flex-start; gap: 12px; padding: 24px 0; }
+  .site-footer.footer-refined nav { flex-wrap: wrap; gap: 8px 24px; width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .footer-refined a img { transition: none; }
+  .footer-refined .footer-read:hover img { transform: none; }
+}

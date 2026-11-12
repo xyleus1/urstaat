@@ -1,0 +1,1 @@
+{"name":"robotics-ascii-hero","private":true,"type":"module","scripts":{"build":"node build.mjs"},"dependencies":{"asciify-engine":"4.33.0","three":"0.182.0"},"devDependencies":{"@gltf-transform/core":"^4.5.1","@gltf-transform/extensions":"^4.5.1","esbuild":"0.25.12","meshoptimizer":"^1.3.0"}}

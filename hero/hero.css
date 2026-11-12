@@ -1,0 +1,116 @@
+/* Hallmark · component: research hero · theme: approved custom · Geist / IBM Plex Mono · v2.0.0 */
+/* Critique: a sourced mechanical assembly carries the detail; typography and surrounding paper stay quiet. */
+/* Scope: only .hero-study; the existing navigation, contents and graph remain untouched. */
+/* waive 24b: optical spacing follows the approved fixed-height composition rather than a four-pixel grid. */
+@font-face {
+  font-family: "IBM Plex Mono";
+  src: url("./assets/IBMPlexMono-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+:root { --hero-font: Geist, Arial, sans-serif; --hero-mono: "IBM Plex Mono", monospace; }
+.hero.hero-study {
+  position: relative;
+  isolation: isolate;
+  display: block;
+  height: 655px;
+  min-height: 655px;
+  padding: 0;
+  overflow: clip;
+}
+.hero-study .hero-art {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+}
+.hero-study .hero-waves { position: absolute; inset: 0; overflow: clip; }
+.hero-study .hero-motor { position: absolute; width: 640px; height: 340px; left: 50%; top: 180px; transform: translateX(-50%); }
+.hero-study .hero-motor canvas { display: block; width: 100%; height: 100%; }
+.hero-study .hero-poster { position: absolute; display: block; inset: 0; width: 100%; height: 100%; object-fit: contain; opacity: 1; }
+.hero-study .hero-poster[hidden] { display: none; }
+.hero-study .hero-waves {
+  mask-image: linear-gradient(to bottom, transparent 18%, black 34%, black 66%, transparent 82%);
+}
+.hero-study .hero-title {
+  position: absolute;
+  top: 20px;
+  left: 0;
+  width: 100%;
+  margin: 0;
+  padding: 0 30px;
+  text-align: center;
+  font-family: var(--hero-font);
+  font-size: clamp(84px, 8.889vw, 128px);
+  line-height: 1.0625;
+  font-weight: 400;
+  letter-spacing: -2px;
+  white-space: nowrap;
+  text-wrap: balance;
+}
+.hero-study .hero-title span { display: inline; }
+.hero-study .hero-information {
+  position: absolute;
+  top: 550px;
+  left: 0;
+  right: 0;
+  display: grid;
+  grid-template-columns: 1.2fr .7fr 1fr;
+  align-items: end;
+  gap: 32px;
+}
+.hero-study .subtitle { font-size: 22px; line-height: 30px; letter-spacing: -.45px; }
+.hero-study .research-link { justify-self: center; align-self: end; margin: 0 0 5px; padding: 8px 0; white-space: nowrap; }
+.hero-study .research-link:hover { border-color: var(--ink); }
+.hero-study .authors { justify-self: end; align-self: end; margin: 0 0 8px; gap: 36px; }
+.hero-study .hero-tools {
+  position: absolute;
+  top: 518px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  column-gap: 22px;
+  font-size: 11px;
+  line-height: 18px;
+  white-space: nowrap;
+}
+.hero-study .hero-credit { display: flex; gap: 12px; }
+.hero-study .hero-credit a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.hero-study .hero-pause { margin: 0; padding: 3px 0; border: 0; color: var(--ink); background: transparent; font-family: var(--hero-font); font-size: 11px; line-height: 18px; cursor: pointer; }
+.hero-study .hero-pause:hover { text-decoration: underline; text-underline-offset: 3px; }
+.hero-study .hero-pause:active { transform: translateY(1px); }
+.hero-study a:focus-visible, .hero-study button:focus-visible { outline: 3px solid var(--accent); outline-offset: 6px; }
+.hero-study .hero-pause[hidden] { display: none; }
+.hero-study .hero-pause:disabled { opacity: .55; cursor: default; }
+@media (min-width: 1600px) { .hero-study .hero-title { top: 20px; } }
+@media (max-width: 1100px) {
+  .hero-study .hero-title { padding-inline: 0; font-size: 8.7vw; letter-spacing: -1.5px; }
+  .hero-study .hero-information { grid-template-columns: 1.2fr .8fr 1fr; gap: 22px; }
+  .hero-study .authors { gap: 22px; }
+}
+@media (max-width: 900px) {
+  .hero-study .hero-title { top: 20px; font-size: 72px; line-height: 76px; white-space: normal; }
+  .hero-study .hero-title span { display: block; }
+  .hero-study .hero-motor { top: 180px; width: min(640px, 100%); height: 340px; }
+  .hero-study .hero-information { top: 551px; grid-template-columns: 1fr auto; gap: 20px; }
+  .hero-study .subtitle { font-size: 20px; line-height: 26px; }
+  .hero-study .research-link { grid-column: 1; justify-self: start; margin-top: -8px; font-size: 16px; }
+  .hero-study .authors { grid-column: 2; grid-row: 1 / 3; margin-bottom: 10px; }
+}
+@media (max-width: 520px) {
+  .hero-study .hero-title { top: 26px; font-size: 50px; line-height: 54px; letter-spacing: -1.7px; }
+  .hero-study .hero-motor { top: 166px; height: 236px; }
+  .hero-study .hero-tools { top: 413px; width: 100%; gap: 14px; font-size: 10px; }
+  .hero-study .hero-credit { gap: 8px; }
+  .hero-study .hero-pause { font-size: 10px; }
+  .hero-study .hero-information { top: 472px; grid-template-columns: 1fr auto; gap: 20px 10px; }
+  .hero-study .subtitle { font-size: 19px; line-height: 25px; grid-column: 1 / 3; }
+  .hero-study .research-link { grid-column: 1; grid-row: 2; margin: 0; font-size: 15px; }
+  .hero-study .authors { grid-column: 2; grid-row: 2; flex-direction: column; gap: 10px; font-size: 12px; margin: 0; }
+  .hero-study .authors span { font-size: 10px; }
+  .hero-study .hero-waves { mask-image: linear-gradient(to bottom, transparent 18%, black 30%, black 52%, transparent 67%); }
+}
+@media (prefers-reduced-motion: reduce) { .hero-study .hero-pause { display: none; } }
