@@ -6,11 +6,23 @@
   <meta name="theme-color" content="#080A0B">
   <meta name="description" content="Research, actuator CAD, footage, and software sources for Run before you walk.">
   <title>Sources &mdash; Run before you walk</title>
+  <link rel="canonical" href="https://urstaat.com/sources/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Run before you walk">
+  <meta property="og:title" content="Sources — Run before you walk">
+  <meta property="og:description" content="Research, actuator CAD, footage, and software sources for Run before you walk.">
+  <meta property="og:url" content="https://urstaat.com/sources/">
+  <meta property="og:image" content="https://urstaat.com/hero/exports/motor-poster@2x.png">
+  <meta property="og:image:alt" content="Exploded actuator assembly rendered in ASCII.">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="../site/media/cog.svg" type="image/svg+xml">
+  <link rel="preload" href="../revision-assets/geist.ttf" as="font" type="font/ttf" crossorigin>
+
   <link rel="stylesheet" href="../revision/styles.css">
   <link rel="stylesheet" href="../hero/hero.css">
-  <link rel="stylesheet" href="../site/site.css">
-  <link rel="stylesheet" href="../site/article.css">
-  <link rel="stylesheet" href="../site/sources.css">
+  <link rel="stylesheet" href="../site/site.css?v=finish-1">
+  <link rel="stylesheet" href="../site/article.css?v=reading-polish-1">
+  <link rel="stylesheet" href="../site/sources.css?v=reading-polish-1">
 </head>
 <body>
 <a class="skip" href="#sources">Skip to sources</a>
@@ -21,7 +33,7 @@
   </header>
   <main class="reading-layout source-layout">
     <aside class="reading-contents" aria-label="Sources contents">
-      <p>Sources</p>
+      <p>On this page</p>
       <ol>
         <li><a href="#research">Research text</a></li>
         <li><a href="#actuator">Actuator study</a></li>
@@ -30,7 +42,7 @@
         <li><a href="#trajectories">Graph methodology</a></li>
       </ol>
     </aside>
-    <article class="essay source-article" id="sources">
+    <article class="essay source-article" id="sources" tabindex="-1">
       <header>
         <h1>Sources</h1>
         <p class="source-intro">The research, mechanical models, real robot footage, and tools behind this site.</p>
@@ -69,15 +81,19 @@
             <li><a href="https://github.com/ayangabryl/asciify-engine">Asciify Engine 4.33.0</a> &mdash; ASCII rendering and the Swell background preset, with the stock fluid pointer response adjusted for this page. <a href="../hero/assets/LICENSE-Asciify.txt">MIT License</a>.</li>
             <li><a href="https://github.com/mrdoob/three.js">Three.js 0.182.0</a> &mdash; 3D loading and rendering. <a href="../hero/assets/LICENSE-Three.txt">MIT License</a>.</li>
             <li><a href="https://github.com/zeux/meshoptimizer">meshoptimizer</a> &mdash; model compression and decoding. <a href="../hero/assets/LICENSE-Meshoptimizer.txt">MIT License</a>.</li>
+            <li><a href="https://echarts.apache.org/">Apache ECharts 6.1.0</a> &mdash; trajectory rendering, axes, and chart interaction. <a href="../site/vendor/LICENSES.txt">Apache License 2.0</a>.</li>
+            <li><a href="https://motion.dev/">Motion 14.14.0</a> &mdash; the graph&rsquo;s media-panel transitions. <a href="../site/vendor/LICENSES.txt">MIT License</a>.</li>
             <li><a href="https://github.com/IBM/plex">IBM Plex Mono</a> &mdash; the ASCII typeface. <a href="../hero/assets/OFL-Plex.txt">SIL Open Font License 1.1</a>.</li>
             <li><a href="https://github.com/vercel/geist-font">Geist</a> &mdash; the site&rsquo;s text typeface. <a href="../revision-assets/geist-OFL.txt">SIL Open Font License 1.1</a>.</li>
-            <li><a href="https://lucide.dev/">Lucide</a> &mdash; navigation icons. <a href="../site/media/LICENSE-Lucide.txt">ISC License</a>.</li>
+            <li><a href="https://lucide.dev/">Lucide</a> &mdash; navigation icons and the site favicon. <a href="../site/media/LICENSE-Lucide.txt">ISC License</a>.</li>
           </ul>
         </section>
         <section aria-labelledby="trajectories">
           <h2 id="trajectories">Graph methodology</h2>
-          <p>The trajectories are synthetic design-study curves on a normalized 0&ndash;100 index. They are not measured robotics data or forecasts. The curve values and the 2026 divider demonstrate the visual comparison and interaction.</p>
-          <p>The existing curve shapes are preserved in the <a href="../site/graph-data.js">graph definitions</a>. Labels such as LLM performance, deployment, and hardware affordability describe concepts; the shared index does not establish a quantitative equivalence between them.</p>
+          <p>Each illustrative trajectory is normalized to its own 2026 value: index = original curve value &divide; original 2026 value &times; 100. The shared axis runs from 0 to 900; 100 is a reference year, not a maximum or a human-level threshold. The original curve timing and scenario bands are retained in the <a href="../site/graph-data.js">graph definitions</a>.</p>
+          <p>The values describe the research design&rsquo;s scenarios, not measured performance, prices, or fleet counts. Historical stories provide context and distinguish research demonstrations, launches, pilots, and operational reports. They are not inputs to a fitted numerical model, and a multiple of one line&rsquo;s baseline is not a comparison of absolute capability across lines.</p>
+          <p>Every historical story links to its original publisher or research source. <a href="../site/graph-history-language-hardware.json">Language, humanoid, and hardware sources</a> and <a href="../site/graph-history-robotics.json">data, specialist, and deployment sources</a> retain dates, media references, and attribution. Original players and publisher-hosted video are used; no open-footage license is implied.</p>
+          <p>Future entries currently reserve space for Recraft storyboard sketches. Their <a href="../site/graph-future-stories.json">scene descriptions</a> explore possible developments; they do not document events. The sketch frames remain intentionally empty until the illustrations are ready.</p>
         </section>
       </div>
       <footer class="essay-end">
@@ -87,5 +103,6 @@
     </article>
   </main>
 </div>
+<script type="module" src="../site/article.js?v=reading-polish-1"></script>
 </body>
 </html>

@@ -29,6 +29,39 @@ or deploy the committed website. ES modules require HTTP rather than file://.
 The graph uses illustrative synthetic trajectories, not measured observations.
 The sources page and media manifests retain the footage credits and rights notes.
 
+## Rebuild the annual graph
+
+The graph normalizes each existing curve to 2026 = 100. Its timeline contains
+72 historical video stories and 84 future scenario stories. Future stories use
+intentional "Sketch forthcoming" placeholders for this release. Their reserved
+asset paths and Recraft prompts are in `site/graph-future-stories.json`.
+No generation credentials are shipped.
+
+After changing the story manifests, run `node site/build-stories.mjs`.
+It validates complete coverage and permits only explicitly declared artwork
+placeholders. For the later artwork release, install each sketch at its reserved
+path, change its media state to `ready`, and use `--require-art` to enforce all
+84 unique images. The committed frontend bundle is generated in `site/`:
+
+```sh
+cd site
+npm ci
+npm test
+npm run test:browser
+npm run build
+node build-stories.mjs
+```
+
+The publication check rejects unplanned missing, invalid, or duplicate artwork.
+ECharts 6.1.0 and Motion 14.14.0 are bundled
+locally; their licenses are included in `site/vendor/LICENSES.txt`.
+
+Development requires Node 22+ and npm. `npm ci` also installs Puppeteer's
+managed Chrome; if browser downloads were disabled, run
+`npx puppeteer browsers install chrome`. The browser regression check starts
+its own local server and blocks third-party requests. It verifies graph
+interactions; publisher playback is checked separately in the full website.
+
 ## Rebuild the actuator bundle
 
 The built bundle is committed. After editing `hero/renderer.js`:

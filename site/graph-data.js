@@ -1,6 +1,6 @@
 // Values and sampling are transcribed from the existing figma-chart.js.
 // They are illustrative design-study curves, not observations or forecasts.
-export const graphDomain = Object.freeze({ firstYear: 2015, lastYear: 2040, dividerYear: 2026, minimum: 0, maximum: 100 });
+export const graphDomain = Object.freeze({ firstYear: 2015, lastYear: 2040, dividerYear: 2026, minimum: 0, maximum: 900 });
 export const graphSeries = Object.freeze([
   { id: 'llm', name: 'LLM performance', color: '#8EAAF0', midpoint: 9, slope: .47, ceiling: 90, definition: 'Language capability index', rail: 75 },
   { id: 'humanoid', name: 'Humanoid development', color: '#D98B6A', midpoint: 16, slope: .33, ceiling: 82, definition: 'Embodied capability index', rail: 198 },
@@ -17,12 +17,24 @@ export const graphViews = Object.freeze([
   { id: 'specialist', label: 'Specialist robots', series: ['specialist'], title: 'Task-specific capability', description: 'Follow the specialist robot trajectory within the same illustrative system.' },
 ]);
 
-export function sampleSeries(seriesIndex, offset = 0) {
+export function rawValue(seriesIndex, time, offset = 0) {
   const series = graphSeries[seriesIndex];
+  return Math.max(0, series.ceiling / (1 + Math.exp(-series.slope * (time - series.midpoint - offset))) + .8 * Math.sin(time * 1.4 + seriesIndex));
+}
+
+// Keep every original 0.1-year vertex, including the small late LLM oscillations.
+// Both scenario bounds use the CENTRAL 2026 denominator, never their own baseline.
+export function sampleSeries(seriesIndex, offset = 0) {
+  const baseline = rawValue(seriesIndex, graphDomain.dividerYear - graphDomain.firstYear);
   return Array.from({ length: 251 }, (_, i) => {
     const time = i / 10;
-    return { year: 2015 + time, value: Math.max(0, series.ceiling / (1 + Math.exp(-series.slope * (time - series.midpoint - offset))) + .8 * Math.sin(time * 1.4 + seriesIndex)) };
+    return { year: 2015 + time, value: rawValue(seriesIndex, time, offset) / baseline * 100 };
   });
+}
+
+export function snapYear(value) {
+  const year = Number(value);
+  return Math.round(Math.max(graphDomain.firstYear, Math.min(graphDomain.lastYear, Number.isFinite(year) ? year : graphDomain.dividerYear)));
 }
 
 export function interpolateSample(points, year) {
@@ -30,4 +42,36 @@ export function interpolateSample(points, year) {
   const start = Math.min(249, Math.floor(position));
   const fraction = position - start;
   return points[start].value + (points[start + 1].value - points[start].value) * fraction;
+}
+
+// Hit-test the continuous central polyline before rounding the inspection year.
+export function findLineHits(samples, activeIds, point, layout, tolerance = 8) {
+  const px = year => layout.gx + (year - 2015) / 25 * layout.gw;
+  const py = value => layout.gy + layout.gh * (1 - value / 900);
+  const hits = [];
+  graphSeries.forEach((series, seriesIndex) => {
+    if (!activeIds.has(series.id)) return;
+    let distance = Infinity;
+    const points = samples[seriesIndex];
+    for (let i = 1; i < points.length; i++) {
+      const ax = px(points[i - 1].year), bx = px(points[i].year);
+      if (point.x < ax - tolerance || point.x > bx + tolerance) continue;
+      const ay = py(points[i - 1].value), by = py(points[i].value);
+      const dx = bx - ax, dy = by - ay;
+      const t = Math.max(0, Math.min(1, ((point.x - ax) * dx + (point.y - ay) * dy) / (dx * dx + dy * dy)));
+      distance = Math.min(distance, Math.hypot(point.x - ax - t * dx, point.y - ay - t * dy));
+    }
+    if (distance <= tolerance) hits.push({ id: series.id, seriesIndex, distance });
+  });
+  return hits.sort((a, b) => a.distance - b.distance);
+}
+
+export function placeEndpointLabels(endpoints, top, bottom, gap = 57) {
+  const sorted = endpoints.map(endpoint => ({ ...endpoint })).sort((a, b) => a.y - b.y);
+  sorted.forEach((endpoint, i) => { endpoint.labelY = Math.max(endpoint.y - 8, i ? sorted[i - 1].labelY + gap : top); });
+  if (sorted.length && sorted.at(-1).labelY > bottom) {
+    sorted.at(-1).labelY = bottom;
+    for (let i = sorted.length - 2; i >= 0; i--) sorted[i].labelY = Math.min(sorted[i].labelY, sorted[i + 1].labelY - gap);
+  }
+  return sorted;
 }

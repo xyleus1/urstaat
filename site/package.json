@@ -1,0 +1,18 @@
+{
+  "name": "urstaat-research-graph",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "test:browser": "node tests/graph-browser.mjs"
+  },
+  "dependencies": {
+    "echarts": "6.1.0",
+    "motion": "14.14.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2",
+    "puppeteer": "25.17.0"
+  }
+}

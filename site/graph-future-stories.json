@@ -1,0 +1,1598 @@
+[
+  {
+    "id": "llm-2027",
+    "seriesId": "llm",
+    "year": 2027,
+    "kind": "scenario",
+    "title": "Clarifying an instruction",
+    "blurb": "A person points between two cups while the system pauses to clarify the instruction. Resolving which object the person means connects a verbal request with the specific scene before a physical action is chosen.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A person points between two cups while a planning system waits for a clearer instruction.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A person points between two cups while a planning system waits for a clearer instruction. Camera: wide side view. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/llm/2027.webp",
+      "alt": "Rough storyboard sketch: A person points between two cups while a planning system waits for a clearer instruction.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "humanoid-2027",
+    "seriesId": "humanoid",
+    "year": 2027,
+    "kind": "scenario",
+    "title": "A handover at the workbench",
+    "blurb": "A humanoid passes a component to a person at an ordinary workbench. The exchange depends on coordinating reach, grip, and release with the recipient, bringing physical control into a shared workspace designed around people.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A humanoid passes one component to a person at a familiar human-height workbench.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A humanoid passes one component to a person at a familiar human-height workbench. Camera: three-quarter view from a low workbench height. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/humanoid/2027.webp",
+      "alt": "Rough storyboard sketch: A humanoid passes one component to a person at a familiar human-height workbench.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "specialist-2027",
+    "seriesId": "specialist",
+    "year": 2027,
+    "kind": "scenario",
+    "title": "Unloading boxes",
+    "blurb": "A suction gripper repeatedly removes boxes from a trailer. Constraining the operation around one object class and workspace lets the machine concentrate on reaching, securing a surface, and placing each load.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A suction gripper repeats a bounded unloading task, with the trailer and boxes providing a deliberately constrained setting.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A suction gripper repeats a bounded unloading task, with the trailer and boxes providing a deliberately constrained setting. Camera: close crop around the action with ample empty space. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/specialist/2027.webp",
+      "alt": "Rough storyboard sketch: A suction gripper repeats a bounded unloading task, with the trailer and boxes providing a deliberately constrained setting.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "deployment-2027",
+    "seriesId": "deployment",
+    "year": 2027,
+    "kind": "scenario",
+    "title": "One supervised work cell",
+    "blurb": "One robot performs a paid operation while a nearby supervisor watches for exceptions. The work cell brings useful output and human attention into the same picture, making the support needed to keep the task running visible.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "One robot performs a paid operation while a nearby supervisor watches for exceptions.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: One robot performs a paid operation while a nearby supervisor watches for exceptions. Camera: wide side view. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/deployment/2027.webp",
+      "alt": "Rough storyboard sketch: One robot performs a paid operation while a nearby supervisor watches for exceptions.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "data-2027",
+    "seriesId": "data",
+    "year": 2027,
+    "kind": "scenario",
+    "title": "Collecting a UMI demonstration",
+    "blurb": "A person demonstrates dish handling with an instrumented handheld gripper away from the robot. Recording the gripper’s movement alongside its observations connects human execution with the action information needed to train a manipulation policy.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A person uses an instrumented handheld gripper to demonstrate a dish-handling movement away from the robot.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A person uses an instrumented handheld gripper to demonstrate a dish-handling movement away from the robot. Camera: three-quarter view from a low workbench height. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/data/2027.webp",
+      "alt": "Rough storyboard sketch: A person uses an instrumented handheld gripper to demonstrate a dish-handling movement away from the robot.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "hardware-2027",
+    "seriesId": "hardware",
+    "year": 2027,
+    "kind": "scenario",
+    "title": "Inside an actuator",
+    "blurb": "An actuator’s motor, planetary transmission, bearings, and controller sit separated along a common axis. Their arrangement shows how electrical control, torque conversion, and mechanical support fit together inside a compact robot joint.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A motor, planetary transmission, bearings, and controller sit slightly separated along the axis of one actuator module.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A motor, planetary transmission, bearings, and controller sit slightly separated along the axis of one actuator module. Camera: close crop around the action with ample empty space. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/hardware/2027.webp",
+      "alt": "Rough storyboard sketch: A motor, planetary transmission, bearings, and controller sit slightly separated along the axis of one actuator module.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "llm-2028",
+    "seriesId": "llm",
+    "year": 2028,
+    "kind": "scenario",
+    "title": "Reordering a short plan",
+    "blurb": "A hand rearranges task cards after the requested order of operations changes. Revising the sequence requires preserving the goal while checking which steps depend on earlier actions and which can move.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A hand rearranges three blank task cards after the requested order of operations changes.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A hand rearranges three blank task cards after the requested order of operations changes. Camera: three-quarter view from a low workbench height. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/llm/2028.webp",
+      "alt": "Rough storyboard sketch: A hand rearranges three blank task cards after the requested order of operations changes.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "humanoid-2028",
+    "seriesId": "humanoid",
+    "year": 2028,
+    "kind": "scenario",
+    "title": "Reaching an existing shelf",
+    "blurb": "A humanoid reaches an upper shelf in an existing kitchen. The counter, cupboard, and tools define the available space, so completing the reach involves choosing a posture that respects both access and balance.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A humanoid reaches an upper shelf without changing the counter, cupboard, or tools around it.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A humanoid reaches an upper shelf without changing the counter, cupboard, or tools around it. Camera: close crop around the action with ample empty space. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/humanoid/2028.webp",
+      "alt": "Rough storyboard sketch: A humanoid reaches an upper shelf without changing the counter, cupboard, or tools around it.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "specialist-2028",
+    "seriesId": "specialist",
+    "year": 2028,
+    "kind": "scenario",
+    "title": "Sorting mixed parts",
+    "blurb": "A dedicated gripper separates manufactured parts into simple fixtures. Matching the tool and receiving positions to the parts can reduce the range of motions needed, making a repeated sorting operation easier to organize.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A dedicated gripper separates a small assortment of manufactured parts into simple fixtures.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A dedicated gripper separates a small assortment of manufactured parts into simple fixtures. Camera: wide side view. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/specialist/2028.webp",
+      "alt": "Rough storyboard sketch: A dedicated gripper separates a small assortment of manufactured parts into simple fixtures.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "deployment-2028",
+    "seriesId": "deployment",
+    "year": 2028,
+    "kind": "scenario",
+    "title": "Two parallel work cells",
+    "blurb": "Two similar work cells carry out the same useful operation in parallel. Repeating a cell introduces shared demands on supervision, material supply, and recovery, so output depends on more than adding another robot.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "Two similar work cells repeat the same useful operation, making supervision and reliability more consequential.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: Two similar work cells repeat the same useful operation, making supervision and reliability more consequential. Camera: three-quarter view from a low workbench height. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/deployment/2028.webp",
+      "alt": "Rough storyboard sketch: Two similar work cells repeat the same useful operation, making supervision and reliability more consequential.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "data-2028",
+    "seriesId": "data",
+    "year": 2028,
+    "kind": "scenario",
+    "title": "A teleoperator correction",
+    "blurb": "An operator guides a robot through a difficult contact while its observations and actions are recorded. The correction captures an example on the executing hardware, linking the troublesome situation with a workable response.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "An operator guides a robot through a difficult contact, recording the actions on the same embodiment that will execute them.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: An operator guides a robot through a difficult contact, recording the actions on the same embodiment that will execute them. Camera: close crop around the action with ample empty space. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/data/2028.webp",
+      "alt": "Rough storyboard sketch: An operator guides a robot through a difficult contact, recording the actions on the same embodiment that will execute them.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "hardware-2028",
+    "seriesId": "hardware",
+    "year": 2028,
+    "kind": "scenario",
+    "title": "A lower-reduction joint",
+    "blurb": "A large motor sits beside a compact gearbox with a lower reduction ratio. The arrangement explores the balance between motor size, torque multiplication, and how directly contact at the joint is transmitted through the mechanism.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A large motor and compact low-reduction gearbox illustrate the trade between gearing, torque, and contact response.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A large motor and compact low-reduction gearbox illustrate the trade between gearing, torque, and contact response. Camera: wide side view. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/hardware/2028.webp",
+      "alt": "Rough storyboard sketch: A large motor and compact low-reduction gearbox illustrate the trade between gearing, torque, and contact response.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "llm-2029",
+    "seriesId": "llm",
+    "year": 2029,
+    "kind": "scenario",
+    "title": "Checking the scene",
+    "blurb": "A proposed action is checked against the cup and obstacle actually present on the bench. Comparing a plan with current observations helps connect an instruction to the geometry and objects the robot must handle.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A proposed action is compared with the actual cup and obstacle on the bench before execution.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A proposed action is compared with the actual cup and obstacle on the bench before execution. Camera: close crop around the action with ample empty space. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/llm/2029.webp",
+      "alt": "Rough storyboard sketch: A proposed action is compared with the actual cup and obstacle on the bench before execution.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "humanoid-2029",
+    "seriesId": "humanoid",
+    "year": 2029,
+    "kind": "scenario",
+    "title": "Carrying through a doorway",
+    "blurb": "A humanoid carries a shallow tray through an ordinary doorway. Keeping its contents steady requires coordinating the carried load with body motion, while the doorframe limits the path available to the robot.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A humanoid carries a shallow tray through an ordinary doorway while keeping the objects steady.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A humanoid carries a shallow tray through an ordinary doorway while keeping the objects steady. Camera: wide side view. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/humanoid/2029.webp",
+      "alt": "Rough storyboard sketch: A humanoid carries a shallow tray through an ordinary doorway while keeping the objects steady.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "specialist-2029",
+    "seriesId": "specialist",
+    "year": 2029,
+    "kind": "scenario",
+    "title": "Inspecting a pipe",
+    "blurb": "A compact crawler travels through the inside of a pipe. Its body and sensors follow the geometry of the inspection task, giving the machine access to a confined space while it gathers observations.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A compact crawler follows a pipe interior, where a purpose-built body fits the task better than a human outline.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A compact crawler follows a pipe interior, where a purpose-built body fits the task better than a human outline. Camera: three-quarter view from a low workbench height. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/specialist/2029.webp",
+      "alt": "Rough storyboard sketch: A compact crawler follows a pipe interior, where a purpose-built body fits the task better than a human outline.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "deployment-2029",
+    "seriesId": "deployment",
+    "year": 2029,
+    "kind": "scenario",
+    "title": "Handling an exception",
+    "blurb": "A worker resolves an interrupted robot task while a neighboring cell continues operating. Separating a local exception from the rest of the workflow can preserve useful work while the problem receives attention.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A worker steps into one interrupted robot task while the neighboring cell continues its routine.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A worker steps into one interrupted robot task while the neighboring cell continues its routine. Camera: close crop around the action with ample empty space. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/deployment/2029.webp",
+      "alt": "Rough storyboard sketch: A worker steps into one interrupted robot task while the neighboring cell continues its routine.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "data-2029",
+    "seriesId": "data",
+    "year": 2029,
+    "kind": "scenario",
+    "title": "Recording human activity",
+    "blurb": "A person wearing a small camera handles everyday objects. The footage captures varied appearances, settings, and outcomes, while robot-specific movement and force information would still need another source when training physical control.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A person wearing a small camera handles everyday objects, collecting broad visual experience without claiming precise robot action labels.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A person wearing a small camera handles everyday objects, collecting broad visual experience without claiming precise robot action labels. Camera: wide side view. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/data/2029.webp",
+      "alt": "Rough storyboard sketch: A person wearing a small camera handles everyday objects, collecting broad visual experience without claiming precise robot action labels.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "hardware-2029",
+    "seriesId": "hardware",
+    "year": 2029,
+    "kind": "scenario",
+    "title": "Managing motor heat",
+    "blurb": "An opened motor housing reveals cooling fins and a path for heat to leave the assembly. Managing temperature is part of sustaining repeated work, linking mechanical packaging with the loads a joint can carry over time.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A lightly opened motor housing exposes a few cooling fins and a heat path rather than another increase in gearbox complexity.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A lightly opened motor housing exposes a few cooling fins and a heat path rather than another increase in gearbox complexity. Camera: three-quarter view from a low workbench height. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/hardware/2029.webp",
+      "alt": "Rough storyboard sketch: A lightly opened motor housing exposes a few cooling fins and a heat path rather than another increase in gearbox complexity.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "llm-2030",
+    "seriesId": "llm",
+    "year": 2030,
+    "kind": "scenario",
+    "title": "Remembering an interrupted task",
+    "blurb": "A partly completed task remains on the bench as attention returns to its next unfinished step. Remembering what has already happened allows a plan to resume from the current state of the work.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A partly completed sequence remains on the bench while attention returns to the next unfinished step.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A partly completed sequence remains on the bench while attention returns to the next unfinished step. Camera: wide side view. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/llm/2030.webp",
+      "alt": "Rough storyboard sketch: A partly completed sequence remains on the bench while attention returns to the next unfinished step.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "humanoid-2030",
+    "seriesId": "humanoid",
+    "year": 2030,
+    "kind": "scenario",
+    "title": "Recovering a dropped object",
+    "blurb": "A humanoid notices a dropped object and changes posture to recover it. The task shifts from the original motion to a new reach, requiring updated perception of the object and a workable recovery movement.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A humanoid notices an object below its hand and changes posture to recover instead of repeating the failed motion.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A humanoid notices an object below its hand and changes posture to recover instead of repeating the failed motion. Camera: three-quarter view from a low workbench height. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/humanoid/2030.webp",
+      "alt": "Rough storyboard sketch: A humanoid notices an object below its hand and changes posture to recover instead of repeating the failed motion.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "specialist-2030",
+    "seriesId": "specialist",
+    "year": 2030,
+    "kind": "scenario",
+    "title": "A dishwashing cell",
+    "blurb": "A dishwashing station arranges racks, a gripper, and cleaning tools around a repeated operation. Organizing the surroundings can make objects easier to locate and handle, distributing the task between the machine and its workspace.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A bounded dishwashing station organizes racks, a gripper, and cleaning tools around one repeated operation.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A bounded dishwashing station organizes racks, a gripper, and cleaning tools around one repeated operation. Camera: close crop around the action with ample empty space. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/specialist/2030.webp",
+      "alt": "Rough storyboard sketch: A bounded dishwashing station organizes racks, a gripper, and cleaning tools around one repeated operation.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "deployment-2030",
+    "seriesId": "deployment",
+    "year": 2030,
+    "kind": "scenario",
+    "title": "A small working fleet",
+    "blurb": "Several machines return to a compact charging area between work periods. Coordinating charging with task schedules becomes part of running the fleet, alongside the people and equipment that keep individual robots available.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "Several machines return to a compact charging area between useful shifts, making fleet support visible beside the work itself.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: Several machines return to a compact charging area between useful shifts, making fleet support visible beside the work itself. Camera: wide side view. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/deployment/2030.webp",
+      "alt": "Rough storyboard sketch: Several machines return to a compact charging area between useful shifts, making fleet support visible beside the work itself.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "data-2030",
+    "seriesId": "data",
+    "year": 2030,
+    "kind": "scenario",
+    "title": "Comparing simulation and reality",
+    "blurb": "A physical contact test is compared with its simulated counterpart. Differences in how the object moves or settles can guide changes to the model and identify where additional real interaction would be useful.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A physical contact test sits beside a sparse simulated counterpart, with the mismatch between them treated as useful information.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A physical contact test sits beside a sparse simulated counterpart, with the mismatch between them treated as useful information. Camera: three-quarter view from a low workbench height. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/data/2030.webp",
+      "alt": "Rough storyboard sketch: A physical contact test sits beside a sparse simulated counterpart, with the mismatch between them treated as useful information.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "hardware-2030",
+    "seriesId": "hardware",
+    "year": 2030,
+    "kind": "scenario",
+    "title": "Replacing a joint",
+    "blurb": "A technician replaces one joint module while the rest of the robot stays assembled. Accessible interfaces and separable components can simplify repair, connecting the architecture of the machine with the effort required to service it.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A service technician swaps a joint module on a bench while the rest of the robot remains assembled.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A service technician swaps a joint module on a bench while the rest of the robot remains assembled. Camera: close crop around the action with ample empty space. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/hardware/2030.webp",
+      "alt": "Rough storyboard sketch: A service technician swaps a joint module on a bench while the rest of the robot remains assembled.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "llm-2031",
+    "seriesId": "llm",
+    "year": 2031,
+    "kind": "scenario",
+    "title": "Choosing an appropriate tool",
+    "blurb": "A person presents two tools while the plan selects one for the intended operation. The choice connects the requested outcome with each tool’s physical properties and the actions the robot can perform.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A person offers two different tools, and the proposed task plan singles out the one that fits the physical operation.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A person offers two different tools, and the proposed task plan singles out the one that fits the physical operation. Camera: three-quarter view from a low workbench height. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/llm/2031.webp",
+      "alt": "Rough storyboard sketch: A person offers two different tools, and the proposed task plan singles out the one that fits the physical operation.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "humanoid-2031",
+    "seriesId": "humanoid",
+    "year": 2031,
+    "kind": "scenario",
+    "title": "Changing tools",
+    "blurb": "A humanoid puts down one tool and retrieves another from a workstation fixture. Completing the change involves controlled placement, a new grasp, and a shift in how the next task will be executed.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A humanoid puts down one tool and takes another from an existing workstation fixture.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A humanoid puts down one tool and takes another from an existing workstation fixture. Camera: close crop around the action with ample empty space. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/humanoid/2031.webp",
+      "alt": "Rough storyboard sketch: A humanoid puts down one tool and takes another from an existing workstation fixture.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "specialist-2031",
+    "seriesId": "specialist",
+    "year": 2031,
+    "kind": "scenario",
+    "title": "Moving pallets",
+    "blurb": "A dedicated transport platform carries a pallet along a marked warehouse passage. The load, route, and pickup points define a bounded task, allowing the machine’s body and movement to be organized around material transport.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A dedicated transport platform moves a pallet through a marked warehouse passage.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A dedicated transport platform moves a pallet through a marked warehouse passage. Camera: wide side view. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/specialist/2031.webp",
+      "alt": "Rough storyboard sketch: A dedicated transport platform moves a pallet through a marked warehouse passage.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "deployment-2031",
+    "seriesId": "deployment",
+    "year": 2031,
+    "kind": "scenario",
+    "title": "A shift handover",
+    "blurb": "Responsibility for a robot work area passes between supervisors. Maintenance needs and unresolved exceptions travel with the handover, connecting the next period of operation with the state left by the previous shift.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A robot work area passes between supervisors, with maintenance and unresolved exceptions included in the handover.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A robot work area passes between supervisors, with maintenance and unresolved exceptions included in the handover. Camera: three-quarter view from a low workbench height. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/deployment/2031.webp",
+      "alt": "Rough storyboard sketch: A robot work area passes between supervisors, with maintenance and unresolved exceptions included in the handover.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "data-2031",
+    "seriesId": "data",
+    "year": 2031,
+    "kind": "scenario",
+    "title": "Keeping the failed attempt",
+    "blurb": "A missed grasp and its corrected retry appear around the same object. Keeping both attempts preserves the conditions surrounding the failure and the action that followed, giving learning a comparison between outcomes.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A misplaced grasp and its corrected retry appear as two faint poses around the same object.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A misplaced grasp and its corrected retry appear as two faint poses around the same object. Camera: close crop around the action with ample empty space. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/data/2031.webp",
+      "alt": "Rough storyboard sketch: A misplaced grasp and its corrected retry appear as two faint poses around the same object.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "hardware-2031",
+    "seriesId": "hardware",
+    "year": 2031,
+    "kind": "scenario",
+    "title": "Routing tendons through a hand",
+    "blurb": "A forearm actuator pulls a tendon through pulleys into a robotic finger. Moving the drive away from the finger changes how mass and force are distributed, while the tendon route shapes the resulting motion.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A forearm actuator pulls a simple tendon over a few pulleys into a lightly outlined robotic finger.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A forearm actuator pulls a simple tendon over a few pulleys into a lightly outlined robotic finger. Camera: wide side view. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/hardware/2031.webp",
+      "alt": "Rough storyboard sketch: A forearm actuator pulls a simple tendon over a few pulleys into a lightly outlined robotic finger.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "llm-2032",
+    "seriesId": "llm",
+    "year": 2032,
+    "kind": "scenario",
+    "title": "Revising a familiar plan",
+    "blurb": "A new instruction changes one step in a familiar sequence. Updating the affected action while retaining the rest of the plan requires tracking dependencies and recognizing which parts of the original request still apply.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "One new instruction changes a single step in an otherwise familiar sequence, rather than requiring an entirely new task.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: One new instruction changes a single step in an otherwise familiar sequence, rather than requiring an entirely new task. Camera: close crop around the action with ample empty space. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/llm/2032.webp",
+      "alt": "Rough storyboard sketch: One new instruction changes a single step in an otherwise familiar sequence, rather than requiring an entirely new task.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "humanoid-2032",
+    "seriesId": "humanoid",
+    "year": 2032,
+    "kind": "scenario",
+    "title": "A multistep counter task",
+    "blurb": "A humanoid moves between a drawer, a cup, and a counter during a multistep task. Tracking completed actions alongside the current object arrangement helps keep successive reaches and placements consistent with the remaining work.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A humanoid moves between a drawer, a cup, and a counter without losing track of what it has already completed.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A humanoid moves between a drawer, a cup, and a counter without losing track of what it has already completed. Camera: wide side view. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/humanoid/2032.webp",
+      "alt": "Rough storyboard sketch: A humanoid moves between a drawer, a cup, and a counter without losing track of what it has already completed.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "specialist-2032",
+    "seriesId": "specialist",
+    "year": 2032,
+    "kind": "scenario",
+    "title": "Pruning in a greenhouse",
+    "blurb": "A narrow pruning tool works along a row of greenhouse plants. Its shape supports access between stems, while selecting and executing each cut links perception of the plant with a precise repeated action.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A narrow pruning tool works within a row of plants, with its body shaped around access and repeated cuts.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A narrow pruning tool works within a row of plants, with its body shaped around access and repeated cuts. Camera: three-quarter view from a low workbench height. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/specialist/2032.webp",
+      "alt": "Rough storyboard sketch: A narrow pruning tool works within a row of plants, with its body shaped around access and repeated cuts.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "deployment-2032",
+    "seriesId": "deployment",
+    "year": 2032,
+    "kind": "scenario",
+    "title": "Linking workstations",
+    "blurb": "Several robot stations pass parts through a shared workflow. A delay at one station can change the supply available to the next, making coordination and recovery important parts of the combined operation.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "Several robot stations pass parts through a shared workflow, where a delay at one station affects the others.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: Several robot stations pass parts through a shared workflow, where a delay at one station affects the others. Camera: close crop around the action with ample empty space. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/deployment/2032.webp",
+      "alt": "Rough storyboard sketch: Several robot stations pass parts through a shared workflow, where a delay at one station affects the others.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "data-2032",
+    "seriesId": "data",
+    "year": 2032,
+    "kind": "scenario",
+    "title": "Varying the objects",
+    "blurb": "A collector replaces familiar objects with different shapes and surfaces during demonstrations. Varying these conditions expands the situations represented in the data and exposes how an otherwise similar movement changes with the object.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A collector replaces familiar objects with different shapes and surfaces instead of repeating the same demonstration indefinitely.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A collector replaces familiar objects with different shapes and surfaces instead of repeating the same demonstration indefinitely. Camera: wide side view. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/data/2032.webp",
+      "alt": "Rough storyboard sketch: A collector replaces familiar objects with different shapes and surfaces instead of repeating the same demonstration indefinitely.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "hardware-2032",
+    "seriesId": "hardware",
+    "year": 2032,
+    "kind": "scenario",
+    "title": "Putting control beside the motor",
+    "blurb": "A controller and power connection sit close to the motor they serve. The arrangement brings sensing, electrical drive, and mechanical motion into one package, with wiring and heat management shaping how the module fits together.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A small controller and power connection sit close to an actuator, emphasizing local feedback and practical packaging.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A small controller and power connection sit close to an actuator, emphasizing local feedback and practical packaging. Camera: three-quarter view from a low workbench height. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/hardware/2032.webp",
+      "alt": "Rough storyboard sketch: A small controller and power connection sit close to an actuator, emphasizing local feedback and practical packaging.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "llm-2033",
+    "seriesId": "llm",
+    "year": 2033,
+    "kind": "scenario",
+    "title": "Asking for help",
+    "blurb": "A planning system pauses at an ambiguous step while a person indicates the intended outcome. Bringing that clarification into the task lets the next action follow a resolved instruction and the scene in front of it.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A planning system leaves an ambiguous step unresolved while a person indicates the intended outcome.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A planning system leaves an ambiguous step unresolved while a person indicates the intended outcome. Camera: wide side view. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/llm/2033.webp",
+      "alt": "Rough storyboard sketch: A planning system leaves an ambiguous step unresolved while a person indicates the intended outcome.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "humanoid-2033",
+    "seriesId": "humanoid",
+    "year": 2033,
+    "kind": "scenario",
+    "title": "Working in a new room",
+    "blurb": "A humanoid encounters a familiar task on a differently arranged counter. Recognizing the relevant objects is only part of adapting; their new positions also change the reaches, clearances, and sequence available.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A humanoid encounters a familiar task arranged differently on a new counter.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A humanoid encounters a familiar task arranged differently on a new counter. Camera: three-quarter view from a low workbench height. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/humanoid/2033.webp",
+      "alt": "Rough storyboard sketch: A humanoid encounters a familiar task arranged differently on a new counter.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "specialist-2033",
+    "seriesId": "specialist",
+    "year": 2033,
+    "kind": "scenario",
+    "title": "A bounded excavation task",
+    "blurb": "An excavator works inside a deliberately limited area using a body already suited to moving earth. Defining the work boundary concentrates the control problem on the machine’s existing motions and the material within reach.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "An excavator follows a deliberately limited work area, using an existing machine body for autonomous physical work.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: An excavator follows a deliberately limited work area, using an existing machine body for autonomous physical work. Camera: close crop around the action with ample empty space. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/specialist/2033.webp",
+      "alt": "Rough storyboard sketch: An excavator follows a deliberately limited work area, using an existing machine body for autonomous physical work.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "deployment-2033",
+    "seriesId": "deployment",
+    "year": 2033,
+    "kind": "scenario",
+    "title": "Supporting fleet maintenance",
+    "blurb": "A repair bay holds a spare module beside a waiting robot. As more machines enter service, maintenance space, replacement parts, and repair work become part of the system that supports their useful operation.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "An organized repair bay, spare module, and waiting robot show the support system behind a larger deployed fleet.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: An organized repair bay, spare module, and waiting robot show the support system behind a larger deployed fleet. Camera: wide side view. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/deployment/2033.webp",
+      "alt": "Rough storyboard sketch: An organized repair bay, spare module, and waiting robot show the support system behind a larger deployed fleet.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "data-2033",
+    "seriesId": "data",
+    "year": 2033,
+    "kind": "scenario",
+    "title": "Changing the setting",
+    "blurb": "The same demonstrated movement is recorded around a different work surface and object arrangement. Changing the setting helps separate the intended task from incidental features such as a particular background or starting position.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "The same demonstrated movement is collected around a different work surface and object arrangement.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: The same demonstrated movement is collected around a different work surface and object arrangement. Camera: three-quarter view from a low workbench height. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/data/2033.webp",
+      "alt": "Rough storyboard sketch: The same demonstrated movement is collected around a different work surface and object arrangement.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "hardware-2033",
+    "seriesId": "hardware",
+    "year": 2033,
+    "kind": "scenario",
+    "title": "Reducing assembly complexity",
+    "blurb": "A simpler arrangement of actuator parts is laid out for assembly. Reducing the number of separate pieces can change the fastening, alignment, and inspection work required to turn components into a functioning module.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A short line of parts replaces a more crowded actuator assembly, emphasizing manufacturability rather than an unsupported price claim.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A short line of parts replaces a more crowded actuator assembly, emphasizing manufacturability rather than an unsupported price claim. Camera: close crop around the action with ample empty space. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/hardware/2033.webp",
+      "alt": "Rough storyboard sketch: A short line of parts replaces a more crowded actuator assembly, emphasizing manufacturability rather than an unsupported price claim.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "llm-2034",
+    "seriesId": "llm",
+    "year": 2034,
+    "kind": "scenario",
+    "title": "Checking the result of an action",
+    "blurb": "A moved object is compared with its intended resting position before the next instruction is issued. Checking the result connects the plan with what physically happened and identifies whether the next step is ready.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A moved object is compared with its intended resting position before the next instruction is issued.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A moved object is compared with its intended resting position before the next instruction is issued. Camera: three-quarter view from a low workbench height. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/llm/2034.webp",
+      "alt": "Rough storyboard sketch: A moved object is compared with its intended resting position before the next instruction is issued.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "humanoid-2034",
+    "seriesId": "humanoid",
+    "year": 2034,
+    "kind": "scenario",
+    "title": "Handling deformable laundry",
+    "blurb": "A humanoid adjusts its grip on loose fabric as the material changes shape. Handling the laundry involves following those deformations and choosing new contact points as lifting and repositioning alter the object.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A humanoid adjusts its grip on a loose piece of fabric whose shape changes during the movement.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A humanoid adjusts its grip on a loose piece of fabric whose shape changes during the movement. Camera: close crop around the action with ample empty space. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/humanoid/2034.webp",
+      "alt": "Rough storyboard sketch: A humanoid adjusts its grip on a loose piece of fabric whose shape changes during the movement.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "specialist-2034",
+    "seriesId": "specialist",
+    "year": 2034,
+    "kind": "scenario",
+    "title": "Inspecting utility equipment",
+    "blurb": "A compact machine carries a sensor to a defined utility inspection point. Matching the platform and payload to the location focuses the task on reaching a useful viewpoint and gathering the relevant observation.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A compact specialist machine observes a constrained utility inspection point with an appropriate sensor payload.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A compact specialist machine observes a constrained utility inspection point with an appropriate sensor payload. Camera: wide side view. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/specialist/2034.webp",
+      "alt": "Rough storyboard sketch: A compact specialist machine observes a constrained utility inspection point with an appropriate sensor payload.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "deployment-2034",
+    "seriesId": "deployment",
+    "year": 2034,
+    "kind": "scenario",
+    "title": "Repeating an unloading workflow",
+    "blurb": "Several neighboring positions at a loading dock repeat an established unloading workflow. Expanding the operation brings shared material flow, supervision, and recovery into focus alongside the performance of each individual unloading machine.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A larger loading dock repeats a proven robot workflow across several neighboring positions.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A larger loading dock repeats a proven robot workflow across several neighboring positions. Camera: three-quarter view from a low workbench height. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/deployment/2034.webp",
+      "alt": "Rough storyboard sketch: A larger loading dock repeats a proven robot workflow across several neighboring positions.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "data-2034",
+    "seriesId": "data",
+    "year": 2034,
+    "kind": "scenario",
+    "title": "Transferring across embodiments",
+    "blurb": "Two differently shaped arms attempt the same small manipulation task using a shared demonstration. Transferring the experience involves relating the task’s intended effect to each robot’s geometry, observations, and available actions.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A demonstration is carried between two different arm geometries performing the same small manipulation task.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A demonstration is carried between two different arm geometries performing the same small manipulation task. Camera: close crop around the action with ample empty space. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/data/2034.webp",
+      "alt": "Rough storyboard sketch: A demonstration is carried between two different arm geometries performing the same small manipulation task.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "hardware-2034",
+    "seriesId": "hardware",
+    "year": 2034,
+    "kind": "scenario",
+    "title": "Manufacturing motor windings",
+    "blurb": "A winding fixture forms coils for electric motors. Supplying more actuator modules requires repeatable component production as well as an effective design, connecting the joint’s operation with the processes used to build it.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A winding fixture and a few coils represent the production work required to supply more actuators.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A winding fixture and a few coils represent the production work required to supply more actuators. Camera: wide side view. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/hardware/2034.webp",
+      "alt": "Rough storyboard sketch: A winding fixture and a few coils represent the production work required to supply more actuators.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "llm-2035",
+    "seriesId": "llm",
+    "year": 2035,
+    "kind": "scenario",
+    "title": "Incorporating a correction",
+    "blurb": "A person corrects which object should be used while the rest of the task stays in place. Applying the correction requires updating the relevant reference and carrying that change through the remaining actions.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A person's correction changes the selected object while the rest of the task remains intact.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A person's correction changes the selected object while the rest of the task remains intact. Camera: close crop around the action with ample empty space. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/llm/2035.webp",
+      "alt": "Rough storyboard sketch: A person's correction changes the selected object while the rest of the task remains intact.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "humanoid-2035",
+    "seriesId": "humanoid",
+    "year": 2035,
+    "kind": "scenario",
+    "title": "Bringing an object to a person",
+    "blurb": "A humanoid brings a cup within reach of a seated person. The approach and handover depend on the recipient’s position and response, making timing and access part of the physical interaction.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A humanoid brings a cup within reach of a seated person, leaving the person in control of the interaction.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A humanoid brings a cup within reach of a seated person, leaving the person in control of the interaction. Camera: wide side view. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/humanoid/2035.webp",
+      "alt": "Rough storyboard sketch: A humanoid brings a cup within reach of a seated person, leaving the person in control of the interaction.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "specialist-2035",
+    "seriesId": "specialist",
+    "year": 2035,
+    "kind": "scenario",
+    "title": "Packing fruit",
+    "blurb": "A packing station handles fruit with a tool suited to its shape and fragility. Contact, placement, and the receiving container become parts of one bounded operation organized around protecting the objects being moved.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A specialized station handles a small group of fruits with a tool suited to their shape and fragility.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A specialized station handles a small group of fruits with a tool suited to their shape and fragility. Camera: three-quarter view from a low workbench height. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/specialist/2035.webp",
+      "alt": "Rough storyboard sketch: A specialized station handles a small group of fruits with a tool suited to their shape and fragility.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "deployment-2035",
+    "seriesId": "deployment",
+    "year": 2035,
+    "kind": "scenario",
+    "title": "Contributing to construction",
+    "blurb": "A small robotic crew performs a defined operation beside a partially assembled building frame. The work connects robot actions with an evolving construction site, where access and coordination change as the structure takes shape.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A small robotic crew carries out a bounded operation beside a partially assembled building frame.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A small robotic crew carries out a bounded operation beside a partially assembled building frame. Camera: close crop around the action with ample empty space. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/deployment/2035.webp",
+      "alt": "Rough storyboard sketch: A small robotic crew carries out a bounded operation beside a partially assembled building frame.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "data-2035",
+    "seriesId": "data",
+    "year": 2035,
+    "kind": "scenario",
+    "title": "Seeking unusual contact cases",
+    "blurb": "A collection bench includes an awkward surface and an unusual object contact. Deliberately gathering these situations can reveal behavior missed by routine demonstrations and provide examples for handling difficult interactions.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A collection bench deliberately includes an awkward surface and object contact that routine demonstrations would miss.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A collection bench deliberately includes an awkward surface and object contact that routine demonstrations would miss. Camera: wide side view. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/data/2035.webp",
+      "alt": "Rough storyboard sketch: A collection bench deliberately includes an awkward surface and object contact that routine demonstrations would miss.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "hardware-2035",
+    "seriesId": "hardware",
+    "year": 2035,
+    "kind": "scenario",
+    "title": "Supplying permanent magnets",
+    "blurb": "Magnet blanks and a processing fixture sit beside an actuator outline. The arrangement connects a finished motor with its component supply, showing how producing the joint also depends on preparing the materials inside it.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A few magnet blanks, a processing fixture, and an actuator outline connect component supply to finished hardware.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A few magnet blanks, a processing fixture, and an actuator outline connect component supply to finished hardware. Camera: three-quarter view from a low workbench height. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/hardware/2035.webp",
+      "alt": "Rough storyboard sketch: A few magnet blanks, a processing fixture, and an actuator outline connect component supply to finished hardware.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "llm-2036",
+    "seriesId": "llm",
+    "year": 2036,
+    "kind": "scenario",
+    "title": "Handling one new constraint",
+    "blurb": "A familiar plan is adjusted around one changed constraint. Carrying the existing procedure forward involves identifying which actions are affected and checking that their revised order still supports the intended outcome.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A nearly familiar plan is adjusted around one changed constraint, reflecting refinement rather than a new capability threshold.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A nearly familiar plan is adjusted around one changed constraint, reflecting refinement rather than a new capability threshold. Camera: wide side view. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/llm/2036.webp",
+      "alt": "Rough storyboard sketch: A nearly familiar plan is adjusted around one changed constraint, reflecting refinement rather than a new capability threshold.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "humanoid-2036",
+    "seriesId": "humanoid",
+    "year": 2036,
+    "kind": "scenario",
+    "title": "Coordinating doors and objects",
+    "blurb": "A humanoid opens a drawer while carrying another object. The movement must account for both tasks at once, coordinating the available hand, the carried load, and the space swept by the drawer.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A humanoid opens a drawer while managing an object it is already carrying.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A humanoid opens a drawer while managing an object it is already carrying. Camera: three-quarter view from a low workbench height. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/humanoid/2036.webp",
+      "alt": "Rough storyboard sketch: A humanoid opens a drawer while managing an object it is already carrying.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "specialist-2036",
+    "seriesId": "specialist",
+    "year": 2036,
+    "kind": "scenario",
+    "title": "Cleaning solar panels",
+    "blurb": "A lightweight cleaning machine follows a row of solar panels. Its movement and cleaning mechanism are organized around the served surface, with panel edges and access determining the path through the task.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A lightweight cleaning machine follows a row of panels, with its mechanism organized around the surface it serves.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A lightweight cleaning machine follows a row of panels, with its mechanism organized around the surface it serves. Camera: close crop around the action with ample empty space. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/specialist/2036.webp",
+      "alt": "Rough storyboard sketch: A lightweight cleaning machine follows a row of panels, with its mechanism organized around the surface it serves.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "deployment-2036",
+    "seriesId": "deployment",
+    "year": 2036,
+    "kind": "scenario",
+    "title": "Handling agricultural output",
+    "blurb": "Robots move produce through a handling and packing workflow. Useful throughput depends on how picking, transport, and placement fit together, including how each stage receives material and passes it to the next.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "Robots move produce through a practical handling and packing workflow.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: Robots move produce through a practical handling and packing workflow. Camera: wide side view. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/deployment/2036.webp",
+      "alt": "Rough storyboard sketch: Robots move produce through a practical handling and packing workflow.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "data-2036",
+    "seriesId": "data",
+    "year": 2036,
+    "kind": "scenario",
+    "title": "Learning from deployment failures",
+    "blurb": "An interrupted task from a deployed robot is brought back to a collection bench. Studying the surrounding conditions and recording a response connects field experience with the examples used for further learning.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A deployed robot's interrupted task returns to a collection bench as an example worth studying.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A deployed robot's interrupted task returns to a collection bench as an example worth studying. Camera: three-quarter view from a low workbench height. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/data/2036.webp",
+      "alt": "Rough storyboard sketch: A deployed robot's interrupted task returns to a collection bench as an example worth studying.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "hardware-2036",
+    "seriesId": "hardware",
+    "year": 2036,
+    "kind": "scenario",
+    "title": "Replacing a worn bearing",
+    "blurb": "A worn bearing is removed from a joint and replaced on a service bench. Access to the component makes repair part of the hardware design, linking how the mechanism works with how it is maintained.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A bearing is removed and replaced on a service bench instead of discarding the entire joint.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A bearing is removed and replaced on a service bench instead of discarding the entire joint. Camera: close crop around the action with ample empty space. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/hardware/2036.webp",
+      "alt": "Rough storyboard sketch: A bearing is removed and replaced on a service bench instead of discarding the entire joint.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "llm-2037",
+    "seriesId": "llm",
+    "year": 2037,
+    "kind": "scenario",
+    "title": "Accepting a human veto",
+    "blurb": "A person stops a proposed action and indicates another choice. Respecting the interruption involves updating the active plan and carrying the revised intention into the steps that follow, including any work already underway.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A person stops a proposed action and indicates a different choice.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A person stops a proposed action and indicates a different choice. Camera: three-quarter view from a low workbench height. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/llm/2037.webp",
+      "alt": "Rough storyboard sketch: A person stops a proposed action and indicates a different choice.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "humanoid-2037",
+    "seriesId": "humanoid",
+    "year": 2037,
+    "kind": "scenario",
+    "title": "Returning an uncertain task",
+    "blurb": "A humanoid offers an object back when the next step is uncertain. Returning control becomes a physical action of its own, requiring a reachable handover position and coordination with the person receiving it.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A humanoid offers an object back to a person when the next step is uncertain.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A humanoid offers an object back to a person when the next step is uncertain. Camera: close crop around the action with ample empty space. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/humanoid/2037.webp",
+      "alt": "Rough storyboard sketch: A humanoid offers an object back to a person when the next step is uncertain.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "specialist-2037",
+    "seriesId": "specialist",
+    "year": 2037,
+    "kind": "scenario",
+    "title": "Inspecting before repair",
+    "blurb": "A purpose-built tool inspects a machine component before repair begins. Gathering a useful observation can guide the repair operation, connecting sensor placement and access with the condition that needs attention.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A purpose-built inspection tool checks a machine component before a repair operation begins.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A purpose-built inspection tool checks a machine component before a repair operation begins. Camera: wide side view. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/specialist/2037.webp",
+      "alt": "Rough storyboard sketch: A purpose-built inspection tool checks a machine component before a repair operation begins.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "deployment-2037",
+    "seriesId": "deployment",
+    "year": 2037,
+    "kind": "scenario",
+    "title": "Maintaining infrastructure",
+    "blurb": "Robots carry out a defined maintenance operation on infrastructure people use. The task brings physical access, ongoing service, and coordination with workers together, tying robot activity to the continued usefulness of the surrounding system.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "Robots perform a constrained maintenance operation on physical infrastructure used by people.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: Robots perform a constrained maintenance operation on physical infrastructure used by people. Camera: three-quarter view from a low workbench height. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/deployment/2037.webp",
+      "alt": "Rough storyboard sketch: Robots perform a constrained maintenance operation on physical infrastructure used by people.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "data-2037",
+    "seriesId": "data",
+    "year": 2037,
+    "kind": "scenario",
+    "title": "Collecting across robot bodies",
+    "blurb": "Different manipulators contribute examples of the same task. Combining their experience requires accounting for differences in bodies and action interfaces, while preserving the relationship between each observation, movement, and resulting change in the scene.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "Different manipulators contribute examples of one task without assuming that their action interfaces are identical.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: Different manipulators contribute examples of one task without assuming that their action interfaces are identical. Camera: close crop around the action with ample empty space. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/data/2037.webp",
+      "alt": "Rough storyboard sketch: Different manipulators contribute examples of one task without assuming that their action interfaces are identical.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "hardware-2037",
+    "seriesId": "hardware",
+    "year": 2037,
+    "kind": "scenario",
+    "title": "Testing service life",
+    "blurb": "An actuator repeatedly cycles under load on an endurance fixture. Observing its behavior across repeated use can expose wear and thermal effects, bringing service conditions into the process of evaluating the design.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "An actuator cycles on a simple endurance fixture, making repeated loading part of the design story.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: An actuator cycles on a simple endurance fixture, making repeated loading part of the design story. Camera: wide side view. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/hardware/2037.webp",
+      "alt": "Rough storyboard sketch: An actuator cycles on a simple endurance fixture, making repeated loading part of the design story.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "llm-2038",
+    "seriesId": "llm",
+    "year": 2038,
+    "kind": "scenario",
+    "title": "Refining an established procedure",
+    "blurb": "One small step changes inside an established procedure. Refining the plan involves keeping its useful structure while checking how the adjustment affects nearby actions, required inputs, and the expected result.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "Only one small step of an established plan changes, while its overall structure remains recognizable.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: Only one small step of an established plan changes, while its overall structure remains recognizable. Camera: close crop around the action with ample empty space. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/llm/2038.webp",
+      "alt": "Rough storyboard sketch: Only one small step of an established plan changes, while its overall structure remains recognizable.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "humanoid-2038",
+    "seriesId": "humanoid",
+    "year": 2038,
+    "kind": "scenario",
+    "title": "Adapting to an unfamiliar utensil",
+    "blurb": "A humanoid adjusts its grip around an unfamiliar utensil handle. The task requires relating the object’s shape to a stable grasp and then using that contact to carry out the intended household movement.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A humanoid adjusts its grip around an unusually handled household utensil.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A humanoid adjusts its grip around an unusually handled household utensil. Camera: wide side view. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/humanoid/2038.webp",
+      "alt": "Rough storyboard sketch: A humanoid adjusts its grip around an unusually handled household utensil.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "specialist-2038",
+    "seriesId": "specialist",
+    "year": 2038,
+    "kind": "scenario",
+    "title": "Removing the operator's seat",
+    "blurb": "A task-specific machine is arranged around its working mechanism, with the operator’s seat removed. Reorganizing the body around the operation changes how space, access, and component placement serve the machine’s physical task.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A task-specific machine is arranged around its work mechanism instead of accommodating a seated human operator.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A task-specific machine is arranged around its work mechanism instead of accommodating a seated human operator. Camera: three-quarter view from a low workbench height. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/specialist/2038.webp",
+      "alt": "Rough storyboard sketch: A task-specific machine is arranged around its work mechanism instead of accommodating a seated human operator.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "deployment-2038",
+    "seriesId": "deployment",
+    "year": 2038,
+    "kind": "scenario",
+    "title": "Meeting supply and power limits",
+    "blurb": "A waiting robot sits beside a power connection and a queue of components. The scene brings supply and infrastructure into the deployment story, where having a machine available still depends on the resources needed to operate it.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A waiting machine, a power connection, and a short queue of components show constraints on further fleet growth.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A waiting machine, a power connection, and a short queue of components show constraints on further fleet growth. Camera: close crop around the action with ample empty space. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/deployment/2038.webp",
+      "alt": "Rough storyboard sketch: A waiting machine, a power connection, and a short queue of components show constraints on further fleet growth.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "data-2038",
+    "seriesId": "data",
+    "year": 2038,
+    "kind": "scenario",
+    "title": "Checking simulated contact",
+    "blurb": "A simulated interaction is checked against a physical contact trial. Comparing the resulting motion can reveal where the model represents the task well and where real-world observations are needed to improve it.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A simulated interaction is compared with a real contact trial before treating its training value as transferable.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A simulated interaction is compared with a real contact trial before treating its training value as transferable. Camera: wide side view. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/data/2038.webp",
+      "alt": "Rough storyboard sketch: A simulated interaction is compared with a real contact trial before treating its training value as transferable.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "hardware-2038",
+    "seriesId": "hardware",
+    "year": 2038,
+    "kind": "scenario",
+    "title": "Balancing power and cooling",
+    "blurb": "Power electronics, a heat path, and a motor housing share a compact assembly. Their placement must accommodate electrical supply and heat removal alongside movement, connecting control performance with the physical limits of the package.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "Power electronics, a small heat path, and a motor housing illustrate the packaging constraints around onboard intelligence.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: Power electronics, a small heat path, and a motor housing illustrate the packaging constraints around onboard intelligence. Camera: three-quarter view from a low workbench height. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/hardware/2038.webp",
+      "alt": "Rough storyboard sketch: Power electronics, a small heat path, and a motor housing illustrate the packaging constraints around onboard intelligence.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "llm-2039",
+    "seriesId": "llm",
+    "year": 2039,
+    "kind": "scenario",
+    "title": "Checking a remaining edge case",
+    "blurb": "A familiar instruction is checked against an unusual object before action begins. The comparison tests whether the ordinary procedure still fits the current situation or needs an adjustment to its assumptions.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A familiar instruction is tested against one unusual object before the action proceeds.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A familiar instruction is tested against one unusual object before the action proceeds. Camera: wide side view. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/llm/2039.webp",
+      "alt": "Rough storyboard sketch: A familiar instruction is tested against one unusual object before the action proceeds.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "humanoid-2039",
+    "seriesId": "humanoid",
+    "year": 2039,
+    "kind": "scenario",
+    "title": "Following a redirected household task",
+    "blurb": "A person redirects a humanoid from one household operation to another. Changing tasks involves accounting for what the robot is holding and what remains unfinished, then finding a suitable transition into the new request.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A person redirects a humanoid from one household operation to another.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A person redirects a humanoid from one household operation to another. Camera: three-quarter view from a low workbench height. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/humanoid/2039.webp",
+      "alt": "Rough storyboard sketch: A person redirects a humanoid from one household operation to another.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "specialist-2039",
+    "seriesId": "specialist",
+    "year": 2039,
+    "kind": "scenario",
+    "title": "A task-specific precision tool",
+    "blurb": "A precision work cell uses an end effector shaped for its particular operation. The tool and fixture define how the object is held and approached, concentrating the machine’s movement on the required contact.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A precision work cell uses a purpose-built end effector fitted to its particular operation.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A precision work cell uses a purpose-built end effector fitted to its particular operation. Camera: close crop around the action with ample empty space. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/specialist/2039.webp",
+      "alt": "Rough storyboard sketch: A precision work cell uses a purpose-built end effector fitted to its particular operation.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "deployment-2039",
+    "seriesId": "deployment",
+    "year": 2039,
+    "kind": "scenario",
+    "title": "Returning machines to work",
+    "blurb": "A repaired robot leaves a maintenance station and returns to work. Restoring useful operation connects diagnosis, replacement parts, and a check of the machine’s condition with its place in the ongoing workflow.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A repaired robot leaves a maintenance station and rejoins a useful workflow.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A repaired robot leaves a maintenance station and rejoins a useful workflow. Camera: wide side view. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/deployment/2039.webp",
+      "alt": "Rough storyboard sketch: A repaired robot leaves a maintenance station and rejoins a useful workflow.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "data-2039",
+    "seriesId": "data",
+    "year": 2039,
+    "kind": "scenario",
+    "title": "Collecting targeted exceptions",
+    "blurb": "A collector deliberately recreates an unresolved edge case. Focusing collection on a known difficulty can provide the observations and alternative actions needed to investigate it, adding a targeted example to the training material.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A collector intentionally creates an unresolved edge case instead of adding another routine example.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A collector intentionally creates an unresolved edge case instead of adding another routine example. Camera: three-quarter view from a low workbench height. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/data/2039.webp",
+      "alt": "Rough storyboard sketch: A collector intentionally creates an unresolved edge case instead of adding another routine example.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "hardware-2039",
+    "seriesId": "hardware",
+    "year": 2039,
+    "kind": "scenario",
+    "title": "Sharing components across bodies",
+    "blurb": "Common components sit beside two different robot joint interfaces. Sharing parts across platforms involves balancing reusable designs with each body’s loads and connections, linking component choices to assembly and future service.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A small set of common components is arranged beside two different robot joint interfaces.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A small set of common components is arranged beside two different robot joint interfaces. Camera: close crop around the action with ample empty space. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/hardware/2039.webp",
+      "alt": "Rough storyboard sketch: A small set of common components is arranged beside two different robot joint interfaces.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "llm-2040",
+    "seriesId": "llm",
+    "year": 2040,
+    "kind": "scenario",
+    "title": "Keeping the choice with people",
+    "blurb": "A person chooses between proposed actions at a workbench while the system waits. Presenting the alternatives makes the decision part of the interaction, connecting the selected action with the person’s priorities for the task.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A person chooses between proposed actions at a quiet workbench, with the system waiting for that decision.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A person chooses between proposed actions at a quiet workbench, with the system waiting for that decision. Camera: three-quarter view from a low workbench height. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/llm/2040.webp",
+      "alt": "Rough storyboard sketch: A person chooses between proposed actions at a quiet workbench, with the system waiting for that decision.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "humanoid-2040",
+    "seriesId": "humanoid",
+    "year": 2040,
+    "kind": "scenario",
+    "title": "Assistance directed by its user",
+    "blurb": "A humanoid assists with an everyday task while the person determines how it should proceed. The work combines physical execution with continuing direction, allowing the interaction to follow the user’s preferences and corrections.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A humanoid helps with an everyday task while the person determines how the task should be done.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A humanoid helps with an everyday task while the person determines how the task should be done. Camera: close crop around the action with ample empty space. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/humanoid/2040.webp",
+      "alt": "Rough storyboard sketch: A humanoid helps with an everyday task while the person determines how the task should be done.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "specialist-2040",
+    "seriesId": "specialist",
+    "year": 2040,
+    "kind": "scenario",
+    "title": "A machine shaped by its work",
+    "blurb": "A specialist machine’s body follows the geometry of its operation. Arranging reach, contact, and movement around the work can simplify the route from an intended effect to the mechanism that produces it.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A specialist machine's body follows the geometry of its operation, rather than imitating human anatomy.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A specialist machine's body follows the geometry of its operation, rather than imitating human anatomy. Camera: wide side view. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/specialist/2040.webp",
+      "alt": "Rough storyboard sketch: A specialist machine's body follows the geometry of its operation, rather than imitating human anatomy.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "deployment-2040",
+    "seriesId": "deployment",
+    "year": 2040,
+    "kind": "scenario",
+    "title": "Building useful physical infrastructure",
+    "blurb": "A robot contributes to a concrete construction or maintenance task. Its work connects individual physical actions with infrastructure people depend on, making completion and continued usefulness central to the value of the deployment.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A robot performs a concrete construction or maintenance task that contributes to infrastructure people depend on.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A robot performs a concrete construction or maintenance task that contributes to infrastructure people depend on. Camera: three-quarter view from a low workbench height. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/deployment/2040.webp",
+      "alt": "Rough storyboard sketch: A robot performs a concrete construction or maintenance task that contributes to infrastructure people depend on.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "data-2040",
+    "seriesId": "data",
+    "year": 2040,
+    "kind": "scenario",
+    "title": "Returning experience to learning",
+    "blurb": "A physical task is shown through an imperfect attempt and a corrected retry. Keeping their observations, actions, and outcomes together turns continued operation into material that can help investigate failures and improve subsequent behavior.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A physical task, its imperfect attempt, and a corrected retry form one sparse scene of continuing collection.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A physical task, its imperfect attempt, and a corrected retry form one sparse scene of continuing collection. Camera: close crop around the action with ample empty space. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/data/2040.webp",
+      "alt": "Rough storyboard sketch: A physical task, its imperfect attempt, and a corrected retry form one sparse scene of continuing collection.",
+      "state": "placeholder"
+    }
+  },
+  {
+    "id": "hardware-2040",
+    "seriesId": "hardware",
+    "year": 2040,
+    "kind": "scenario",
+    "title": "A repairable actuator module",
+    "blurb": "A standardized actuator lies open with replaceable components arranged nearby. Designing the module for service connects its internal structure with diagnosis and repair, making access to worn parts part of the finished machine.",
+    "evidenceType": "Illustrative scenario",
+    "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
+    "publisher": "Research scenario",
+    "sketchBrief": "A standardized actuator is opened for service, with its replaceable components laid out nearby.",
+    "sketchPrompt": "Extremely rough, sparse pre-animation storyboard thumbnail, unfinished hand-sketched appearance. A single legible action using only a few loose, broken steel-gray contour strokes and faint construction marks on a flat near-black #080A0B ground. At least seventy percent empty background. Keep forms incomplete and economical, with one or two ghosted positions suggesting movement. Restrict the scene to the essential actor and two or three objects. Use no words, numbers, lettering, logos, gradients, polished vectors, shaded surfaces, dense hatching, paper texture, or decorative scenery. Steel-gray #C7CDD0 strokes; black ground. Landscape composition. Scene: A standardized actuator is opened for service, with its replaceable components laid out nearby. Camera: wide side view. Preserve an animatic thumbnail's incompleteness; the subject must be recognizable without finishing every contour.",
+    "media": {
+      "provider": "image",
+      "src": "graph-media/future/hardware/2040.webp",
+      "alt": "Rough storyboard sketch: A standardized actuator is opened for service, with its replaceable components laid out nearby.",
+      "state": "placeholder"
+    }
+  }
+]

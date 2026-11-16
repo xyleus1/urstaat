@@ -1,0 +1,781 @@
+[
+  {
+    "id": "data-2015",
+    "seriesId": "data",
+    "year": 2015,
+    "kind": "history",
+    "title": "Learning control from physical experience",
+    "blurb": "A PR2 learns manipulation policies that connect camera images to motor commands through guided policy search. The experiment shows how experience on physical tasks can train a visual controller, using repeated interaction to connect observations with successful movement.",
+    "evidenceType": "lab-demo",
+    "sourceUrl": "https://arxiv.org/abs/1504.00702",
+    "publisher": "UC Berkeley / RAIL",
+    "publishedAt": "2015-04-02",
+    "tags": [
+      "physical interaction",
+      "demonstrations"
+    ],
+    "media": {
+      "provider": "youtube",
+      "id": "Q4bMcUk6pcw",
+      "alt": "PR2 demonstrations of learned visuomotor manipulation tasks."
+    }
+  },
+  {
+    "id": "data-2016",
+    "seriesId": "data",
+    "year": 2016,
+    "kind": "history",
+    "title": "A robot farm collects grasping experience",
+    "blurb": "Google researchers use an array of robot arms to gather physical grasping experience. Sharing the resulting attempts across training exposes a grasping model to varied objects and outcomes, making repeated interaction a resource for improving hand–eye coordination.",
+    "evidenceType": "lab-demo",
+    "sourceUrl": "https://research.google/blog/deep-learning-for-robots-learning-from-large-scale-interaction/",
+    "publisher": "Google Research",
+    "publishedAt": "2016-03-08",
+    "tags": [
+      "physical interaction",
+      "grasping"
+    ],
+    "media": {
+      "provider": "youtube",
+      "id": "iaF43Ze1oeI",
+      "alt": "An array of robot arms collecting physical grasping experience."
+    }
+  },
+  {
+    "id": "data-2017",
+    "seriesId": "data",
+    "year": 2017,
+    "kind": "history",
+    "title": "Synthetic grasps transfer to a real robot",
+    "blurb": "Dex-Net 2.0 trains a grasp-quality model on synthetic depth observations and grasp examples, then evaluates it on physical objects. The project shows how generated training data can supply varied examples for a specific robot skill.",
+    "evidenceType": "lab-demo",
+    "sourceUrl": "https://bair.berkeley.edu/blog/2017/06/27/dexnet-2.0/",
+    "publisher": "UC Berkeley / BAIR",
+    "publishedAt": "2017-06-27",
+    "tags": [
+      "simulation",
+      "synthetic data",
+      "grasping"
+    ],
+    "media": {
+      "provider": "youtube",
+      "id": "i6K3GI2_EgU",
+      "alt": "Dex-Net grasping research demonstrated with a physical robot."
+    }
+  },
+  {
+    "id": "data-2018",
+    "seriesId": "data",
+    "year": 2018,
+    "kind": "history",
+    "title": "QT-Opt learns from accumulated grasps",
+    "blurb": "QT-Opt learns from previously collected grasping experience and additional robot interaction. The demonstration shows learned behaviors including probing and recovery attempts, connecting an accumulated dataset with continued experimentation on physical manipulation tasks.",
+    "evidenceType": "lab-demo",
+    "sourceUrl": "https://research.google/blog/scalable-deep-reinforcement-learning-for-robotic-manipulation/",
+    "publisher": "Google Research",
+    "publishedAt": "2018-06-28",
+    "tags": [
+      "physical interaction",
+      "reinforcement learning",
+      "offline data"
+    ],
+    "media": {
+      "provider": "youtube",
+      "id": "W4joe3zzglU",
+      "alt": "QT-Opt robot grasping, probing, and recovery demonstrations."
+    }
+  },
+  {
+    "id": "data-2019",
+    "seriesId": "data",
+    "year": 2019,
+    "kind": "history",
+    "title": "RoboNet brings robot datasets together",
+    "blurb": "RoboNet brings together interaction data from different robots and institutions to study transfer across platforms. The shared collection lets researchers explore how experience gathered on one embodiment can contribute to models used with another.",
+    "evidenceType": "lab-demo",
+    "sourceUrl": "https://bair.berkeley.edu/blog/2019/11/26/robo-net/",
+    "publisher": "UC Berkeley / BAIR",
+    "publishedAt": "2019-11-26",
+    "tags": [
+      "shared datasets",
+      "cross-embodiment",
+      "physical interaction"
+    ],
+    "media": {
+      "provider": "youtube",
+      "id": "qd-sBiKGLn4",
+      "alt": "RoboNet project footage showing interaction data from multiple robots."
+    }
+  },
+  {
+    "id": "data-2020",
+    "seriesId": "data",
+    "year": 2020,
+    "kind": "history",
+    "title": "A robot gathers its own walking experience",
+    "blurb": "A quadruped gathers real walking experience while an automated get-up controller handles falls and a task scheduler keeps training inside the workspace. The system combines learning with the practical mechanisms needed to continue collecting physical experience.",
+    "evidenceType": "lab-demo",
+    "sourceUrl": "https://research.google/blog/exploring-nature-inspired-robot-agility/",
+    "publisher": "Google Research",
+    "publishedAt": "2020-04-03",
+    "tags": [
+      "physical interaction",
+      "autonomous collection",
+      "reinforcement learning"
+    ],
+    "media": {
+      "provider": "youtube",
+      "id": "cwyiq6dCgOc",
+      "alt": "A quadruped learning locomotion through repeated physical interaction and recovery."
+    }
+  },
+  {
+    "id": "data-2021",
+    "seriesId": "data",
+    "year": 2021,
+    "kind": "history",
+    "title": "Studying the quality of human demonstrations",
+    "blurb": "The robomimic study compares offline learning from human demonstrations across simulated and physical manipulation tasks. It examines operator skill, dataset composition, and learning choices, showing how the contents and quality of demonstrations affect the policies trained from them.",
+    "evidenceType": "lab-demo",
+    "sourceUrl": "https://robomimic.github.io/study/",
+    "publisher": "robomimic research team",
+    "publishedAt": "2021-08-06",
+    "tags": [
+      "human demonstrations",
+      "offline learning",
+      "simulation"
+    ],
+    "media": {
+      "provider": "native",
+      "src": "https://robomimic.github.io/assets/robomimic_video.mp4",
+      "alt": "The robomimic research presentation, including simulated and physical robot manipulation."
+    }
+  },
+  {
+    "id": "data-2022",
+    "seriesId": "data",
+    "year": 2022,
+    "kind": "history",
+    "title": "RT-1 scales a shared manipulation dataset",
+    "blurb": "RT-1 trains a shared model on robot demonstrations spanning many manipulation tasks. The project connects the breadth of a collected dataset with the range of instructions a policy can execute on the participating robot platform.",
+    "evidenceType": "lab-demo",
+    "sourceUrl": "https://robotics-transformer1.github.io/",
+    "publisher": "Google Research / Robotics at Google",
+    "publishedAt": "2022-12-13",
+    "tags": [
+      "demonstrations",
+      "multi-task learning",
+      "physical interaction"
+    ],
+    "media": {
+      "provider": "native",
+      "src": "https://robotics-transformer1.github.io/img/RT1-video.mp4",
+      "alt": "RT-1 robots executing a range of manipulation tasks."
+    }
+  },
+  {
+    "id": "data-2023",
+    "seriesId": "data",
+    "year": 2023,
+    "kind": "history",
+    "title": "Open X-Embodiment pools robot experience",
+    "blurb": "Open X-Embodiment brings existing robot datasets together across institutions and embodiments. The collaboration explores shared learning from varied collections, making differences in robot hardware, observations, actions, and tasks part of a common research resource.",
+    "evidenceType": "lab-demo",
+    "sourceUrl": "https://deepmind.google/blog/scaling-up-learning-across-many-different-robot-types/",
+    "publisher": "Google DeepMind / Open X-Embodiment collaboration",
+    "publishedAt": "2023-10-03",
+    "tags": [
+      "shared datasets",
+      "cross-embodiment",
+      "demonstrations"
+    ],
+    "media": {
+      "provider": "native",
+      "src": "https://robotics-transformer-x.github.io/video/teaser_compressed.mp4",
+      "alt": "Open X-Embodiment overview showing different robots and manipulation tasks."
+    }
+  },
+  {
+    "id": "data-2024",
+    "seriesId": "data",
+    "year": 2024,
+    "kind": "history",
+    "title": "UMI collects demonstrations away from the robot",
+    "blurb": "The Universal Manipulation Interface records human demonstrations using handheld, camera-equipped grippers away from the robot. The resulting instrumented movements provide action-compatible training examples, giving researchers a way to collect manipulation experience in varied physical settings.",
+    "evidenceType": "lab-demo",
+    "sourceUrl": "https://umi-gripper.github.io/",
+    "publisher": "Universal Manipulation Interface research team",
+    "publishedAt": "2024-02-15",
+    "tags": [
+      "UMI",
+      "human demonstrations",
+      "data collection"
+    ],
+    "media": {
+      "provider": "native",
+      "src": "https://umi-gripper.github.io/videos/teaser_data_collection_dish.mp4",
+      "alt": "A person collecting dishwashing demonstrations using UMI handheld grippers."
+    }
+  },
+  {
+    "id": "data-2025",
+    "seriesId": "data",
+    "year": 2025,
+    "kind": "history",
+    "title": "Learning from corrections and autonomous experience",
+    "blurb": "Physical Intelligence’s RECAP work combines demonstrations, corrective human interventions, and autonomous robot experience. The project uses both successful behavior and mistakes during learning, with task demonstrations showing how experience from continued operation can contribute to improved policies.",
+    "evidenceType": "lab-demo",
+    "sourceUrl": "https://www.pi.website/blog/pistar06",
+    "publisher": "Physical Intelligence",
+    "publishedAt": "2025-11-17",
+    "tags": [
+      "teleoperation",
+      "human corrections",
+      "autonomous experience"
+    ],
+    "media": {
+      "provider": "native",
+      "src": "https://website.pi-asset.com/pi06star/PiFinal.mp4",
+      "alt": "Physical Intelligence demonstrations of robot manipulation and learning from experience."
+    }
+  },
+  {
+    "id": "data-2026",
+    "seriesId": "data",
+    "year": 2026,
+    "kind": "history",
+    "title": "Figure Index collects human physical-task video",
+    "blurb": "Figure introduces Index as a pipeline for gathering human video of physical tasks. The announcement presents a route to broad embodied training material, with people recording everyday activity that can inform systems learning about the physical world.",
+    "evidenceType": "launch",
+    "sourceUrl": "https://www.figure.ai/news/introducing-index",
+    "publisher": "Figure",
+    "publishedAt": "2026-08-25",
+    "tags": [
+      "human video",
+      "data collection"
+    ],
+    "media": {
+      "provider": "native",
+      "src": "https://videos.ctfassets.net/qx5k8y1u9drj/2Wlcrl5BHdn5xITeWZolwD/9e8c5f95327b1a794ac0d6dcd8d37ec3/1080p_INDEX_82526G_16x9_Master.mp4",
+      "alt": "Figure Index's introduction to human physical-task video collection."
+    }
+  },
+  {
+    "id": "specialist-2015",
+    "seriesId": "specialist",
+    "year": 2015,
+    "kind": "history",
+    "title": "Visuomotor policies perform precise tasks",
+    "blurb": "A PR2 performs trained tasks including object placement and tool interaction using policies that connect vision to motor control. The controlled demonstrations show learned physical skills responding to camera observations during precise manipulation.",
+    "evidenceType": "lab-demo",
+    "sourceUrl": "https://arxiv.org/abs/1504.00702",
+    "publisher": "UC Berkeley / RAIL",
+    "publishedAt": "2015-04-02",
+    "tags": [
+      "manipulation",
+      "visuomotor learning"
+    ],
+    "media": {
+      "provider": "youtube",
+      "id": "Q4bMcUk6pcw",
+      "alt": "PR2 demonstrations of learned precision manipulation."
+    }
+  },
+  {
+    "id": "specialist-2016",
+    "seriesId": "specialist",
+    "year": 2016,
+    "kind": "history",
+    "title": "Visual feedback improves robot grasping",
+    "blurb": "A learned grasping system uses ongoing visual feedback to adjust its movement as objects and contact conditions change. The demonstration makes closed-loop hand–eye coordination visible, with the robot updating its approach during the grasp itself.",
+    "evidenceType": "lab-demo",
+    "sourceUrl": "https://research.google/blog/deep-learning-for-robots-learning-from-large-scale-interaction/",
+    "publisher": "Google Research",
+    "publishedAt": "2016-03-08",
+    "tags": [
+      "grasping",
+      "closed-loop control"
+    ],
+    "media": {
+      "provider": "youtube",
+      "id": "l8zKZLqkfII",
+      "alt": "A robot adjusting physical grasps using visual feedback."
+    }
+  },
+  {
+    "id": "specialist-2017",
+    "seriesId": "specialist",
+    "year": 2017,
+    "kind": "history",
+    "title": "Dex-Net predicts useful physical grasps",
+    "blurb": "Dex-Net 2.0 uses a grasp-quality network to select actions for a physical robot handling varied objects. The demonstration connects synthetic training examples with real picking behavior, showing the policy’s decisions through repeated physical grasp attempts.",
+    "evidenceType": "lab-demo",
+    "sourceUrl": "https://bair.berkeley.edu/blog/2017/06/27/dexnet-2.0/",
+    "publisher": "UC Berkeley / BAIR",
+    "publishedAt": "2017-06-27",
+    "tags": [
+      "grasping",
+      "simulation-to-real"
+    ],
+    "media": {
+      "provider": "youtube",
+      "id": "i6K3GI2_EgU",
+      "alt": "A physical robot using Dex-Net to select and execute object grasps."
+    }
+  },
+  {
+    "id": "specialist-2018",
+    "seriesId": "specialist",
+    "year": 2018,
+    "kind": "history",
+    "title": "Dactyl learns in-hand dexterity",
+    "blurb": "OpenAI’s Dactyl reorients an object inside a robotic hand after training in randomized simulation. The physical demonstration shows how a learned policy coordinates multiple fingers, using contact and feedback to keep changing the object’s orientation.",
+    "evidenceType": "lab-demo",
+    "sourceUrl": "https://openai.com/index/learning-dexterity/",
+    "publisher": "OpenAI",
+    "publishedAt": "2018-07-30",
+    "tags": [
+      "dexterity",
+      "simulation",
+      "simulation-to-real"
+    ],
+    "media": {
+      "provider": "youtube",
+      "id": "jwSbzNHGflM",
+      "alt": "Dactyl's robotic hand reorienting an object."
+    }
+  },
+  {
+    "id": "specialist-2019",
+    "seriesId": "specialist",
+    "year": 2019,
+    "kind": "history",
+    "title": "A robotic hand manipulates a Rubik’s Cube",
+    "blurb": "A learned control system manipulates a Rubik’s Cube with a dexterous robotic hand. A conventional solver supplies the moves, while the robot must perceive the cube and execute each physical turn through coordinated finger motion.",
+    "evidenceType": "lab-demo",
+    "sourceUrl": "https://openai.com/index/solving-rubiks-cube/",
+    "publisher": "OpenAI",
+    "publishedAt": "2019-10-15",
+    "tags": [
+      "dexterity",
+      "simulation-to-real"
+    ],
+    "media": {
+      "provider": "youtube",
+      "id": "kVmp0uGtShk",
+      "alt": "An uncut demonstration of a robotic hand manipulating a Rubik's Cube."
+    }
+  },
+  {
+    "id": "specialist-2020",
+    "seriesId": "specialist",
+    "year": 2020,
+    "kind": "history",
+    "title": "Animal motion informs robot locomotion",
+    "blurb": "Researchers use animal motion to train quadruped locomotion policies in simulation, then adapt selected behaviors to physical hardware. The presentation shows both simulated and real examples, linking reference movements with learned gaits, turns, and hops.",
+    "evidenceType": "lab-demo",
+    "sourceUrl": "https://research.google/blog/exploring-nature-inspired-robot-agility/",
+    "publisher": "Google Research",
+    "publishedAt": "2020-04-03",
+    "tags": [
+      "locomotion",
+      "simulation",
+      "imitation learning"
+    ],
+    "media": {
+      "provider": "youtube",
+      "id": "lKYh6uuCwRY",
+      "alt": "Animal-inspired quadruped locomotion research, including simulated and physical robot scenes."
+    }
+  },
+  {
+    "id": "specialist-2021",
+    "seriesId": "specialist",
+    "year": 2021,
+    "kind": "history",
+    "title": "Parallel simulation trains terrain traversal",
+    "blurb": "ETH researchers train locomotion policies using many simulated robots in parallel and transfer them to a physical ANYmal. The demonstration links the training process with rough-terrain traversal, showing how the learned controller handles changing ground conditions.",
+    "evidenceType": "lab-demo",
+    "sourceUrl": "https://leggedrobotics.github.io/legged_gym/",
+    "publisher": "ETH Zurich Robotic Systems Lab",
+    "publishedAt": "2021-09-24",
+    "tags": [
+      "locomotion",
+      "simulation",
+      "simulation-to-real"
+    ],
+    "media": {
+      "provider": "youtube",
+      "id": "8sO7VS3q8d0",
+      "alt": "ANYmal locomotion training in parallel simulation and traversal on physical terrain."
+    }
+  },
+  {
+    "id": "specialist-2022",
+    "seriesId": "specialist",
+    "year": 2022,
+    "kind": "history",
+    "title": "SayCan grounds instructions in robot skills",
+    "blurb": "SayCan combines language-based task selection with estimates of which robot skills are executable in the current scene. The mobile manipulator follows instructions by choosing and sequencing actions from its available skill library.",
+    "evidenceType": "lab-demo",
+    "sourceUrl": "https://say-can.github.io/",
+    "publisher": "Google Research / Robotics at Google",
+    "publishedAt": "2022-04-04",
+    "tags": [
+      "language grounding",
+      "mobile manipulation"
+    ],
+    "media": {
+      "provider": "youtube",
+      "id": "ysFav0b472w",
+      "alt": "SayCan's mobile manipulator following instructions through a sequence of available skills."
+    }
+  },
+  {
+    "id": "specialist-2023",
+    "seriesId": "specialist",
+    "year": 2023,
+    "kind": "history",
+    "title": "ALOHA learns bimanual battery insertion",
+    "blurb": "An ALOHA system autonomously inserts a battery using a policy trained from demonstrations. The real-time rollout shows precise bimanual manipulation, with the two arms coordinating object handling and alignment through a learned sequence of actions.",
+    "evidenceType": "lab-demo",
+    "sourceUrl": "https://tonyzhaozh.github.io/aloha/",
+    "publisher": "ALOHA / ACT research team",
+    "publishedAt": "2023-04-23",
+    "tags": [
+      "bimanual manipulation",
+      "imitation learning",
+      "teleoperation"
+    ],
+    "media": {
+      "provider": "native",
+      "src": "https://tonyzhaozh.github.io/aloha/resources/slot_battery.mp4",
+      "alt": "An autonomous ALOHA policy inserting a battery using two robot arms."
+    }
+  },
+  {
+    "id": "specialist-2024",
+    "seriesId": "specialist",
+    "year": 2024,
+    "kind": "history",
+    "title": "UMI demonstrations become a dishwashing policy",
+    "blurb": "A robot autonomously completes a multi-step dishwashing routine after learning from UMI demonstrations. The real-time rollout coordinates objects, tools, and fixtures, connecting human-recorded manipulation examples with a physical policy executing the sequence.",
+    "evidenceType": "lab-demo",
+    "sourceUrl": "https://umi-gripper.github.io/",
+    "publisher": "Universal Manipulation Interface research team",
+    "publishedAt": "2024-02-15",
+    "tags": [
+      "UMI",
+      "imitation learning",
+      "multi-step manipulation"
+    ],
+    "media": {
+      "provider": "native",
+      "src": "https://umi-gripper.github.io/videos/task_dish_washing_1x_compressed.mp4",
+      "alt": "A fully autonomous UMI-trained robot completing a dishwashing routine at real-time speed."
+    }
+  },
+  {
+    "id": "specialist-2025",
+    "seriesId": "specialist",
+    "year": 2025,
+    "kind": "history",
+    "title": "Gemini Robotics demonstrates dexterous skills",
+    "blurb": "Google DeepMind presents dexterous manipulation examples from Gemini Robotics. The selected research demonstrations connect visual and language understanding with physical actions, showing a model working through different object-handling tasks on a robotic platform.",
+    "evidenceType": "lab-demo",
+    "sourceUrl": "https://deepmind.google/blog/gemini-robotics-brings-ai-into-the-physical-world/",
+    "publisher": "Google DeepMind",
+    "publishedAt": "2025-03-12",
+    "tags": [
+      "dexterity",
+      "vision-language-action"
+    ],
+    "media": {
+      "provider": "youtube",
+      "id": "x-exzZ-CIUw",
+      "alt": "Gemini Robotics performing selected dexterous manipulation demonstrations."
+    }
+  },
+  {
+    "id": "specialist-2026",
+    "seriesId": "specialist",
+    "year": 2026,
+    "kind": "history",
+    "title": "GEN-1.5 responds to a demonstration prompt",
+    "blurb": "Generalist shows a robot manipulating a jar after receiving a sensorimotor demonstration prompt. The short-horizon example explores in-context adaptation, with the prompt guiding the physical rollout while the model’s trained parameters remain fixed.",
+    "evidenceType": "lab-demo",
+    "sourceUrl": "https://generalistai.com/blog/gen-1.5",
+    "publisher": "Generalist",
+    "publishedAt": "2026-08-19",
+    "tags": [
+      "in-context learning",
+      "bimanual manipulation"
+    ],
+    "media": {
+      "provider": "native",
+      "src": "https://generalistai.com/assets/pages/blog/gen-1.5/assets/videos/top_down_robot_jar.mp4",
+      "alt": "GEN-1.5's physical robot rollout manipulating a jar."
+    }
+  },
+  {
+    "id": "deployment-2015",
+    "seriesId": "deployment",
+    "year": 2015,
+    "kind": "history",
+    "title": "ABB introduces the YuMi collaborative robot",
+    "blurb": "ABB introduces YuMi as a dual-arm collaborative robot for small-part assembly. The commercial launch film presents its intended work beside people, showing how a compact robot can fit into a shared manufacturing workstation.",
+    "evidenceType": "launch",
+    "sourceUrl": "https://new.abb.com/news/detail/12952/abb-introduces-yumir-worlds-first-truly-collaborative-dual-arm-robot",
+    "publisher": "ABB Robotics",
+    "eventDate": "2015-04-13",
+    "publishedAt": "2015-04-13",
+    "tags": [
+      "collaborative robots",
+      "manufacturing"
+    ],
+    "media": {
+      "provider": "youtube",
+      "id": "2KfXY2SvlmQ",
+      "alt": "ABB YuMi's launch demonstration of dual-arm collaborative small-part assembly."
+    }
+  },
+  {
+    "id": "deployment-2016",
+    "seriesId": "deployment",
+    "year": 2016,
+    "kind": "history",
+    "title": "YuMi appears in DEONET’s factory",
+    "blurb": "ABB’s customer film follows YuMi at DEONET, a manufacturer of personalized promotional products in Eindhoven. The factory case shows human–robot collaboration within an existing production environment, bringing the collaborative robot from a launch demonstration into customer use.",
+    "evidenceType": "operational-report",
+    "sourceUrl": "https://www.youtube.com/watch?v=S_BR5c2eaoE",
+    "publisher": "ABB Robotics",
+    "publishedAt": "2016-12-05",
+    "tags": [
+      "collaborative robots",
+      "manufacturing"
+    ],
+    "media": {
+      "provider": "youtube",
+      "id": "S_BR5c2eaoE",
+      "alt": "ABB's customer case film showing YuMi in DEONET's manufacturing environment."
+    }
+  },
+  {
+    "id": "deployment-2017",
+    "seriesId": "deployment",
+    "year": 2017,
+    "kind": "history",
+    "title": "DHL and Wärtsilä pilot mobile robots",
+    "blurb": "DHL and Wärtsilä report a Fetch Robotics pilot for moving material through a warehouse in Kampen. The film shows mobile robots sharing the workplace with people, giving a concrete view of automation within an existing logistics workflow.",
+    "evidenceType": "pilot",
+    "sourceUrl": "https://www.wartsila.com/media/news/11-07-2017-wartsila-and-dhl-deploy-cutting-edge-mobile-robots-from-fetch-robotics-to-streamline-warehouse-operations",
+    "publisher": "Wärtsilä / DHL",
+    "publishedAt": "2017-07-11",
+    "tags": [
+      "warehouse logistics",
+      "mobile robots"
+    ],
+    "media": {
+      "provider": "youtube",
+      "id": "mAnFAp22ReA",
+      "alt": "Fetch mobile robots moving material in the DHL and Wärtsilä warehouse pilot."
+    }
+  },
+  {
+    "id": "deployment-2018",
+    "seriesId": "deployment",
+    "year": 2018,
+    "kind": "history",
+    "title": "Inside Ocado’s automated fulfillment center",
+    "blurb": "Ocado’s 2018 tour shows its Andover fulfillment center in operation, including the robot grid and associated order-handling workflow. The footage connects coordinated machine movement with the larger process of preparing customers’ grocery orders.",
+    "evidenceType": "operational-report",
+    "sourceUrl": "https://www.youtube.com/watch?v=JMUNI4UrNpM",
+    "publisher": "Ocado Technology",
+    "publishedAt": "2018-05-10",
+    "tags": [
+      "warehouse logistics",
+      "automated fulfillment"
+    ],
+    "media": {
+      "provider": "youtube",
+      "id": "JMUNI4UrNpM",
+      "alt": "Ocado's official tour of the Andover automated fulfillment center."
+    }
+  },
+  {
+    "id": "deployment-2019",
+    "seriesId": "deployment",
+    "year": 2019,
+    "kind": "history",
+    "title": "Spot becomes available to early customers",
+    "blurb": "Boston Dynamics introduces Spot to selected early adopters and demonstrates mobility and payload applications. The commercial launch presents inspection and related work as uses for a legged platform able to move through existing environments.",
+    "evidenceType": "launch",
+    "sourceUrl": "https://www.youtube.com/watch?v=wlkCQXHEgjA",
+    "publisher": "Boston Dynamics",
+    "publishedAt": "2019-09-24",
+    "tags": [
+      "inspection",
+      "quadrupeds",
+      "commercial availability"
+    ],
+    "media": {
+      "provider": "youtube",
+      "id": "wlkCQXHEgjA",
+      "alt": "Boston Dynamics' Spot launch film showing mobility and payload applications."
+    }
+  },
+  {
+    "id": "deployment-2020",
+    "seriesId": "deployment",
+    "year": 2020,
+    "kind": "history",
+    "title": "A tour of robot-assisted fulfillment",
+    "blurb": "Amazon’s guided fulfillment-center tour shows robots and people working within an established logistics operation. The film follows goods through the facility, placing automated movement within the wider sequence of storage, picking, and order preparation.",
+    "evidenceType": "operational-report",
+    "sourceUrl": "https://www.aboutamazon.com/news/operations/join-our-team-on-a-guided-video-tour-through-a-fulfillment-center",
+    "publisher": "Amazon",
+    "publishedAt": "2020-09-24",
+    "tags": [
+      "warehouse logistics",
+      "automated fulfillment"
+    ],
+    "media": {
+      "provider": "youtube",
+      "id": "e3QgE4Vs5Cs",
+      "alt": "The fulfillment-center video tour embedded in Amazon's official 2020 article."
+    }
+  },
+  {
+    "id": "deployment-2021",
+    "seriesId": "deployment",
+    "year": 2021,
+    "kind": "history",
+    "title": "Spot’s first year in commercial operations",
+    "blurb": "Boston Dynamics reviews Spot working with customers across industrial settings during its first commercial year. The retrospective shows inspection applications at operating sites, connecting the robot’s mobility and payload capabilities with concrete customer workflows.",
+    "evidenceType": "operational-report",
+    "sourceUrl": "https://bostondynamics.com/blog/retrospective-on-boston-dynamics-spot-robot-uses/",
+    "publisher": "Boston Dynamics",
+    "publishedAt": "2021-06-16",
+    "tags": [
+      "inspection",
+      "quadrupeds",
+      "customer operations"
+    ],
+    "media": {
+      "provider": "youtube",
+      "id": "6VUQHrWhoqg",
+      "startSeconds": 12,
+      "endSeconds": 29,
+      "alt": "Spot operating at customer sites in Boston Dynamics' first-year commercial retrospective."
+    }
+  },
+  {
+    "id": "deployment-2022",
+    "seriesId": "deployment",
+    "year": 2022,
+    "kind": "history",
+    "title": "Amazon introduces Proteus",
+    "blurb": "Amazon introduces Proteus, a mobile robot designed to move wheeled carts through spaces shared with workers. The launch film presents the intended workflow, while the announcement describes plans for its initial deployment in Amazon’s operations.",
+    "evidenceType": "launch",
+    "sourceUrl": "https://www.aboutamazon.com/news/operations/10-years-of-amazon-robotics-how-robots-help-sort-packages-move-product-and-improve-safety",
+    "publisher": "Amazon",
+    "publishedAt": "2022-06-21",
+    "tags": [
+      "warehouse logistics",
+      "mobile robots"
+    ],
+    "media": {
+      "provider": "youtube",
+      "id": "AmmEbYkYfHY",
+      "alt": "Amazon's Proteus mobile robot moving carts in a shared workspace."
+    }
+  },
+  {
+    "id": "deployment-2023",
+    "seriesId": "deployment",
+    "year": 2023,
+    "kind": "history",
+    "title": "Stretch unloads trailers at DHL",
+    "blurb": "Boston Dynamics shows Stretch unloading boxes from a trailer at DHL as commercial shipping begins. The customer film brings a specific logistics task into view, showing robot handling within the confined space of an existing trailer.",
+    "evidenceType": "operational-report",
+    "sourceUrl": "https://bostondynamics.com/blog/a-million-milestones-2023-in-review/",
+    "publisher": "Boston Dynamics",
+    "publishedAt": "2023-01-31",
+    "tags": [
+      "warehouse logistics",
+      "trailer unloading"
+    ],
+    "media": {
+      "provider": "youtube",
+      "id": "qgGH6Vk8nY8",
+      "alt": "Stretch unloading boxes from a trailer at DHL."
+    }
+  },
+  {
+    "id": "deployment-2024",
+    "seriesId": "deployment",
+    "year": 2024,
+    "kind": "history",
+    "title": "Digit begins regular work at GXO",
+    "blurb": "Agility documents Digit handling totes in a commercial warehouse workflow at GXO. The source identifies June 5 as its first regular workday; the later film shows the humanoid carrying out this defined material-handling task.",
+    "evidenceType": "operational-report",
+    "sourceUrl": "https://www.agilityrobotics.com/videos/digits-first-day-of-work-at-gxo",
+    "publisher": "Agility Robotics",
+    "eventDate": "2024-06-05",
+    "publishedAt": "2024-10-02",
+    "tags": [
+      "warehouse logistics",
+      "humanoids",
+      "tote handling"
+    ],
+    "media": {
+      "provider": "youtube",
+      "id": "AJpTpUqjgrY",
+      "alt": "Digit handling totes during its commercial warehouse work at GXO."
+    }
+  },
+  {
+    "id": "deployment-2025",
+    "seriesId": "deployment",
+    "year": 2025,
+    "kind": "history",
+    "title": "Figure reports production work at BMW",
+    "blurb": "Figure reports an extended Figure 02 deployment loading sheet-metal parts at BMW. The footage shows the robot working at a production fixture, while the company’s retrospective describes the operating experience accumulated through this specific manufacturing task.",
+    "evidenceType": "operational-report",
+    "sourceUrl": "https://www.figure.ai/news/production-at-bmw",
+    "publisher": "Figure",
+    "publishedAt": "2025-11-19",
+    "tags": [
+      "manufacturing",
+      "humanoids",
+      "part handling"
+    ],
+    "media": {
+      "provider": "native",
+      "src": "https://videos.ctfassets.net/qx5k8y1u9drj/2fhO8Txwv7qK3hSxtyANqe/e6b814d2e72dcb12d4d9219b4d672247/BMW_Clip_Wide.mp4",
+      "alt": "Figure 02 loading sheet-metal parts at a BMW production fixture."
+    }
+  },
+  {
+    "id": "deployment-2026",
+    "seriesId": "deployment",
+    "year": 2026,
+    "kind": "history",
+    "title": "Figure 03 demonstrates factory tasks at BMW",
+    "blurb": "Figure shows its newer robot demonstrating part handling and cart movement on site at BMW. The factory footage explores additional workflows for Figure 03, following the company’s earlier report of Figure 02 performing a production task.",
+    "evidenceType": "pilot",
+    "sourceUrl": "https://www.figure.ai/news/f-03-at-bmw",
+    "publisher": "Figure",
+    "publishedAt": "2026-06-30",
+    "tags": [
+      "manufacturing",
+      "humanoids",
+      "factory demonstration"
+    ],
+    "media": {
+      "provider": "native",
+      "src": "https://videos.ctfassets.net/qx5k8y1u9drj/33JKTQMBo0UKCR26Q7yOkW/61957b991034ab0b99ca439f1b70dfb5/F03_x_BMW_MP4.mp4",
+      "alt": "Figure 03 demonstrating part handling and cart movement at BMW."
+    }
+  }
+]
