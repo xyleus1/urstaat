@@ -1,0 +1,414 @@
+{
+  "reviewedOn": "2026-11-16",
+  "normalization": "100 * raw value / the same measure's observed 2020 value",
+  "interpretation": "Normalized changes are within-series comparisons, not equivalence of capability, scale, prices or economic value across unlike measures. No unobserved or future values are supplied.",
+  "series": {
+    "llm": {
+      "metric": "Selected MMLU 5-shot scores",
+      "shortMetric": "MMLU / 5-shot",
+      "sourceName": "MMLU and model technical reports",
+      "sourceUrl": "https://arxiv.org/pdf/2009.03300",
+      "unit": "percent",
+      "baselineYear": 2020,
+      "baselineValue": 43.9,
+      "scope": "Selected reported model scores on the original English MMLU benchmark. These are individual results, not annual averages or an exhaustive industry frontier.",
+      "methodology": "Standard 5-shot answer prediction; model providers and evaluation implementations differ. Normalize reported accuracy as 100 × score / 43.9 (GPT-3 175B, 2020). A doubled index means twice the baseline accuracy percentage, not twice the intelligence. MMLU accuracy is bounded at 100%, with a 25% chance level. Connecting segments are visual guides; no unobserved scores are inferred.",
+      "status": "observed",
+      "observations": [
+        {
+          "year": 2020,
+          "value": 43.9,
+          "sourceUrl": "https://arxiv.org/pdf/2009.03300",
+          "detail": "GPT-3 175B; MMLU, 5-shot, standard answer prediction. Table 1, page 5; Figure 10, page 13. Also explicitly identified as 5-shot at 43.9% in Gopher Figure A12(b), page 65.",
+          "normalizedValue": 100
+        },
+        {
+          "year": 2021,
+          "value": 60,
+          "sourceUrl": "https://storage.googleapis.com/deepmind-media/research/language-research/Training%20Gopher.pdf",
+          "detail": "Gopher 280B; MMLU, 5-shot, standard answer prediction. Figure A12(b), page 65; Table A8, page 68.",
+          "normalizedValue": 136.6742596810934
+        },
+        {
+          "year": 2022,
+          "value": 69.3,
+          "sourceUrl": "https://arxiv.org/pdf/2204.02311",
+          "detail": "PaLM 540B; MMLU, 5-shot, standard answer prediction. Table 6, page 13: All-column score 69.3; caption specifies 5-shot MMLU test sets.",
+          "normalizedValue": 157.85876993166286
+        },
+        {
+          "year": 2023,
+          "value": 86.4,
+          "sourceUrl": "https://cdn.openai.com/papers/gpt-4.pdf",
+          "detail": "GPT-4; MMLU, 5-shot, standard answer prediction. Table 2, page 7: MMLU 86.4%, 5-shot.",
+          "normalizedValue": 196.8109339407745
+        },
+        {
+          "year": 2024,
+          "value": 88.7,
+          "sourceUrl": "https://www.anthropic.com/news/claude-3-5-sonnet",
+          "detail": "Claude 3.5 Sonnet (June 2024); MMLU, 5-shot, standard answer prediction. Launch benchmark image: MMLU 88.7%, 5-shot. Visually checked official Amazon-hosted reproduction; 88.3 is a different 0-shot CoT score and 90.4 is 5-shot CoT, neither used.",
+          "normalizedValue": 202.0501138952164
+        }
+      ],
+      "references": [
+        {
+          "title": "Measuring Massive Multitask Language Understanding",
+          "url": "https://arxiv.org/pdf/2009.03300"
+        },
+        {
+          "title": "Scaling Language Models: Methods, Analysis & Insights from Training Gopher",
+          "url": "https://storage.googleapis.com/deepmind-media/research/language-research/Training%20Gopher.pdf"
+        },
+        {
+          "title": "PaLM: Scaling Language Modeling with Pathways",
+          "url": "https://arxiv.org/pdf/2204.02311"
+        },
+        {
+          "title": "GPT-4 Technical Report",
+          "url": "https://cdn.openai.com/papers/gpt-4.pdf"
+        },
+        {
+          "title": "Claude 3.5 Sonnet launch benchmark table",
+          "url": "https://www.anthropic.com/news/claude-3-5-sonnet"
+        },
+        {
+          "title": "Claude 3.5 Sonnet launch benchmark table, official Amazon reproduction",
+          "url": "https://assets.aboutamazon.com/be/e0/6c48ce64427faeb5ce58c292775b/claude3-5-benchmarks.pdf"
+        }
+      ]
+    },
+    "humanoid": {
+      "metric": "Humanoid capability: annual index unavailable",
+      "shortMetric": "No verified annual index",
+      "sourceName": "HumanoidBench research context",
+      "sourceUrl": "https://arxiv.org/abs/2403.10506",
+      "unit": "index",
+      "baselineYear": 2020,
+      "baselineValue": null,
+      "scope": "HumanoidBench is a simulated whole-body control benchmark introduced in 2024; it does not supply a comparable annual history of general humanoid capability.",
+      "methodology": "No numerical curve or 2020 baseline is assigned. Historical demonstrations and future sketches remain narrative context. Launch counts, shipment estimates and unlike task results are not substituted for capability observations.",
+      "status": "unavailable",
+      "unavailableReason": "No comparable annual humanoid-capability series was verified.",
+      "observations": [],
+      "references": [
+        {
+          "title": "HumanoidBench: Simulated Humanoid Benchmark for Whole-Body Locomotion and Manipulation",
+          "url": "https://arxiv.org/abs/2403.10506"
+        },
+        {
+          "title": "MuJoCo MPC for Humanoid Control: Evaluation on HumanoidBench",
+          "url": "https://arxiv.org/abs/2408.00342"
+        }
+      ]
+    },
+    "specialist": {
+      "metric": "Intuitive da Vinci installed base",
+      "shortMetric": "da Vinci installed base",
+      "sourceName": "Intuitive Surgical",
+      "sourceUrl": "https://isrg.intuitive.com/static-files/f8b309dc-79d2-4f01-88c9-a2e68546dcba",
+      "unit": "systems",
+      "baselineYear": 2020,
+      "baselineValue": 5989,
+      "scope": "Worldwide year-end installed base of da Vinci surgical systems. A narrow specialist-deployment proxy, not a measure of all specialist robots, autonomous capability or clinical outcomes. Ion systems are excluded.",
+      "methodology": "Company-reported year-end totals include purchased, leased and usage-based systems, net of trade-ins and retirements. Retired-system audit adjustments remain in the published totals. Normalize as 100 × systems / 5,989 (2020). Source periods: 2016 Form 10-K for 2015–2016; 2019 Form 10-K for 2017–2019; 2022 ESG report for 2020–2022; 2026 proxy statement, page 38, for 2023–2025.",
+      "status": "proxy",
+      "observations": [
+        {
+          "year": 2015,
+          "value": 3597,
+          "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1035267/000103526717000021/isrg-20161231x10k.htm",
+          "detail": "company-reported year-end count",
+          "normalizedValue": 60.060110202037066
+        },
+        {
+          "year": 2016,
+          "value": 3919,
+          "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1035267/000103526717000021/isrg-20161231x10k.htm",
+          "detail": "company-reported year-end count",
+          "normalizedValue": 65.43663382868593
+        },
+        {
+          "year": 2017,
+          "value": 4409,
+          "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1035267/000103526720000032/isrg-20191231.htm",
+          "detail": "company-reported year-end count",
+          "normalizedValue": 73.61830021706461
+        },
+        {
+          "year": 2018,
+          "value": 4986,
+          "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1035267/000103526720000032/isrg-20191231.htm",
+          "detail": "company-reported year-end count",
+          "normalizedValue": 83.25262982133913
+        },
+        {
+          "year": 2019,
+          "value": 5582,
+          "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1035267/000103526720000032/isrg-20191231.htm",
+          "detail": "company-reported year-end count",
+          "normalizedValue": 93.2042077141426
+        },
+        {
+          "year": 2020,
+          "value": 5989,
+          "sourceUrl": "https://www.intuitive.com/en-us/-/media/ISI/Intuitive/Pdf/2022-intuitive-esg-report.pdf",
+          "detail": "company-reported year-end count",
+          "normalizedValue": 100
+        },
+        {
+          "year": 2021,
+          "value": 6730,
+          "sourceUrl": "https://www.intuitive.com/en-us/-/media/ISI/Intuitive/Pdf/2022-intuitive-esg-report.pdf",
+          "detail": "company-reported year-end count",
+          "normalizedValue": 112.37268325262983
+        },
+        {
+          "year": 2022,
+          "value": 7544,
+          "sourceUrl": "https://www.intuitive.com/en-us/-/media/ISI/Intuitive/Pdf/2022-intuitive-esg-report.pdf",
+          "detail": "company-reported year-end count",
+          "normalizedValue": 125.96426782434463
+        },
+        {
+          "year": 2023,
+          "value": 8606,
+          "sourceUrl": "https://isrg.intuitive.com/static-files/f8b309dc-79d2-4f01-88c9-a2e68546dcba",
+          "detail": "company-reported year-end count",
+          "normalizedValue": 143.6967774252797
+        },
+        {
+          "year": 2024,
+          "value": 9902,
+          "sourceUrl": "https://isrg.intuitive.com/static-files/f8b309dc-79d2-4f01-88c9-a2e68546dcba",
+          "detail": "company-reported year-end count",
+          "normalizedValue": 165.33645015862413
+        },
+        {
+          "year": 2025,
+          "value": 11106,
+          "sourceUrl": "https://isrg.intuitive.com/static-files/f8b309dc-79d2-4f01-88c9-a2e68546dcba",
+          "detail": "company-reported year-end count",
+          "normalizedValue": 185.43997328435464
+        }
+      ],
+      "references": [
+        {
+          "title": "Intuitive 2016 Form 10-K",
+          "url": "https://www.sec.gov/Archives/edgar/data/1035267/000103526717000021/isrg-20161231x10k.htm"
+        },
+        {
+          "title": "Intuitive 2019 Form 10-K",
+          "url": "https://www.sec.gov/Archives/edgar/data/1035267/000103526720000032/isrg-20191231.htm"
+        },
+        {
+          "title": "Intuitive 2022 ESG report",
+          "url": "https://www.intuitive.com/en-us/-/media/ISI/Intuitive/Pdf/2022-intuitive-esg-report.pdf"
+        },
+        {
+          "title": "Intuitive 2026 proxy statement",
+          "url": "https://isrg.intuitive.com/static-files/f8b309dc-79d2-4f01-88c9-a2e68546dcba"
+        }
+      ]
+    },
+    "deployment": {
+      "metric": "IFR industrial robot operational stock",
+      "shortMetric": "IFR industrial robot stock",
+      "sourceName": "International Federation of Robotics",
+      "sourceUrl": "https://ifr.org/img/worldrobotics/Press_Conference_2024.pdf",
+      "unit": "robots",
+      "baselineYear": 2020,
+      "baselineValue": 3027000,
+      "scope": "Worldwide year-end operational stock of industrial robots. This is industrial deployment, not the full universe of service, medical and humanoid robots or a capability measure.",
+      "methodology": "Normalize as 100 × operational stock / 3,027,000 (2020). The 2015–2023 observations use one consistent World Robotics 2024 chart (slide 9), rounded to thousands. The 2024 count is the computed value in the 2025 executive summary; 2025 is 5.079 million in the 2026 president's report, rounded to thousands. IFR revises historical estimates; report vintages and source precision are retained.",
+      "status": "observed",
+      "observations": [
+        {
+          "year": 2015,
+          "value": 1632000,
+          "sourceUrl": "https://ifr.org/img/worldrobotics/Press_Conference_2024.pdf",
+          "detail": "nearest 1,000 units",
+          "normalizedValue": 53.91476709613479
+        },
+        {
+          "year": 2016,
+          "value": 1838000,
+          "sourceUrl": "https://ifr.org/img/worldrobotics/Press_Conference_2024.pdf",
+          "detail": "nearest 1,000 units",
+          "normalizedValue": 60.7201850016518
+        },
+        {
+          "year": 2017,
+          "value": 2125000,
+          "sourceUrl": "https://ifr.org/img/worldrobotics/Press_Conference_2024.pdf",
+          "detail": "nearest 1,000 units",
+          "normalizedValue": 70.2015196564255
+        },
+        {
+          "year": 2018,
+          "value": 2441000,
+          "sourceUrl": "https://ifr.org/img/worldrobotics/Press_Conference_2024.pdf",
+          "detail": "nearest 1,000 units",
+          "normalizedValue": 80.6408985794516
+        },
+        {
+          "year": 2019,
+          "value": 2737000,
+          "sourceUrl": "https://ifr.org/img/worldrobotics/Press_Conference_2024.pdf",
+          "detail": "nearest 1,000 units",
+          "normalizedValue": 90.41955731747605
+        },
+        {
+          "year": 2020,
+          "value": 3027000,
+          "sourceUrl": "https://ifr.org/img/worldrobotics/Press_Conference_2024.pdf",
+          "detail": "nearest 1,000 units",
+          "normalizedValue": 100
+        },
+        {
+          "year": 2021,
+          "value": 3479000,
+          "sourceUrl": "https://ifr.org/img/worldrobotics/Press_Conference_2024.pdf",
+          "detail": "nearest 1,000 units",
+          "normalizedValue": 114.93227618103732
+        },
+        {
+          "year": 2022,
+          "value": 3904000,
+          "sourceUrl": "https://ifr.org/img/worldrobotics/Press_Conference_2024.pdf",
+          "detail": "nearest 1,000 units",
+          "normalizedValue": 128.97258011232242
+        },
+        {
+          "year": 2023,
+          "value": 4282000,
+          "sourceUrl": "https://ifr.org/img/worldrobotics/Press_Conference_2024.pdf",
+          "detail": "nearest 1,000 units",
+          "normalizedValue": 141.46019160885365
+        },
+        {
+          "year": 2024,
+          "value": 4663698,
+          "sourceUrl": "https://ifr.org/img/worldrobotics/Executive_Summary_WR_2025_Industrial_Robots.pdf",
+          "detail": "published computed count",
+          "normalizedValue": 154.06997026759169
+        },
+        {
+          "year": 2025,
+          "value": 5079000,
+          "sourceUrl": "https://ifr.org/ifr-press-releases/news/presidents-report-by-jane-heffner-3-2026",
+          "detail": "nearest 1,000 units",
+          "normalizedValue": 167.78989098116946
+        }
+      ],
+      "references": [
+        {
+          "title": "World Robotics 2024 press presentation, slide 9",
+          "url": "https://ifr.org/img/worldrobotics/Press_Conference_2024.pdf"
+        },
+        {
+          "title": "World Robotics 2025 executive summary, page 13",
+          "url": "https://ifr.org/img/worldrobotics/Executive_Summary_WR_2025_Industrial_Robots.pdf"
+        },
+        {
+          "title": "IFR president's report, 24 September 2026",
+          "url": "https://ifr.org/ifr-press-releases/news/presidents-report-by-jane-heffner-3-2026"
+        }
+      ]
+    },
+    "data": {
+      "metric": "Interaction data: comparable annual index unavailable",
+      "shortMetric": "No comparable annual series",
+      "sourceName": "Open X-Embodiment and DROID research context",
+      "sourceUrl": "https://robotics-transformer-x.github.io/",
+      "unit": "index",
+      "baselineYear": 2020,
+      "baselineValue": null,
+      "scope": "Published robotics datasets cover different tasks, collection methods, episode lengths and overlapping corpora. Their headline sizes do not form an annual measure of all collected interaction data.",
+      "methodology": "No numerical curve or 2020 baseline is assigned. Dataset releases, teleoperation, UMI and simulation stories remain context; nested corpora are not summed and hours are not combined with trajectory counts.",
+      "status": "unavailable",
+      "unavailableReason": "No comparable annual interaction-data series was verified.",
+      "observations": [],
+      "references": [
+        {
+          "title": "Open X-Embodiment",
+          "url": "https://robotics-transformer-x.github.io/"
+        },
+        {
+          "title": "DROID",
+          "url": "https://droid-dataset.github.io/"
+        }
+      ]
+    },
+    "hardware": {
+      "metric": "BOJ Robots producer-price index",
+      "shortMetric": "BOJ Robots PPI",
+      "sourceName": "Bank of Japan",
+      "sourceUrl": "https://www.stat-search.boj.or.jp/info/cgpi_m_en.zip",
+      "unit": "index",
+      "baselineYear": 2020,
+      "baselineValue": 100.00833333333334,
+      "scope": "Japanese domestically produced and domestically traded whole-robot goods, excluding consumption tax. This price proxy is not dollars per actuator, an international hardware-cost index or an affordability measure. Higher values mean higher producer prices.",
+      "methodology": "BOJ series PRCG20_1201350029, Robots, Producer Price Index excluding Consumption Tax, 2020 base. Compute each complete calendar year as the arithmetic mean of its 12 published monthly values, then normalize as 100 × annual mean / 100.00833333333334 (the 2020 mean of rounded monthly figures). BOJ adjusts for quality and product changes. No USD conversion, inversion or general-inflation adjustment. Only complete 2020–2025 years are plotted; incomplete 2026 is excluded.",
+      "status": "proxy",
+      "observations": [
+        {
+          "year": 2020,
+          "value": 100.00833333333334,
+          "sourceUrl": "https://www.stat-search.boj.or.jp/info/cgpi_m_en.zip",
+          "detail": "Arithmetic mean of 12 monthly observations; BOJ PRCG20_1201350029, excluding consumption tax.",
+          "normalizedValue": 100
+        },
+        {
+          "year": 2021,
+          "value": 99.61666666666667,
+          "sourceUrl": "https://www.stat-search.boj.or.jp/info/cgpi_m_en.zip",
+          "detail": "Arithmetic mean of 12 monthly observations; BOJ PRCG20_1201350029, excluding consumption tax.",
+          "normalizedValue": 99.60836596950254
+        },
+        {
+          "year": 2022,
+          "value": 99.925,
+          "sourceUrl": "https://www.stat-search.boj.or.jp/info/cgpi_m_en.zip",
+          "detail": "Arithmetic mean of 12 monthly observations; BOJ PRCG20_1201350029, excluding consumption tax.",
+          "normalizedValue": 99.91667361053246
+        },
+        {
+          "year": 2023,
+          "value": 102.58333333333333,
+          "sourceUrl": "https://www.stat-search.boj.or.jp/info/cgpi_m_en.zip",
+          "detail": "Arithmetic mean of 12 monthly observations; BOJ PRCG20_1201350029, excluding consumption tax.",
+          "normalizedValue": 102.5747854345471
+        },
+        {
+          "year": 2024,
+          "value": 104.60833333333333,
+          "sourceUrl": "https://www.stat-search.boj.or.jp/info/cgpi_m_en.zip",
+          "detail": "Arithmetic mean of 12 monthly observations; BOJ PRCG20_1201350029, excluding consumption tax.",
+          "normalizedValue": 104.59961669860844
+        },
+        {
+          "year": 2025,
+          "value": 105.70833333333334,
+          "sourceUrl": "https://www.stat-search.boj.or.jp/info/cgpi_m_en.zip",
+          "detail": "Arithmetic mean of 12 monthly observations; BOJ PRCG20_1201350029, excluding consumption tax.",
+          "normalizedValue": 105.69952503958004
+        }
+      ],
+      "references": [
+        {
+          "title": "BOJ monthly CGPI data download",
+          "url": "https://www.stat-search.boj.or.jp/info/cgpi_m_en.zip"
+        },
+        {
+          "title": "BOJ flat-file download directory",
+          "url": "https://www.stat-search.boj.or.jp/info/dload_en.html"
+        },
+        {
+          "title": "BOJ 2020-base CGPI methodology",
+          "url": "https://www.boj.or.jp/en/statistics/outline/exp/pi/cgpi_2020/outline.htm"
+        }
+      ]
+    }
+  }
+}

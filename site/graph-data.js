@@ -1,35 +1,30 @@
-// Values and sampling are transcribed from the existing figma-chart.js.
-// They are illustrative design-study curves, not observations or forecasts.
-export const graphDomain = Object.freeze({ firstYear: 2015, lastYear: 2040, dividerYear: 2026, minimum: 0, maximum: 900 });
+import { observedSeries } from './graph-observations.js?v=observed-1';
+
+// Every numeric point comes from a source observation. Narrative events and
+// future storyboards are deliberately not numerical inputs to this chart.
+export const graphDomain = Object.freeze({ firstYear: 2015, lastYear: 2040, dividerYear: 2026, baselineYear: 2020, minimum: 0, maximum: 225, interval: 25 });
 export const graphSeries = Object.freeze([
-  { id: 'llm', name: 'LLM performance', color: '#8EAAF0', midpoint: 9, slope: .47, ceiling: 90, definition: 'Language capability index', rail: 75 },
-  { id: 'humanoid', name: 'Humanoid development', color: '#D98B6A', midpoint: 16, slope: .33, ceiling: 82, definition: 'Embodied capability index', rail: 198 },
-  { id: 'specialist', name: 'Specialist robots', color: '#A4BB8E', midpoint: 10, slope: .22, ceiling: 78, definition: 'Task-specific capability index', rail: 265 },
-  { id: 'deployment', name: 'Robot deployment', color: '#F07855', midpoint: 17, slope: .34, ceiling: 95, definition: 'Fleet scale index', rail: 137 },
-  { id: 'data', name: 'Interaction data', color: '#C8B57A', midpoint: 14, slope: .32, ceiling: 97, definition: 'Collected experience index', rail: 23 },
-  { id: 'hardware', name: 'Hardware affordability', color: '#B6A3CE', midpoint: 10, slope: .17, ceiling: 62, definition: 'Cost-efficiency index', rail: 340 },
-]);
+  { id: 'llm', name: 'LLM performance', color: '#8EAAF0' },
+  { id: 'humanoid', name: 'Humanoid development', color: '#D98B6A' },
+  { id: 'specialist', name: 'Specialist robots', color: '#A4BB8E' },
+  { id: 'deployment', name: 'Robot deployment', color: '#F07855' },
+  { id: 'data', name: 'Interaction data', color: '#C8B57A' },
+  { id: 'hardware', name: 'Robot hardware prices', color: '#B6A3CE' },
+].map(series => Object.freeze({ ...series, ...observedSeries[series.id] })));
 export const graphViews = Object.freeze([
-  { id: 'all', label: 'All systems', series: graphSeries.map(s => s.id), title: 'The embodiment gap', description: 'Knowing what to do is only the beginning of doing it. Explore how capability, data, hardware, and deployment move together.' },
-  { id: 'intelligence', label: 'Intelligence → action', series: ['llm', 'humanoid'], title: 'Intelligence needs a body', description: 'Language capability can advance ahead of reliable physical action. Compare general intelligence with humanoid development.' },
-  { id: 'data', label: 'The data bottleneck', series: ['data', 'llm'], title: 'Experience is the input', description: 'Interaction data connects learning to the physical world. More demonstrations, richer contact, and wider task coverage may change the trajectory.' },
-  { id: 'deployment', label: 'Deployment', series: ['deployment', 'hardware'], title: 'From demonstration to work', description: 'Deployment depends on the whole system: useful capability, affordable hardware, maintenance, and reliability over repeated shifts.' },
-  { id: 'specialist', label: 'Specialist robots', series: ['specialist'], title: 'Task-specific capability', description: 'Follow the specialist robot trajectory within the same illustrative system.' },
+  { id: 'all', label: 'All systems', series: graphSeries.map(series => series.id) },
+  { id: 'intelligence', label: 'Intelligence → action', series: ['llm', 'humanoid'] },
+  { id: 'data', label: 'The data bottleneck', series: ['data', 'llm'] },
+  { id: 'deployment', label: 'Deployment', series: ['deployment', 'hardware'] },
+  { id: 'specialist', label: 'Specialist robots', series: ['specialist'] },
 ]);
 
-export function rawValue(seriesIndex, time, offset = 0) {
+export function sampleSeries(seriesIndex) {
   const series = graphSeries[seriesIndex];
-  return Math.max(0, series.ceiling / (1 + Math.exp(-series.slope * (time - series.midpoint - offset))) + .8 * Math.sin(time * 1.4 + seriesIndex));
-}
-
-// Keep every original 0.1-year vertex, including the small late LLM oscillations.
-// Both scenario bounds use the CENTRAL 2026 denominator, never their own baseline.
-export function sampleSeries(seriesIndex, offset = 0) {
-  const baseline = rawValue(seriesIndex, graphDomain.dividerYear - graphDomain.firstYear);
-  return Array.from({ length: 251 }, (_, i) => {
-    const time = i / 10;
-    return { year: 2015 + time, value: rawValue(seriesIndex, time, offset) / baseline * 100 };
-  });
+  if (!series.observations.length) return [];
+  const baseline = series.observations.find(point => point.year === series.baselineYear);
+  if (!baseline || baseline.value <= 0 || baseline.value !== series.baselineValue) throw new Error(`Invalid observed baseline: ${series.id}`);
+  return series.observations.map(point => ({ ...point, raw: point.value, value: point.value / baseline.value * 100 }));
 }
 
 export function snapYear(value) {
@@ -37,23 +32,37 @@ export function snapYear(value) {
   return Math.round(Math.max(graphDomain.firstYear, Math.min(graphDomain.lastYear, Number.isFinite(year) ? year : graphDomain.dividerYear)));
 }
 
+// Interpolation is only the straight visual connector between adjacent annual
+// observations. It never fills a missing year or extends a measured series.
 export function interpolateSample(points, year) {
-  const position = Math.max(0, Math.min(250, (year - 2015) * 10));
-  const start = Math.min(249, Math.floor(position));
-  const fraction = position - start;
-  return points[start].value + (points[start + 1].value - points[start].value) * fraction;
+  const exact = points.find(point => point.year === year);
+  if (exact) return exact.value;
+  const right = points.findIndex(point => point.year > year);
+  if (right <= 0) return null;
+  const before = points[right - 1], after = points[right];
+  if (after.year - before.year !== 1) return null;
+  return before.value + (after.value - before.value) * (year - before.year);
 }
 
-// Hit-test the continuous central polyline before rounding the inspection year.
+export const formatIndex = value => Number.isFinite(value) ? value.toFixed(1) : '—';
+export function formatRaw(series, value) {
+  if (!Number.isFinite(value)) return '';
+  if (series.unit === 'percent') return `${value.toFixed(1)}%`;
+  if (series.unit === 'index') return `${value.toFixed(2)} source index`;
+  return `${new Intl.NumberFormat('en-US').format(value)} ${series.unit}`;
+}
+
 export function findLineHits(samples, activeIds, point, layout, tolerance = 8) {
-  const px = year => layout.gx + (year - 2015) / 25 * layout.gw;
-  const py = value => layout.gy + layout.gh * (1 - value / 900);
+  const px = year => layout.gx + (year - graphDomain.firstYear) / (graphDomain.lastYear - graphDomain.firstYear) * layout.gw;
+  const py = value => layout.gy + layout.gh * (1 - value / graphDomain.maximum);
   const hits = [];
   graphSeries.forEach((series, seriesIndex) => {
     if (!activeIds.has(series.id)) return;
     let distance = Infinity;
     const points = samples[seriesIndex];
+    points.forEach(sample => { distance = Math.min(distance, Math.hypot(point.x - px(sample.year), point.y - py(sample.value))); });
     for (let i = 1; i < points.length; i++) {
+      if (points[i].year - points[i - 1].year !== 1) continue;
       const ax = px(points[i - 1].year), bx = px(points[i].year);
       if (point.x < ax - tolerance || point.x > bx + tolerance) continue;
       const ay = py(points[i - 1].value), by = py(points[i].value);
@@ -66,7 +75,7 @@ export function findLineHits(samples, activeIds, point, layout, tolerance = 8) {
   return hits.sort((a, b) => a.distance - b.distance);
 }
 
-export function placeEndpointLabels(endpoints, top, bottom, gap = 57) {
+export function placeEndpointLabels(endpoints, top, bottom, gap = 90) {
   const sorted = endpoints.map(endpoint => ({ ...endpoint })).sort((a, b) => a.y - b.y);
   sorted.forEach((endpoint, i) => { endpoint.labelY = Math.max(endpoint.y - 8, i ? sorted[i - 1].labelY + gap : top); });
   if (sorted.length && sorted.at(-1).labelY > bottom) {

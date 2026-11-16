@@ -75,3 +75,21 @@ addEventListener('resize', queueUpdate, { passive: true });
 addEventListener('hashchange', queueUpdate);
 document.fonts?.ready.then(queueUpdate);
 update();
+
+// A direct source link must land after the mobile contents and webfonts settle.
+// Stop correcting the initial fragment as soon as the reader takes control.
+if (location.hash) {
+  const initialHash = location.hash;
+  let readerMoved = false;
+  const cancelInitialAlignment = () => { readerMoved = true; };
+  for (const type of ['wheel', 'touchstart', 'pointerdown', 'keydown']) addEventListener(type, cancelInitialAlignment, { once: true, passive: true });
+  const loaded = document.readyState === 'complete' ? Promise.resolve() : new Promise(resolve => addEventListener('load', resolve, { once: true }));
+  Promise.all([loaded, document.fonts?.ready]).then(() => requestAnimationFrame(() => requestAnimationFrame(() => {
+    if (!readerMoved && location.hash === initialHash) {
+      let target;
+      try { target = document.getElementById(decodeURIComponent(initialHash.slice(1))); } catch { return; }
+      target?.scrollIntoView({ block: 'start', behavior: 'instant' });
+      queueUpdate();
+    }
+  })));
+}

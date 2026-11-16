@@ -1,4 +1,4 @@
-import { mountGraph } from './graph.js?v=finish-1';
+import { mountGraph } from './graph.js?v=observed-1';
 import { mountVideos } from './videos.js?v=finish-1';
 
 const graphHost = document.querySelector('#robotics-graph');
