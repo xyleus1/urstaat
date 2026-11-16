@@ -154,8 +154,9 @@ export function mountGraph(element) {
   const samples = graphSeries.map((_, index) => sampleSeries(index));
   const latest = samples.map(points => points.at(-1) || null);
   let year = 2025, selectedView = 'all', activeSeries = new Set(graphSeries.map(series => series.id));
-  let layout, disposed = false, resizeFrame = 0, hoverTimer, hideTimer, previewMedia, panelMedia, panelAnimation, popupAnimation;
-  let previewKey = '', previewState = null, opened = null, lastOpener = null, panelRevision = 0;
+  let layout, disposed = false, resizeFrame = 0, pointerFrame = 0, pendingPointer, hoverTimer, hideTimer, pendingPreview, panelMedia, panelAnimation, popupAnimation;
+  let graphFont = getComputedStyle(element).fontFamily;
+  let previewKey = '', previewState = null, previewOpener = null, opened = null, lastOpener = null, panelRevision = 0;
   let tooltipAnchor = [0, 0], pointerStart = null, wheelDelta = 0, wheelTime = 0, wheelEventTime = 0, popupDistance = Infinity;
   const disposers = [];
   const listen = (target, type, handler, options) => {
@@ -227,34 +228,38 @@ export function mountGraph(element) {
     series: buildSeries(),
   });
 
-  function renderGraphics() {
+  function renderGraphics(updateStatic = false) {
     if (!layout || disposed) return;
-    const font = getComputedStyle(element).fontFamily, currentX = x(year);
-    const elements = [
+    const font = graphFont, currentX = x(year);
+    const elements = updateStatic ? [
       { id: 'future-field', type: 'rect', silent: true, z: -1, shape: { x: x(2026), y: layout.gy, width: x(2040) - x(2026), height: layout.gh }, style: { fill: 'rgba(199,205,208,.022)' } },
       { id: 'divider', type: 'line', silent: true, z: 4, shape: { x1: x(2026), x2: x(2026), y1: layout.gy, y2: layout.gy + layout.gh }, style: { stroke: '#C7CDD0', opacity: .4, lineWidth: 1 } },
-      { id: 'divider-text', type: 'text', silent: true, z: 5, x: x(2026) + 5, y: layout.gy + 12, style: { text: '2026', fill: '#929A9F', font: `11px ${font}`, opacity: Math.abs(currentX - x(2026)) < 50 ? 0 : 1 } },
       { id: 'axis-title', type: 'text', silent: true, x: layout.gx, y: 13, style: { text: 'Index · 2020 = 100', fill: '#929A9F', font: `10px ${font}` } },
       { id: 'future-title', type: 'text', silent: true, x: x(2040), y: 13, style: { text: 'Future studies', fill: '#929A9F', align: 'right', font: `10px ${font}` } },
       { id: 'future-note', type: 'text', silent: true, x: x(2033), y: y(115), style: { text: 'No numerical forecast\nExplore storyboards by year', fill: '#929A9F', align: 'center', lineHeight: 19, font: `${layout.width < 500 ? 9 : 11}px ${font}` } },
+    ] : [];
+    elements.push(
+      { id: 'divider-text', type: 'text', silent: true, z: 5, x: x(2026) + 5, y: layout.gy + 12, style: { text: '2026', fill: '#929A9F', font: `11px ${font}`, opacity: Math.abs(currentX - x(2026)) < 50 ? 0 : 1 } },
       { id: 'crosshair', type: 'line', silent: true, z: 6, shape: { x1: currentX, x2: currentX, y1: layout.gy, y2: layout.gy + layout.gh }, style: { stroke: '#C7CDD0', opacity: .6, lineWidth: 1, lineDash: [2, 4] } },
       { id: 'year-pill', type: 'rect', silent: true, z: 7, shape: { x: clamp(currentX - 25, layout.gx, x(2040) - 50), y: layout.gy - 28, width: 50, height: 21 }, style: { fill: '#C7CDD0' } },
       { id: 'year-text', type: 'text', silent: true, z: 8, x: clamp(currentX, layout.gx + 25, x(2040) - 25), y: layout.gy - 17, style: { text: String(year), fill: '#080A0B', align: 'center', verticalAlign: 'middle', font: `11px ${font}` } },
-    ];
-    const endpoints = placeEndpointLabels(graphSeries.map((series, index) => ({ id: series.id, index, y: latest[index] ? y(latest[index].value) : layout.gy + layout.gh + index })), layout.gy - 5, layout.gy + layout.gh - 75);
+    );
+    const endpoints = updateStatic ? placeEndpointLabels(graphSeries.map((series, index) => ({ id: series.id, index, y: latest[index] ? y(latest[index].value) : layout.gy + layout.gh + index })), layout.gy - 5, layout.gy + layout.gh - 75) : null;
     graphSeries.forEach((series, index) => {
       const active = activeSeries.has(series.id), value = interpolateSample(samples[index], year), hasValue = Number.isFinite(value), pointY = hasValue ? y(value) : layout.gy;
       elements.push(
         { id: `halo-${series.id}`, type: 'circle', silent: true, invisible: !hasValue, z: 7, shape: { cx: currentX, cy: pointY, r: 8 }, style: { fill: series.color, opacity: active ? .12 : 0 } },
         { id: `dot-${series.id}`, type: 'circle', silent: true, invisible: !hasValue, z: 8, shape: { cx: currentX, cy: pointY, r: active && activeSeries.size < 6 ? 4.6 : 3.8 }, style: { fill: series.color, stroke: '#080A0B', lineWidth: 2, opacity: active ? 1 : .13 } },
       );
-      const endpoint = endpoints.find(item => item.id === series.id), labelX = x(2040) + 46;
-      labels[index].style.left = `${labelX}px`; labels[index].style.top = `${endpoint.labelY}px`;
-      labels[index].style.width = `${Math.max(0, layout.width - labelX)}px`;
-      labels[index].setAttribute('aria-label', `Highlight ${series.name}. ${series.metric}. ${latest[index] ? `Latest observed index ${formatIndex(latest[index].value)} in ${latest[index].year}; 2020 equals 100. ${formatRaw(series, latest[index].raw)}.` : series.unavailableReason}`);
-      labels[index].title = series.scope;
+      if (updateStatic) {
+        const endpoint = endpoints.find(item => item.id === series.id), labelX = x(2040) + 46;
+        labels[index].style.left = `${labelX}px`; labels[index].style.top = `${endpoint.labelY}px`;
+        labels[index].style.width = `${Math.max(0, layout.width - labelX)}px`;
+        labels[index].setAttribute('aria-label', `Highlight ${series.name}. ${series.metric}. ${latest[index] ? `Latest observed index ${formatIndex(latest[index].value)} in ${latest[index].year}; 2020 equals 100. ${formatRaw(series, latest[index].raw)}.` : series.unavailableReason}`);
+        labels[index].title = series.scope;
+      }
     });
-    chart.setOption({ graphic: { elements } });
+    chart.setOption({ graphic: { elements } }, { lazyUpdate: true, silent: true });
   }
 
   function resize() {
@@ -264,13 +269,15 @@ export function mountGraph(element) {
     const next = { width, compact, gx: width < 500 ? 38 : 44, gy: 57, gh: plotHeight, gw: width - (compact ? 54 : 330), height: plotHeight + 118 };
     if (layout && layout.width === next.width && layout.height === next.height) return;
     layout = next; element.classList.toggle('is-compact', compact);
+    graphFont = getComputedStyle(element).fontFamily;
     plot.style.height = `${layout.height}px`; popup.style.width = `${Math.min(350, width - 12)}px`;
     chart.resize({ width, height: layout.height, silent: true });
     chart.setOption({ grid: { left: layout.gx, right: layout.width - layout.gx - layout.gw, top: layout.gy, bottom: layout.height - layout.gy - layout.gh } });
-    renderGraphics(); hidePreview();
+    renderGraphics(true); hidePreview();
   }
 
   function updateYear(next) {
+    cancelPointerMove();
     const snapped = snapYear(next);
     if (snapped === year && element.dataset.inspectedYear === String(year)) return;
     if (snapped !== year) hidePreview();
@@ -294,60 +301,69 @@ export function mountGraph(element) {
   }
 
   function hidePreview() {
-    clearTimeout(hoverTimer); clearTimeout(hideTimer); previewMedia?.destroy(); previewMedia = null;
+    const wasVisible = !!previewState;
+    clearTimeout(hoverTimer); clearTimeout(hideTimer); hoverTimer = null; hideTimer = null; pendingPreview = null;
     previewState = null; previewKey = ''; popupDistance = Infinity; popupAnimation?.cancel(); popup.hidden = true;
-    if (!disposed) chart.dispatchAction({ type: 'hideTip' });
+    if (!disposed && wasVisible) chart.dispatchAction({ type: 'hideTip' });
   }
   function scheduleHide() {
-    clearTimeout(hideTimer);
-    hideTimer = setTimeout(() => { if (!popup.matches(':hover') && !popup.contains(document.activeElement)) hidePreview(); }, 320);
+    if (hideTimer) return;
+    hideTimer = setTimeout(() => {
+      hideTimer = null;
+      if (!popup.matches(':hover') && !popup.contains(document.activeElement)) hidePreview();
+    }, 320);
   }
-  function showPreview(hits, anchor, { immediate = false, focus = false, opener = plot } = {}) {
+  function highlightChoices(hits) {
+    const nearest = hits.map(hit => hit.id);
+    if (!previewState || nearest.join(',') === previewState.nearest.join(',')) return;
+    previewState.nearest = nearest;
+    popup.querySelectorAll('.graph-popup-choice').forEach(button => button.classList.toggle('is-nearby', nearest.includes(button.dataset.series)));
+  }
+  function showPreview(hits, anchor, { immediate = false, focus = false, opener = plot, highlight = true } = {}) {
     if (!hits.length || disposed) return;
-    clearTimeout(hideTimer);
-    const key = `${year}:${hits.map(hit => hit.id).sort().join(',')}`;
-    if (key === previewKey) return;
+    clearTimeout(hideTimer); hideTimer = null;
+    const choices = graphSeries.map((series, seriesIndex) => ({ id: series.id, seriesIndex })).filter(hit => activeSeries.has(hit.id));
+    const key = `${year}:${selectedView}`;
+    const nearby = highlight ? hits : [];
+    if (key === previewKey) {
+      highlightChoices(nearby);
+      if (focus) { previewOpener = opener; popup.querySelector('button')?.focus({ preventScroll: true }); }
+      return;
+    }
+    if (pendingPreview?.key === key) {
+      pendingPreview.hits = nearby;
+      if (!immediate) return; // Do not restart the delay on every pointer move.
+    }
     clearTimeout(hoverTimer);
-    const previewYear = year;
+    pendingPreview = { key, year, choices, hits: nearby, anchor, focus, opener };
     const render = () => {
-      if (disposed || year !== previewYear) return;
-      previewMedia?.destroy(); previewMedia = null;
-      previewKey = key; previewState = { year: previewYear, series: hits.map(hit => hit.id) }; tooltipAnchor = anchor;
+      hoverTimer = null;
+      const pending = pendingPreview;
+      if (!pending || disposed || year !== pending.year) return;
+      pendingPreview = null;
+      const previewYear = pending.year;
+      previewKey = pending.key; previewState = { year: previewYear, series: pending.choices.map(hit => hit.id), nearest: [] }; tooltipAnchor = pending.anchor;
+      previewOpener = pending.opener;
       popup.hidden = false; popup.replaceChildren();
-      if (hits.length > 1) {
-        popup.setAttribute('aria-label', `Choose a trajectory for ${previewYear}`);
-        popup.append(make('p', 'graph-popup-eyebrow', `${previewYear} · Choose a trajectory`));
-        const choices = make('div', 'graph-popup-choices');
-        hits.forEach(hit => {
-          const series = graphSeries[hit.seriesIndex], button = make('button', 'graph-popup-choice'); button.type = 'button';
-          button.style.setProperty('--series-color', series.color);
-          button.append(make('span', '', series.name), make('span', '', yearReadout(hit.seriesIndex, previewYear)));
-          button.addEventListener('click', () => openStory(series.id, previewYear, opener)); choices.append(button);
-        });
-        popup.append(choices);
-      } else {
-        const hit = hits[0], series = graphSeries[hit.seriesIndex], story = getStory(series.id, previewYear);
-        if (!story) { hidePreview(); return; }
-        popup.setAttribute('aria-label', `${previewYear}: ${story.title}`);
-        const header = make('div', 'graph-popup-header');
-        header.append(make('p', 'graph-popup-eyebrow', `${previewYear} · ${series.name}`), make('span', 'graph-popup-index', yearReadout(hit.seriesIndex, previewYear)));
-        const mediaHost = make('div', 'graph-preview-media');
-        popup.append(header, mediaHost, make('h3', 'graph-popup-title', story.title));
-        const expand = make('button', 'graph-expand', 'Expand event ↗'); expand.type = 'button';
-        expand.addEventListener('click', () => openStory(series.id, previewYear, opener)); popup.append(expand);
-        requestAnimationFrame(() => {
-          if (disposed || previewKey !== key || !mediaHost.isConnected) return;
-          previewMedia = mountMedia(mediaHost, story, { preview: true, reducedMotion, expand: () => openStory(series.id, previewYear, opener) });
-        });
-      }
-      // Hidden point symbols have no per-item display element. Use ECharts'
-      // supported manual-content action, anchored to the annual cursor instead.
-      chart.dispatchAction({ type: 'showTip', x: anchor[0], y: anchor[1], tooltip: { formatter: () => popup } });
+      popup.setAttribute('aria-label', `Choose a topic for ${previewYear}`);
+      popup.append(make('p', 'graph-popup-eyebrow', `${previewYear} · Choose a topic`));
+      const menu = make('div', 'graph-popup-choices');
+      pending.choices.forEach(hit => {
+        const series = graphSeries[hit.seriesIndex], button = make('button', 'graph-popup-choice'); button.type = 'button';
+        button.dataset.series = series.id;
+        button.style.setProperty('--series-color', series.color);
+        button.append(make('span', '', series.name), make('span', '', yearReadout(hit.seriesIndex, previewYear)));
+        button.addEventListener('click', () => openStory(series.id, previewYear, previewOpener)); menu.append(button);
+      });
+      popup.append(menu); highlightChoices(pending.hits);
+      // One lightweight chooser for every entry point. Provider players mount
+      // only after a choice opens the pinned panel below the chart.
+      chart.dispatchAction({ type: 'showTip', x: pending.anchor[0], y: pending.anchor[1], tooltip: { formatter: () => popup } });
       const plotRect = plot.getBoundingClientRect();
-      popupDistance = distanceToPopup(plotRect.left + anchor[0], plotRect.top + anchor[1]);
+      popupDistance = distanceToPopup(plotRect.left + pending.anchor[0], plotRect.top + pending.anchor[1]);
       popupAnimation?.cancel();
       if (!reducedMotion) popupAnimation = animate(popup, { opacity: [0, 1] }, { duration: .16 });
-      if (focus) popup.querySelector('button')?.focus({ preventScroll: true });
+      if (pending.focus) popup.querySelector('button')?.focus({ preventScroll: true });
     };
     if (immediate) render(); else hoverTimer = setTimeout(render, 180);
   }
@@ -428,13 +444,16 @@ export function mountGraph(element) {
     updateYear(2015 + (point.x - layout.gx) / layout.gw * 25);
     return hits.filter(hit => Number.isFinite(interpolateSample(samples[hit.seriesIndex], year)));
   };
-  listen(plot, 'pointermove', event => {
-    if (popup.contains(event.target) || (event.pointerType !== 'mouse' && !pointerStart)) return;
+  function cancelPointerMove() {
+    cancelAnimationFrame(pointerFrame); pointerFrame = 0; pendingPointer = null;
+  }
+  function processPointerMove(event) {
+    if (disposed) return;
     if (previewState && !pointerStart) {
       const distance = distanceToPopup(event.clientX, event.clientY);
       const entering = distance < popupDistance && distance < 48;
       popupDistance = distance;
-      if (entering) { clearTimeout(hideTimer); return; }
+      if (entering) { clearTimeout(hideTimer); hideTimer = null; return; }
     }
     const point = pointerPosition(event);
     if (!inGrid(point) && !pointerStart) { scheduleHide(); return; }
@@ -442,9 +461,20 @@ export function mountGraph(element) {
     if (pointerStart && Math.hypot(event.clientX - pointerStart.x, event.clientY - pointerStart.y) > 5) pointerStart.dragged = true;
     if (hits.length && !pointerStart?.dragged) showPreview(hits, [x(year), y(interpolateSample(samples[hits[0].seriesIndex], year))]);
     else scheduleHide();
+  }
+  listen(plot, 'pointermove', event => {
+    if (popup.contains(event.target) || (event.pointerType !== 'mouse' && !pointerStart)) return;
+    pendingPointer = { clientX: event.clientX, clientY: event.clientY, pointerType: event.pointerType };
+    if (pointerFrame) return;
+    pointerFrame = requestAnimationFrame(() => {
+      pointerFrame = 0;
+      const point = pendingPointer; pendingPointer = null;
+      if (point) processPointerMove(point);
+    });
   });
   listen(plot, 'pointerdown', event => {
     if (popup.contains(event.target) || event.button !== 0) return;
+    cancelPointerMove();
     const point = pointerPosition(event); if (!inGrid(point)) return;
     pointerStart = { x: event.clientX, y: event.clientY, id: event.pointerId, dragged: false }; plot.focus({ preventScroll: true });
     if (event.pointerType === 'mouse') plot.setPointerCapture(event.pointerId);
@@ -452,22 +482,23 @@ export function mountGraph(element) {
   });
   listen(plot, 'pointerup', event => {
     if (!pointerStart || pointerStart.id !== event.pointerId) return;
+    cancelPointerMove();
     const wasDragged = pointerStart.dragged; pointerStart = null;
     if (plot.hasPointerCapture(event.pointerId)) plot.releasePointerCapture(event.pointerId);
     if (wasDragged) return;
     const point = pointerPosition(event); if (!inGrid(point)) return;
     const hits = inspectPoint(point, event.pointerType === 'mouse' ? 8 : 18);
-    if (hits.length === 1) openStory(hits[0].id, year, plot);
-    else if (hits.length) showPreview(hits, [x(year), point.y], { immediate: true, focus: true });
+    if (hits.length) showPreview(hits, [x(year), point.y], { immediate: true, focus: true });
   });
-  listen(plot, 'pointercancel', () => { pointerStart = null; hidePreview(); });
-  listen(plot, 'pointerleave', scheduleHide);
-  listen(popup, 'pointerenter', () => { clearTimeout(hideTimer); clearTimeout(hoverTimer); });
-  listen(popup, 'pointerleave', scheduleHide); listen(popup, 'focusin', () => clearTimeout(hideTimer)); listen(popup, 'focusout', scheduleHide);
+  listen(plot, 'pointercancel', () => { cancelPointerMove(); pointerStart = null; hidePreview(); });
+  listen(plot, 'pointerleave', () => { cancelPointerMove(); scheduleHide(); });
+  listen(popup, 'pointerenter', () => { cancelPointerMove(); clearTimeout(hideTimer); hideTimer = null; });
+  listen(popup, 'pointerleave', scheduleHide);
+  listen(popup, 'focusin', () => { clearTimeout(hideTimer); hideTimer = null; });
+  listen(popup, 'focusout', scheduleHide);
   const openYear = opener => {
     const hits = graphSeries.map((series, seriesIndex) => ({ id: series.id, seriesIndex })).filter(hit => activeSeries.has(hit.id));
-    if (hits.length === 1) openStory(hits[0].id, year, opener);
-    else showPreview(hits, [x(year), y(100)], { immediate: true, focus: true, opener });
+    showPreview(hits, [x(year), y(100)], { immediate: true, focus: true, opener, highlight: false });
   };
   listen(element.querySelector('.graph-open-year'), 'click', event => openYear(event.currentTarget));
   listen(plot, 'keydown', event => {
@@ -511,7 +542,7 @@ export function mountGraph(element) {
     destroy() {
       if (disposed) return;
       hidePreview(); closePanel({ restoreFocus: false, immediate: true }); disposed = true; ++panelRevision;
-      observer.disconnect(); cancelAnimationFrame(resizeFrame); panelAnimation?.cancel(); popupAnimation?.cancel();
+      observer.disconnect(); cancelAnimationFrame(resizeFrame); cancelPointerMove(); panelAnimation?.cancel(); popupAnimation?.cancel();
       disposers.forEach(dispose => dispose()); chart.dispose(); element.replaceChildren();
       element.classList.remove('robotics-graph', 'is-compact'); delete element.__graphController;
       for (const name of ['__researchGraph', '__roboticsGraph']) if (window[name] === controller) delete window[name];

@@ -58,6 +58,7 @@
 .robotics-graph .graph-popup-choices { display: grid; gap: 3px; }
 .robotics-graph .graph-popup-choice { display: flex; justify-content: space-between; gap: 12px; border: 0; background: none; color: var(--series-color); min-height: 44px; padding: 9px 7px; font: inherit; font-size: 12px; line-height: 18px; text-align: left; cursor: pointer; }
 .robotics-graph .graph-popup-choice:hover { background: #C7CDD00D; }
+.robotics-graph .graph-popup-choice.is-nearby { background: #C7CDD009; box-shadow: inset 2px 0 var(--series-color); }
 .robotics-graph .graph-popup-choice > span:last-child { font-variant-numeric: tabular-nums; }
 .robotics-graph :is(.graph-story-frame, .graph-story-video, .graph-story-image, .graph-media-open) { display: block; width: 100%; height: 100%; min-width: 0; border: 0; background: #080A0B; object-fit: contain; }
 .robotics-graph .graph-story-frame { min-height: 200px; }

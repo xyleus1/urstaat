@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
-import { mountGlyphField, isGlyphFieldSupported, FIELD_PHOTO_CHARSET } from 'asciify-engine/field';
+import { mountGlyphField, isGlyphFieldSupported, glyphFieldTier, FIELD_PHOTO_CHARSET } from 'asciify-engine/field';
 import { background, swell } from 'asciify-engine/kit';
 
 // Integration only: the mechanical parts are published Mini-Cheetah STEP CAD;
@@ -23,13 +23,20 @@ export function mountHero({ motorElement, waveElement, pauseButton, posterElemen
   let renderer, scene, camera, field, waves, model, spinner, tilt;
   const assemblyParts = [];
   let raf = 0, lastTick = 0, lastDraw = 0, seconds = 0, ready = false, disposed = false;
+  let resizeRaf = 0, waveTimer = 0, wavesReady = false, wavesStarting = false, waveError = null;
+  let framePending = false, pendingPose = null, frameSubmission = Promise.resolve();
+  let sourcePixelRatio = 1.5, targetFps = 30, tier = 'unknown', slowFrames = 0, wavePlaying = false;
+  let appliedWidth = 0, appliedHeight = 0, appliedDpr = 0, pointerRect = null;
+  const timings = { started: performance.now() };
   let manualPaused = false, reduced = media.matches, onscreen = true, error = null;
   let width = 640, height = 340, drawCount = 0, lastFrameMs = 0, clipName = null;
   let worldBounds = null, orthoHeight = 100, compactComposition = null, pointer = { x: 0, y: 0 }, smoothPointer = { x: 0, y: 0 };
   const viewBounds = new THREE.Box3();
   const observer = new IntersectionObserver(([entry]) => { onscreen = entry.isIntersecting; sync(); }, { rootMargin: '40px' });
   observer.observe(motorElement);
-  const resizeObserver = new ResizeObserver(() => resize());
+  const resizeObserver = new ResizeObserver(() => {
+    if (!resizeRaf) resizeRaf = requestAnimationFrame(() => { resizeRaf = 0; resize(); });
+  });
   resizeObserver.observe(motorElement);
 
   function active() { return ready && !disposed && !manualPaused && !reduced && onscreen && !document.hidden; }
@@ -43,20 +50,23 @@ export function mountHero({ motorElement, waveElement, pauseButton, posterElemen
   function sync() {
     updateControl();
     if (active()) {
-      waves?.play();
+      if (wavesReady && !wavePlaying) { waves.play(); wavePlaying = true; }
+      scheduleWaves();
       if (!raf) { lastTick = 0; lastDraw = 0; raf = requestAnimationFrame(tick); }
     } else {
       cancelAnimationFrame(raf); raf = 0; lastTick = 0;
-      field?.pause(); waves?.pause();
+      field?.pause(); waves?.pause(); wavePlaying = false;
+      clearTimeout(waveTimer); waveTimer = 0;
     }
   }
   function draw(time = seconds, exact = false) {
     if (!renderer || !field || !model || disposed) return;
+    if (framePending) { if (exact) pendingPose = { time, exact }; return; }
     const started = performance.now();
     spinner.rotation.y = ((time % 20) / 20) * TAU;
     // Small, coherent breathing along the explosion axis; no source part bends.
     const expansion = 1 + 0.012 * Math.sin((time % 20) / 20 * TAU);
-    for (const part of assemblyParts) part.node.position.y = part.y * expansion;
+    for (const part of assemblyParts) part.node.position.y = part.baseY + part.explosionY * (expansion - 1);
     if (exact) { smoothPointer.x = 0; smoothPointer.y = 0; }
     else {
       smoothPointer.x += (pointer.x - smoothPointer.x) * 0.08;
@@ -66,23 +76,40 @@ export function mountHero({ motorElement, waveElement, pauseButton, posterElemen
     camera.position.set(smoothPointer.x * 35, smoothPointer.y * 35, 700);
     camera.lookAt(0, 0, 0);
     renderer.render(scene, camera);
-    field.redraw();
+    // One explicit transfer per requested pose. The stock live worker otherwise
+    // captures this WebGL canvas again on every browser frame, even while paused.
+    framePending = true;
+    frameSubmission = field.setSource(renderer.domElement).then(() => {
+      if (!disposed) field.redraw();
+    }).catch(handleError).finally(() => {
+      framePending = false;
+      if (pendingPose && !disposed && ready) {
+        const pose = pendingPose; pendingPose = null; draw(pose.time, pose.exact);
+      }
+    });
     drawCount++;
     lastFrameMs = performance.now() - started;
+    if (!exact && lastFrameMs > 1000 / targetFps * 0.8) slowFrames++;
+    else slowFrames = Math.max(0, slowFrames - 1);
+    // Keep pointer/scroll work responsive on slow drivers without changing glyph detail.
+    if (slowFrames >= 8 && targetFps > 15) { targetFps = targetFps === 30 ? 24 : 15; slowFrames = 0; }
   }
   function tick(now) {
     raf = 0;
     if (!active()) return;
     if (lastTick) seconds += Math.min((now - lastTick) / 1000, 0.1);
     lastTick = now;
-    if (!lastDraw || now - lastDraw >= 1000 / 30 - 0.5) { draw(); lastDraw = now; }
+    if (!lastDraw || now - lastDraw >= 1000 / targetFps - 0.5) { draw(); lastDraw = now; }
     raf = requestAnimationFrame(tick);
   }
   function resize() {
     const rect = motorElement.getBoundingClientRect();
+    pointerRect = rect;
     width = Math.max(1, Math.round(rect.width)); height = Math.max(1, Math.round(rect.height));
     if (!renderer || !camera) return;
     const dpr = Math.min(devicePixelRatio || 1, 2);
+    if (appliedWidth === width && appliedHeight === height && appliedDpr === dpr) return;
+    appliedWidth = width; appliedHeight = height; appliedDpr = dpr;
     // The stock field sizes from clientWidth/clientHeight. A CSS-only, inverse
     // scale gives it an honest 2x backing surface even on a 1x display: an 8px
     // device cell remains 4px on screen, with shape sampling enabled everywhere.
@@ -92,7 +119,9 @@ export function mountHero({ motorElement, waveElement, pauseButton, posterElemen
     canvas.style.height = `${supersample * 100}%`;
     canvas.style.transformOrigin = '0 0';
     canvas.style.transform = supersample === 1 ? 'none' : `scale(${1 / supersample})`;
-    renderer.setPixelRatio(2);
+    // Source shading does not need the ASCII atlas's 2x backing resolution.
+    // The output still has 4px glyphs and 8px shape-matching cells.
+    renderer.setPixelRatio(sourcePixelRatio);
     renderer.setSize(width, height, false);
     const compact = width < 600;
     if (model && compactComposition !== compact) {
@@ -127,20 +156,23 @@ export function mountHero({ motorElement, waveElement, pauseButton, posterElemen
     // public API so the stock field also refreshes its source dimensions.
     if (field && ready) {
       renderer.render(scene, camera);
-      field.setSource(renderer.domElement).then(() => { if (ready && !disposed) draw(seconds, true); });
+      field.setSource(renderer.domElement).then(() => { if (ready && !disposed) draw(seconds, true); }).catch(handleError);
     }
-    if (ready) draw(seconds, true);
+    waves?.update({ look: { clear: waveClear() } });
   }
   function pointerMove(event) {
     if (!finePointer.matches || reduced || manualPaused) return;
-    const r = motorElement.getBoundingClientRect();
+    const r = pointerRect || motorElement.getBoundingClientRect();
     pointer.x = THREE.MathUtils.clamp(((event.clientX - r.left) / r.width - 0.5) * 2, -1, 1);
     pointer.y = THREE.MathUtils.clamp(-((event.clientY - r.top) / r.height - 0.5) * 2, -1, 1);
   }
   function pointerLeave() { pointer.x = 0; pointer.y = 0; }
+  function refreshPointerRect() { pointerRect = motorElement.getBoundingClientRect(); }
   const pointerRegion = motorElement.closest('.hero') || motorElement.parentElement;
   pointerRegion?.addEventListener('pointermove', pointerMove);
+  pointerRegion?.addEventListener('pointerenter', refreshPointerRect);
   pointerRegion?.addEventListener('pointerleave', pointerLeave);
+  window.addEventListener('scroll', refreshPointerRect, { passive: true });
   function visibilityChange() { sync(); }
   function motionChange(event) {
     reduced = event.matches;
@@ -156,10 +188,16 @@ export function mountHero({ motorElement, waveElement, pauseButton, posterElemen
   const controller = {
     canvas,
     get waveCanvas() { return waveElement?.querySelector('canvas') || null; },
-    get status() { return { ready, disposed, error, paused: manualPaused || reduced, active: active(), reducedMotion: reduced, visible: onscreen && !document.hidden, time: seconds, renderCount: drawCount, lastFrameMs, width, height, dpr: Math.min(devicePixelRatio || 1, 2), renderingPixelRatio: 2, visibleGlyphCellPx: 4, sourceClip: clipName, sourcePose: 0, loopSeconds: 20, sourceGeometryCount: 69, sourceTriangles: 973838, bounds: worldBounds, engine: 'asciify-engine@4.33.0' }; },
+    get status() { return { ready, disposed, error, paused: manualPaused || reduced, active: active(), reducedMotion: reduced, visible: onscreen && !document.hidden, time: seconds, renderCount: drawCount, lastFrameMs, framePending, pendingPose: !!pendingPose, width, height, dpr: Math.min(devicePixelRatio || 1, 2), renderingPixelRatio: sourcePixelRatio, sourcePixelRatio, glyphPixelRatio: 2, targetFps, tier, workerRequested: true, wavesReady, waveError, timings: { ...timings }, visibleGlyphCellPx: 4, sourceClip: clipName, sourcePose: 0, loopSeconds: 20, sourceGeometryCount: 69, sourceTriangles: 973838, renderedTriangles: 469535, bounds: worldBounds, engine: 'asciify-engine@4.33.0' }; },
     pause() { manualPaused = true; sync(); },
     resume() { manualPaused = false; reduced = false; waves?.update({ reducedMotion: false }); sync(); },
     renderAt(time) { manualPaused = true; sync(); seconds = Number(time) || 0; draw(seconds, true); waves?.field?.redraw(); return controller.status; },
+    // Useful after renderAt(): source transfer is asynchronous in the stock
+    // worker API. This waits for submission, not a GPU-finished acknowledgement.
+    async whenFrameSubmitted() {
+      while (framePending || pendingPose) await frameSubmission;
+      return controller.status;
+    },
     snapshot({ paper = false } = {}) {
       draw(seconds, true);
       const output = document.createElement('canvas'); output.width = canvas.width; output.height = canvas.height;
@@ -171,20 +209,70 @@ export function mountHero({ motorElement, waveElement, pauseButton, posterElemen
     resize,
     dispose() {
       disposed = true; sync(); observer.disconnect(); resizeObserver.disconnect();
+      cancelAnimationFrame(resizeRaf); clearTimeout(waveTimer);
       document.removeEventListener('visibilitychange', visibilityChange); media.removeEventListener('change', motionChange);
-      pointerRegion?.removeEventListener('pointermove', pointerMove); pointerRegion?.removeEventListener('pointerleave', pointerLeave);
+      pointerRegion?.removeEventListener('pointermove', pointerMove); pointerRegion?.removeEventListener('pointerleave', pointerLeave); pointerRegion?.removeEventListener('pointerenter', refreshPointerRect);
+      window.removeEventListener('scroll', refreshPointerRect);
       pauseButton?.removeEventListener('click', toggle); field?.destroy(); waves?.destroy();
       model?.traverse(object => { if (object.isMesh) { object.geometry.dispose(); const materials = Array.isArray(object.material) ? object.material : [object.material]; materials.forEach(material => material.dispose()); } });
       renderer?.dispose(); canvas.remove();
     },
   };
 
+  function waveClear() {
+    if (!waveElement) return false;
+    const r = waveElement.getBoundingClientRect(), m = motorElement.getBoundingClientRect();
+    if (!r.width || !r.height) return false;
+    return { x: (m.left - r.left) / r.width, y: (m.top - r.top) / r.height, width: m.width / r.width, height: m.height / r.height, feather: 0.3, shape: 'ellipse', pointer: 0.8 };
+  }
+  function scheduleWaves() {
+    if (!waveElement || waves || wavesStarting || waveTimer || !active()) return;
+    // The decorative second GL context never gates the motor's first frame.
+    waveTimer = setTimeout(() => { waveTimer = 0; if (active()) startWaves(); }, 1500);
+  }
+  async function startWaves() {
+    wavesStarting = true;
+    timings.wavesStarted = performance.now();
+    try {
+      waves = background(waveElement, { preset: swell, palette: INK, speed: 0.2, cellSize: 12, cursor: 'fluid', mark: 'glyph', opacity: 0.08, lazy: false,
+        look: { worker: true, context: 'own', maxPixelRatio: 1, clear: waveClear(), font: '"IBM Plex Mono", monospace', fontWeight: 400, glyphScale: 1, cellAspect: 0.6, charset: ' .,:-=+*#%@', hover: 'fluid', tap: 'none', fluid: { radius: 0.12, force: 0.3, dissipation: 1.3, refraction: 0.012, glow: 0.15, curl: 12, resolution: 96 }, post: { bloom: 0, scanlines: 0, grain: 0, chroma: 0, curvature: 0 } } });
+      await waves.field?.ready;
+      if (disposed) return;
+      wavesReady = true; timings.wavesReady = performance.now(); sync();
+    } catch (cause) {
+      waveError = cause instanceof Error ? cause.message : String(cause);
+      waves?.destroy(); waves = null;
+      console.warn('Robotics background:', cause);
+    }
+  }
+  function handleError(cause) {
+    ready = false;
+    error = cause instanceof Error ? cause.message : String(cause);
+    motorElement.dataset.error = error;
+    canvas.hidden = true; if (posterElement) posterElement.hidden = false;
+    field?.pause(); waves?.pause(); renderer?.dispose();
+    if (pauseButton) pauseButton.hidden = true;
+    sync();
+    console.error('Robotics hero:', cause);
+    return controller;
+  }
   controller.ready = (async () => {
     updateControl();
     if (!isGlyphFieldSupported()) throw new Error('Hardware-accelerated WebGL2 is unavailable; displaying the sourced ASCII poster.');
-    const font = new FontFace('IBM Plex Mono', `url("${asset('IBMPlexMono-Regular.ttf')}")`, { weight: '400', style: 'normal' });
-    await font.load(); document.fonts.add(font);
-    await document.fonts.load('400 12px "IBM Plex Mono"');
+    tier = glyphFieldTier();
+    sourcePixelRatio = tier === 'software' ? 1 : 1.5;
+    targetFps = tier === 'software' ? 15 : 30;
+    // Network work proceeds together, while the HTML poster remains visible.
+    const fontReady = document.fonts.load('400 12px "IBM Plex Mono"').then(async faces => {
+      if (!faces.length) {
+        const font = new FontFace('IBM Plex Mono', `url("${asset('IBMPlexMono-Regular.woff2')}") format("woff2")`, { weight: '400', style: 'normal' });
+        await font.load(); document.fonts.add(font);
+      }
+      timings.fontLoaded = performance.now();
+    });
+    const modelReady = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).loadAsync(asset('actuator.web.glb')).then(gltf => { timings.modelLoaded = performance.now(); return gltf; });
+    const [gltf] = await Promise.all([modelReady, fontReady]);
+    if (disposed) return controller;
     renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: 'high-performance' });
     renderer.setClearColor(0x000000, 0);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -197,13 +285,11 @@ export function mountHero({ motorElement, waveElement, pauseButton, posterElemen
     const fill = new THREE.DirectionalLight(0xffffff, 0.8); fill.position.set(70, -20, 40); scene.add(fill);
     const rim = new THREE.DirectionalLight(0xffffff, 1.5); rim.position.set(10, 50, -60); scene.add(rim);
     scene.add(new THREE.AmbientLight(0xffffff, 0.35));
-    const gltf = await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).loadAsync(asset('actuator.meshopt.glb'));
-    if (disposed) return controller;
     model = gltf.scene;
     clipName = 'Published CAD / exploded presentation';
     model.traverse(object => {
       if (!object.isMesh) return;
-      assemblyParts.push({node: object, y: object.position.y});
+      assemblyParts.push({ node: object, baseY: object.position.y, explosionY: object.userData.presentationY ?? object.position.y });
       // The CAD has no photography materials. A steel finish helps the stock
       // character sampler retain the tooth, race, pin and PCB silhouettes.
       const materials = Array.isArray(object.material) ? object.material : [object.material];
@@ -218,8 +304,9 @@ export function mountHero({ motorElement, waveElement, pauseButton, posterElemen
     worldBounds = { source: { min: sourceBounds.min.toArray(), max: sourceBounds.max.toArray() } };
     resize();
     renderer.render(scene, camera);
+    timings.threeFirstFrame = performance.now();
     field = mountGlyphField(canvas, {
-      source: renderer.domElement, live: true, worker: false, fit: 'contain',
+      source: renderer.domElement, live: false, worker: true, context: 'own', fit: 'contain',
       color: 'ink', ink: INK, shade: 0, ramp: [], background: 'transparent', backdrop: 0,
       font: '"IBM Plex Mono", monospace', fontWeight: 400, glyphScale: 1,
       charset: FIELD_PHOTO_CHARSET, mark: 'glyph', glyphOrder: 'tone', sample: 'shape',
@@ -229,26 +316,15 @@ export function mountHero({ motorElement, waveElement, pauseButton, posterElemen
       post: { bloom: 0, scanlines: 0, grain: 0, chroma: 0, curvature: 0 }, respectReducedMotion: true,
     });
     await field.ready; field.pause();
-    if (waveElement) {
-      waves = background(waveElement, { preset: swell, palette: INK, speed: 0.2, cellSize: 12, cursor: 'fluid', mark: 'glyph', opacity: 0.08, lazy: false, clear: motorElement,
-        look: { font: '"IBM Plex Mono", monospace', fontWeight: 400, glyphScale: 1, cellAspect: 0.6, charset: ' .,:-=+*#%@', hover: 'fluid', tap: 'none', fluid: { radius: 0.12, force: 0.3, dissipation: 1.3, refraction: 0.012, glow: 0.15, curl: 12, resolution: 96 }, post: { bloom: 0, scanlines: 0, grain: 0, chroma: 0, curvature: 0 } } });
-      await waves.field?.ready;
-    }
-    ready = true; draw(0, true);
+    timings.fieldReady = performance.now();
+    if (disposed) return controller;
+    ready = true; timings.motorReady = performance.now();
     if (pauseButton) pauseButton.hidden = false;
     motorElement.dataset.ready = 'true'; canvas.style.opacity = '1';
     if (posterElement) posterElement.hidden = true;
     sync();
     return controller;
-  })().catch(cause => {
-    error = cause instanceof Error ? cause.message : String(cause);
-    motorElement.dataset.error = error;
-    canvas.hidden = true; if (posterElement) posterElement.hidden = false;
-    field?.pause(); waves?.pause(); renderer?.dispose();
-    if (pauseButton) pauseButton.hidden = true;
-    console.error('Robotics hero:', cause);
-    return controller;
-  });
+  })().catch(handleError);
   window.__robotHero = controller;
   return controller;
 }

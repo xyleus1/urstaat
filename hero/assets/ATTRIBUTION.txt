@@ -24,7 +24,7 @@ exact reconstruction of Katz's original hardware or controller.
 Changes: STEP tessellation through CadQuery/OpenCascade; rigid alignment and
 translations for the exploded presentation; the controller's material primitives
 merged without changing their geometry; presentation materials changed to steel
-greys. The visualization uses 69 meshes and 973,838 source triangles. No original
+greys. The source has 69 meshes and 973,838 source triangles. No original
 mechanical shapes were authored. The assembled mix is not a dimensionally
 validated or buildable actuator design.
 
@@ -32,6 +32,14 @@ Portable asset: actuator.meshopt.glb (7,565,356 bytes).
 SHA-256: 8f5c44694c2c91b19c5a8d0b46ae7393ea230354098e2d783e753c6934b00a65
 Meshopt compression without quantization or simplification; every vertex
 attribute and oriented triangle was checked after decompression.
+
+Web display asset: actuator.web.glb (3,787,284 bytes), generated reproducibly by
+hero/optimize-model.mjs with glTF-Transform 4.5.1 and meshoptimizer. All 69 parts
+are retained; display tessellation uses 469,535 triangles at a requested 0.03%
+relative simplification-error limit. Position quantization adds at most
+0.001216 source millimeters of verified vertex displacement. Triangle topology
+is verified after quantization and compression. The exact source asset above
+remains available separately and is not downloaded by the live animation.
 
 ASCII renderer and Swell background: Asciify 4.33.0 by ayangabryl, MIT.
 https://github.com/ayangabryl/asciify-engine
@@ -49,6 +57,8 @@ See LICENSE-Meshoptimizer.txt.
 ASCII typeface: IBM Plex Mono Regular by IBM, SIL Open Font License 1.1.
 https://github.com/IBM/plex
 See OFL-Plex.txt.
+The web copy is WOFF2-packed with FontTools; glyph order, character mapping and
+horizontal metrics are verified identical to the retained original TTF.
 
 The previous motor.glb is an unused historical asset. DJI Phantom 4 BLDC Motor
 by Flikd Design / Rowan Design, CC-BY-4.0, is not rendered by the current website.
