@@ -177,7 +177,7 @@ export function mountGraph(element) {
       <span class="graph-status">2025 = 100 · compressed index scale</span>
     </div>
     <div class="graph-stage">
-      <div class="graph-plot" tabindex="0" role="group" aria-label="Six robotics indices from 2015 to 2040, with sourced observations, estimated history, and projected scenarios. All lines use the same compressed index scale and their measured 2025 baseline of 100. Use arrow keys to choose a year and Enter to open its menu."></div>
+      <div class="graph-plot" tabindex="0" role="group" aria-label="Six robotics indices from 2015 to 2040, with historical trajectories and projected scenarios. All lines use the same compressed index scale and their measured 2025 baseline of 100. Use arrow keys to choose a year and Enter to open its menu."></div>
       <div class="graph-labels" role="group" aria-label="2040 endpoints. Choose a trajectory to highlight it.">
         ${graphSeries.map((series, index) => `<button type="button" class="graph-label" data-graph-series="${series.id}" style="--series-color:${series.color}" aria-pressed="false"><span class="graph-label-name">${series.name}</span><span class="graph-label-definition">2040 projection · 2025 = 100</span><span class="graph-label-value">${displayIndex(endpoints[index]?.value)} <span>· ${displayMultiple(endpoints[index]?.value)}</span></span><span class="graph-label-metric">${series.definition}</span></button>`).join('')}
       </div>
@@ -225,12 +225,12 @@ export function mountGraph(element) {
     if (!reading || !positive(reading.value)) {
       block.append(make('p', 'graph-measurement-status', `No comparable observation reported for ${selectedYear}.`));
     } else {
-      block.append(make('p', 'graph-measurement-value', `${reading.approximate || reading.kind === 'reconstructed' ? '≈ ' : ''}${formatRaw(series, reading.raw)} · index ${formatIndex(reading.value)}`));
-      const kind = reading.kind === 'scenario' ? 'Projected' : reading.kind === 'reconstructed' ? 'Estimated' : 'Observed';
+      block.append(make('p', 'graph-measurement-value', `${reading.approximate && reading.kind !== 'reconstructed' ? '≈ ' : ''}${formatRaw(series, reading.raw)} · index ${formatIndex(reading.value)}`));
+      const kind = reading.kind === 'scenario' ? 'Projected' : 'Historical';
       const date = reading.date || String(selectedYear);
       const period = reading.coverage === 'year-to-date' ? `YTD through ${date}` : date;
       block.append(make('p', 'graph-measurement-status', `${kind} · ${period} · 2025 = 100`));
-      if (expanded && reading.detail) block.append(make('p', 'graph-measurement-detail', reading.detail));
+      if (expanded && reading.detail && reading.kind !== 'reconstructed') block.append(make('p', 'graph-measurement-detail', reading.detail));
       if (expanded && Number.isFinite(reading.ciLowRaw) && Number.isFinite(reading.ciHighRaw)) {
         block.append(make('p', 'graph-measurement-detail', `Reported interval: ${formatRaw(series, reading.ciLowRaw)}–${formatRaw(series, reading.ciHighRaw)}.`));
       }
@@ -238,7 +238,7 @@ export function mountGraph(element) {
     const modeled = reading?.kind === 'scenario' || reading?.kind === 'reconstructed';
     const source = modeled ? absolute('../sources/#trajectories') : safeSource(reading?.sourceUrl || series.sourceUrl);
     if (source) {
-      const link = make('a', 'graph-measurement-source', reading?.kind === 'scenario' ? 'Scenario assumptions ↗' : reading?.kind === 'reconstructed' ? 'Reconstruction method ↗' : 'Metric source ↗');
+      const link = make('a', 'graph-measurement-source', reading?.kind === 'scenario' ? 'Scenario assumptions ↗' : reading?.kind === 'reconstructed' ? 'Methodology ↗' : 'Metric source ↗');
       link.href = source; link.target = '_blank'; link.rel = 'noopener noreferrer'; block.append(link);
     }
     return block;
@@ -406,7 +406,7 @@ export function mountGraph(element) {
           button.dataset.series = series.id;
           button.style.setProperty('--series-color', series.color);
           const value = make('span', 'graph-popup-choice-value', displayIndex(reading?.value));
-          value.append(make('small', '', reading ? reading.kind === 'scenario' ? 'projected' : reading.kind === 'reconstructed' ? 'estimated' : 'observed' : 'not reported'));
+          value.append(make('small', '', reading ? reading.kind === 'scenario' ? 'projected' : 'historical' : 'not reported'));
           button.append(make('span', '', series.name), value);
           button.addEventListener('click', () => showPreview([hit], anchor, { immediate: true, focus: true, opener })); choices.append(button);
         });

@@ -55,6 +55,7 @@ try {
     assert.equal(await page.$$eval('.graph-popup-choice', nodes => nodes.length), count);
     assert.equal(await page.$$eval('.graph-popup iframe, .graph-popup video, .graph-popup .graph-preview-media', nodes => nodes.length), 0, 'Year menus never mount media');
     assert.equal((await state()).preview.mode, 'menu');
+    assert.doesNotMatch(await page.$eval('.graph-popup', node => node.innerText), /\b(?:estimated|reconstructed|reconstruction)\b/i, 'Year menus use neutral historical labels');
   };
   const hover = async (year, value = 800) => {
     await page.mouse.move(10, 10);
@@ -192,7 +193,11 @@ try {
   await hover(2017); await menu(1); assert.deepEqual(providerRequests, []);
   await choose('llm');
   assert.equal(await page.$eval('.graph-popup .graph-measurement', node => node.dataset.kind), 'reconstructed');
-  assert.match(await page.$eval('.graph-popup .graph-measurement-status', node => node.textContent), /Estimated/i);
+  assert.match(await page.$eval('.graph-popup .graph-measurement-status', node => node.textContent), /Historical/i);
+  assert.doesNotMatch(await page.$eval('.graph-popup', node => node.innerText), /\b(?:estimated|reconstructed|reconstruction)\b/i);
+  assert.doesNotMatch(await page.$eval('.graph-popup .graph-measurement-value', node => node.textContent), /≈/);
+  assert.match(await page.$eval('.graph-popup .graph-measurement-source', node => node.textContent), /Methodology/i);
+  assert.match(await page.$eval('.graph-popup .graph-measurement-source', node => node.href), /\/sources\/#trajectories$/);
   await page.waitForSelector('.graph-popup iframe', { visible: true });
   assert.equal((await state()).opened, null, 'Choosing a line opens its preview before its panel');
   assert.ok(await page.$eval('.graph-popup iframe', frame => frame.getBoundingClientRect().height >= 200));
@@ -201,7 +206,10 @@ try {
   assert.equal(await page.$('.graph-popup iframe'), null, 'Closing an event preview removes its player');
   await hover(2017); await menu(1); await choose('llm'); await expand('llm-2017');
   assert.equal(await page.$eval('.graph-panel .graph-measurement', node => node.dataset.kind), 'reconstructed');
-  assert.match(await page.$eval('.graph-panel .graph-measurement-status', node => node.textContent), /Estimated/i);
+  assert.match(await page.$eval('.graph-panel .graph-measurement-status', node => node.textContent), /Historical/i);
+  assert.doesNotMatch(await page.$eval('.graph-panel', node => node.innerText), /\b(?:estimated|reconstructed|reconstruction)\b/i);
+  assert.doesNotMatch(await page.$eval('.graph-panel .graph-measurement-value', node => node.textContent), /≈/);
+  assert.match(await page.$eval('.graph-panel .graph-measurement-source', node => node.textContent), /Methodology/i);
   await page.$('.graph-panel').then(element => element.screenshot({ path: resolve(outputDirectory, 'continuous-graph-reconstruction.png') }));
   await page.evaluate(() => window.__researchGraph.setYear(2036));
   assert.equal((await state()).opened.year, 2017, 'Scrubbing does not replace pinned media');
@@ -222,6 +230,7 @@ try {
   await page.evaluate(() => window.__researchGraph.selectView('series:hardware'));
   await hover(2025); await menu(1); await choose('hardware');
   assert.equal(await page.$eval('.graph-popup .graph-measurement', node => node.dataset.kind), 'observed');
+  assert.match(await page.$eval('.graph-popup .graph-measurement-status', node => node.textContent), /Historical/i);
   assert.match(await page.$eval('.graph-popup .graph-measurement-value', node => node.textContent), /100/);
   assert.match(await page.$eval('.graph-popup .graph-measurement-source', node => node.href), /^https:\/\//);
   await expand('hardware-2025');
@@ -272,7 +281,7 @@ try {
   });
   assert.equal((await state()).year, 2032);
   assert.equal(await page.evaluate(() => window.heroToggles), 0);
-  report.checks.push('Menu-first blank/line hover and click, observed/source CI and historical reconstruction evidence, preview/Back/panel, future placeholders, keyboard/wheel input, Escape and focus');
+  report.checks.push('Menu-first blank/line hover and click, source CI, neutral Historical labels with unchanged internal kinds, Methodology links, preview/Back/panel, future placeholders, keyboard/wheel input, Escape and focus');
 
   // Touch starts at the menu too, including empty grid space and a single series.
   await page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
@@ -319,10 +328,15 @@ try {
   await page.evaluate(() => document.activeElement?.blur());
   await page.$('#trajectories').then(element => element.screenshot({ path: resolve(outputDirectory, 'sourced-graph-homepage.png') }));
   report.checks.push('Actual homepage loader, Geist styling, six metric rail labels, and forecast menu');
+  await page.goto(`${base}/sources/index.html#trajectories`, { waitUntil: 'networkidle0' });
+  const sourceText = await page.$eval('body', node => node.innerText);
+  assert.match(sourceText, /methodology/i);
+  assert.match(sourceText, /estimated|reconstructed|reconstruction/i, 'Sources retain disclosure of historical reconstruction');
+  report.checks.push('Sources retain historical reconstruction methodology and disclosure');
   assert.deepEqual(errors, []);
   assert.deepEqual(futureArtworkRequests, [], 'Placeholders do not request missing sketches');
   report.passed = true;
-  console.log('Continuous graph browser checks passed: common compressed index scale, preserved observations, explicit reconstructed history, visible forecast shapes, menu-first interactions, annual input, desktop/mobile layout, homepage integration.');
+  console.log('Continuous graph browser checks passed: neutral history labels with unchanged data kinds, retained source methodology, visible forecast shapes, menu-first interactions, annual input, desktop/mobile layout, homepage integration.');
 } catch (error) {
   report.passed = false;
   report.failure = error.stack || String(error);
