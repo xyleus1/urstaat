@@ -1,5 +1,5 @@
 import { init, animate } from './vendor/graph-vendor.js?v=finish-1';
-import { graphSeries, graphViews, graphDomain, sampleSeries, interpolateSample, snapYear, findLineHits, placeEndpointLabels, formatIndex, formatRaw } from './graph-data.js?v=observed-1';
+import { graphSeries, graphViews, sampleSeries, interpolateSample, snapYear, findLineHits, placeEndpointLabels } from './graph-data.js?v=finish-1';
 import { getStory } from './graph-stories.js?v=finish-1';
 
 const clamp = (value, low, high) => Math.max(low, Math.min(high, value));
@@ -152,8 +152,8 @@ export function mountGraph(element) {
   const motionPreference = matchMedia('(prefers-reduced-motion: reduce)');
   let reducedMotion = motionPreference.matches;
   const samples = graphSeries.map((_, index) => sampleSeries(index));
-  const latest = samples.map(points => points.at(-1) || null);
-  let year = 2025, selectedView = 'all', activeSeries = new Set(graphSeries.map(series => series.id));
+  const envelopes = graphSeries.map((_, index) => [sampleSeries(index, -1.2), sampleSeries(index, 1.2)]);
+  let year = 2026, selectedView = 'all', activeSeries = new Set(graphSeries.map(series => series.id));
   let layout, disposed = false, resizeFrame = 0, hoverTimer, hideTimer, previewMedia, panelMedia, panelAnimation, popupAnimation;
   let previewKey = '', previewState = null, opened = null, lastOpener = null, panelRevision = 0;
   let tooltipAnchor = [0, 0], pointerStart = null, wheelDelta = 0, wheelTime = 0, wheelEventTime = 0, popupDistance = Infinity;
@@ -167,15 +167,15 @@ export function mountGraph(element) {
     <div class="graph-heading"><h2 id="trajectories-title">From intelligence to work.</h2></div>
     <div class="graph-toolbar" role="group" aria-label="Highlight trajectories">
       ${graphViews.map(view => `<button type="button" data-graph-view="${view.id}" aria-pressed="${view.id === 'all'}">${view.label}</button>`).join('')}
-      <a class="graph-status" href="${absolute('../sources/#trajectories')}">Measures &amp; sources ↗</a>
+      <span class="graph-status">Illustrative index · 2026 = 100</span>
     </div>
     <div class="graph-stage">
-      <div class="graph-plot" tabindex="0" role="group" aria-label="Four sourced historical measures, normalized to 2020 equals 100. Humanoid capability and interaction data have no verified annual series. Future years contain stories, not numerical forecasts. Use arrow keys to choose a year and Enter to open its event."></div>
-      <div class="graph-labels" role="group" aria-label="Index definitions and latest observed values. Choose a measure to highlight it.">
-        ${graphSeries.map((series, index) => `<button type="button" class="graph-label${latest[index] ? '' : ' is-unmeasured'}" data-graph-series="${series.id}" style="--series-color:${series.color}" aria-pressed="false"><span class="graph-label-name">${series.name}</span><span class="graph-label-definition">${series.status === 'unavailable' ? series.shortMetric : series.metric}</span><span class="graph-label-value">${latest[index] ? `${formatIndex(latest[index].value)} <span>index</span>` : 'Not plotted'}</span><span class="graph-label-basis">${latest[index] ? `Latest ${latest[index].year} · 2020 = 100${series.status === 'proxy' ? ' · Proxy' : ''}` : 'Stories available'}</span></button>`).join('')}
+      <div class="graph-plot" tabindex="0" role="group" aria-label="Six illustrative robotics trajectories from 2015 to 2040. Use arrow keys to choose a year and Enter to open its event."></div>
+      <div class="graph-labels" role="group" aria-label="2040 endpoints. Choose a trajectory to highlight it.">
+        ${graphSeries.map((series, index) => `<button type="button" class="graph-label" data-graph-series="${series.id}" style="--series-color:${series.color}" aria-pressed="false"><span class="graph-label-name">${series.name}</span><span class="graph-label-definition">2040 · 2026 = 100</span><span class="graph-label-value">${samples[index][250].value.toFixed(1)} <span>· ${(samples[index][250].value / 100).toFixed(2)}×</span></span></button>`).join('')}
       </div>
     </div>
-    <div class="graph-scrubber"><label for="trajectory-year">Explore a year</label><input id="trajectory-year" type="range" min="2015" max="2040" step="1" value="2025" aria-label="Year to inspect"><output for="trajectory-year">2025</output><button type="button" class="graph-open-year">Open year <span aria-hidden="true">↗</span></button></div>
+    <div class="graph-scrubber"><label for="trajectory-year">Explore a year</label><input id="trajectory-year" type="range" min="2015" max="2040" step="1" value="2026" aria-label="Year to inspect"><output for="trajectory-year">2026</output><button type="button" class="graph-open-year">Open year <span aria-hidden="true">↗</span></button></div>
     <section class="graph-panel" aria-labelledby="graph-panel-title" hidden></section>
     <p class="graph-live" aria-live="polite" aria-atomic="true"></p>`;
   const stage = element.querySelector('.graph-stage'), plot = element.querySelector('.graph-plot');
@@ -186,23 +186,17 @@ export function mountGraph(element) {
   popup.setAttribute('role', 'dialog'); popup.setAttribute('aria-label', 'Event preview');
   const chart = init(plot, null, { renderer: 'svg' });
   const x = value => layout.gx + (value - 2015) / 25 * layout.gw;
-  const y = value => layout.gy + layout.gh * (1 - value / graphDomain.maximum);
-  const yearReadout = (index, selectedYear) => {
-    const value = interpolateSample(samples[index], selectedYear);
-    return Number.isFinite(value) ? `${formatIndex(value)} index` : selectedYear > 2026 ? 'No forecast' : 'No observation';
-  };
+  const y = value => layout.gy + layout.gh * (1 - value / 900);
 
   function buildSeries() {
-    return graphSeries.map((series, index) => {
+    return graphSeries.flatMap((series, index) => {
       const active = activeSeries.has(series.id), focused = activeSeries.size < 6;
-      return {
-        type: 'line', id: `${series.id}-observed`, name: series.name, smooth: false, connectNulls: false,
-        showSymbol: true, symbol: 'circle', symbolSize: active ? 4 : 2, animation: false, clip: true,
-        emphasis: { disabled: true }, select: { disabled: true }, triggerEvent: true,
-        data: Array.from({ length: 26 }, (_, offset) => { const point = samples[index].find(item => item.year === 2015 + offset); return [2015 + offset, point?.value ?? null]; }),
-        lineStyle: { color: series.color, width: active && focused ? 2.4 : 1.7, type: series.id === 'llm' ? 'dashed' : 'solid', opacity: active ? 1 : .13 },
-        itemStyle: { color: series.color, opacity: active ? 1 : .13 }, z: active ? 3 : 2,
-      };
+      const common = { type: 'line', smooth: false, showSymbol: false, symbol: 'none', animation: false, clip: true, emphasis: { disabled: true }, select: { disabled: true } };
+      return [
+        ...envelopes[index].map((points, bound) => ({ ...common, id: `${series.id}-bound-${bound}`, silent: true, data: points.slice(110).map(point => [point.year, point.value]), lineStyle: { color: series.color, width: .8, type: [2, 4], opacity: active ? .2 : .035 }, tooltip: { show: false }, z: 1 })),
+        { ...common, id: `${series.id}-history`, name: series.name, data: samples[index].slice(0, 111).map(point => [point.year, point.value]), triggerEvent: true, lineStyle: { color: series.color, width: active && focused ? 2.4 : 1.7, opacity: active ? 1 : .13 }, z: active ? 3 : 2 },
+        { ...common, id: `${series.id}-future`, name: series.name, data: samples[index].slice(110).map(point => [point.year, point.value]), triggerEvent: true, lineStyle: { color: series.color, width: active && focused ? 2.4 : 1.7, type: [5, 4], opacity: active ? 1 : .13 }, z: active ? 3 : 2 },
+      ];
     });
   }
   chart.setOption({
@@ -210,7 +204,7 @@ export function mountGraph(element) {
     textStyle: { fontFamily: getComputedStyle(element).fontFamily },
     grid: { left: 44, right: 270, top: 57, bottom: 60 },
     xAxis: { type: 'value', min: 2015, max: 2040, interval: 5, axisLine: { show: false }, axisTick: { show: false }, axisLabel: { color: '#929A9F', fontSize: 11, margin: 16, formatter: value => String(value) }, splitLine: { lineStyle: { color: '#343B40', width: .7 } }, minorTick: { splitNumber: 5 }, minorSplitLine: { show: true, lineStyle: { color: '#20272C', width: .5 } } },
-    yAxis: { type: 'value', min: 0, max: graphDomain.maximum, interval: graphDomain.interval, axisLine: { show: false }, axisTick: { show: false }, axisLabel: { color: '#929A9F', fontSize: 11, margin: 12 }, splitLine: { lineStyle: { color: '#343B40', width: .7 } }, minorTick: { splitNumber: 2 }, minorSplitLine: { show: true, lineStyle: { color: '#20272C', width: .5 } } },
+    yAxis: { type: 'value', min: 0, max: 900, interval: 100, axisLine: { show: false }, axisTick: { show: false }, axisLabel: { color: '#929A9F', fontSize: 11, margin: 12 }, splitLine: { lineStyle: { color: '#343B40', width: .7 } }, minorTick: { splitNumber: 2 }, minorSplitLine: { show: true, lineStyle: { color: '#20272C', width: .5 } } },
     tooltip: {
       trigger: 'item', triggerOn: 'none', renderMode: 'html', enterable: true, confine: true,
       transitionDuration: 0, hideDelay: 320, padding: 0, borderWidth: 0, backgroundColor: 'transparent',
@@ -234,25 +228,24 @@ export function mountGraph(element) {
       { id: 'future-field', type: 'rect', silent: true, z: -1, shape: { x: x(2026), y: layout.gy, width: x(2040) - x(2026), height: layout.gh }, style: { fill: 'rgba(199,205,208,.022)' } },
       { id: 'divider', type: 'line', silent: true, z: 4, shape: { x1: x(2026), x2: x(2026), y1: layout.gy, y2: layout.gy + layout.gh }, style: { stroke: '#C7CDD0', opacity: .4, lineWidth: 1 } },
       { id: 'divider-text', type: 'text', silent: true, z: 5, x: x(2026) + 5, y: layout.gy + 12, style: { text: '2026', fill: '#929A9F', font: `11px ${font}`, opacity: Math.abs(currentX - x(2026)) < 50 ? 0 : 1 } },
-      { id: 'axis-title', type: 'text', silent: true, x: layout.gx, y: 13, style: { text: 'Index · 2020 = 100', fill: '#929A9F', font: `10px ${font}` } },
-      { id: 'future-title', type: 'text', silent: true, x: x(2040), y: 13, style: { text: 'Future studies', fill: '#929A9F', align: 'right', font: `10px ${font}` } },
-      { id: 'future-note', type: 'text', silent: true, x: x(2033), y: y(115), style: { text: 'No numerical forecast\nExplore storyboards by year', fill: '#929A9F', align: 'center', lineHeight: 19, font: `${layout.width < 500 ? 9 : 11}px ${font}` } },
+      { id: 'axis-title', type: 'text', silent: true, x: layout.gx, y: 13, style: { text: 'Index · 2026 = 100', fill: '#929A9F', font: `10px ${font}` } },
+      { id: 'future-title', type: 'text', silent: true, x: x(2040), y: 13, style: { text: 'Possible paths', fill: '#929A9F', align: 'right', font: `10px ${font}` } },
       { id: 'crosshair', type: 'line', silent: true, z: 6, shape: { x1: currentX, x2: currentX, y1: layout.gy, y2: layout.gy + layout.gh }, style: { stroke: '#C7CDD0', opacity: .6, lineWidth: 1, lineDash: [2, 4] } },
       { id: 'year-pill', type: 'rect', silent: true, z: 7, shape: { x: clamp(currentX - 25, layout.gx, x(2040) - 50), y: layout.gy - 28, width: 50, height: 21 }, style: { fill: '#C7CDD0' } },
       { id: 'year-text', type: 'text', silent: true, z: 8, x: clamp(currentX, layout.gx + 25, x(2040) - 25), y: layout.gy - 17, style: { text: String(year), fill: '#080A0B', align: 'center', verticalAlign: 'middle', font: `11px ${font}` } },
     ];
-    const endpoints = placeEndpointLabels(graphSeries.map((series, index) => ({ id: series.id, index, y: latest[index] ? y(latest[index].value) : layout.gy + layout.gh + index })), layout.gy - 5, layout.gy + layout.gh - 75);
+    const endpoints = placeEndpointLabels(graphSeries.map((series, index) => ({ id: series.id, index, y: y(samples[index][250].value) })), layout.gy - 5, layout.gy + layout.gh - 45);
     graphSeries.forEach((series, index) => {
-      const active = activeSeries.has(series.id), value = interpolateSample(samples[index], year), hasValue = Number.isFinite(value), pointY = hasValue ? y(value) : layout.gy;
+      const active = activeSeries.has(series.id), pointY = y(interpolateSample(samples[index], year));
       elements.push(
-        { id: `halo-${series.id}`, type: 'circle', silent: true, invisible: !hasValue, z: 7, shape: { cx: currentX, cy: pointY, r: 8 }, style: { fill: series.color, opacity: active ? .12 : 0 } },
-        { id: `dot-${series.id}`, type: 'circle', silent: true, invisible: !hasValue, z: 8, shape: { cx: currentX, cy: pointY, r: active && activeSeries.size < 6 ? 4.6 : 3.8 }, style: { fill: series.color, stroke: '#080A0B', lineWidth: 2, opacity: active ? 1 : .13 } },
+        { id: `halo-${series.id}`, type: 'circle', silent: true, z: 7, shape: { cx: currentX, cy: pointY, r: 8 }, style: { fill: series.color, opacity: active ? .12 : 0 } },
+        { id: `dot-${series.id}`, type: 'circle', silent: true, z: 8, shape: { cx: currentX, cy: pointY, r: active && activeSeries.size < 6 ? 4.6 : 3.8 }, style: { fill: series.color, stroke: '#080A0B', lineWidth: 2, opacity: active ? 1 : .13 } },
       );
       const endpoint = endpoints.find(item => item.id === series.id), labelX = x(2040) + 46;
       labels[index].style.left = `${labelX}px`; labels[index].style.top = `${endpoint.labelY}px`;
       labels[index].style.width = `${Math.max(0, layout.width - labelX)}px`;
-      labels[index].setAttribute('aria-label', `Highlight ${series.name}. ${series.metric}. ${latest[index] ? `Latest observed index ${formatIndex(latest[index].value)} in ${latest[index].year}; 2020 equals 100. ${formatRaw(series, latest[index].raw)}.` : series.unavailableReason}`);
-      labels[index].title = series.scope;
+      labels[index].setAttribute('aria-label', `Highlight ${series.name}. 2040 index ${samples[index][250].value.toFixed(1)}, ${(samples[index][250].value / 100).toFixed(2)} times its 2026 baseline.`);
+      elements.push({ id: `leader-${series.id}`, type: 'polyline', silent: true, ignore: layout.compact, z: 2, shape: { points: [[x(2040), endpoint.y], [x(2040) + 14, endpoint.y], [labelX - 14, endpoint.labelY + 8], [labelX - 5, endpoint.labelY + 8]] }, style: { stroke: series.color, lineWidth: .8, fill: null, opacity: active ? .85 : .13 } });
     });
     chart.setOption({ graphic: { elements } });
   }
@@ -260,8 +253,8 @@ export function mountGraph(element) {
   function resize() {
     if (disposed) return;
     const width = Math.max(250, Math.round(stage.getBoundingClientRect().width)), compact = width < 980;
-    const plotHeight = width < 500 ? 330 : compact ? 390 : 560;
-    const next = { width, compact, gx: width < 500 ? 38 : 44, gy: 57, gh: plotHeight, gw: width - (compact ? 54 : 330), height: plotHeight + 118 };
+    const plotHeight = width < 500 ? 330 : compact ? 390 : 440;
+    const next = { width, compact, gx: width < 500 ? 38 : 44, gy: 57, gh: plotHeight, gw: width - (compact ? 54 : 304), height: plotHeight + 118 };
     if (layout && layout.width === next.width && layout.height === next.height) return;
     layout = next; element.classList.toggle('is-compact', compact);
     plot.style.height = `${layout.height}px`; popup.style.width = `${Math.min(350, width - 12)}px`;
@@ -321,7 +314,7 @@ export function mountGraph(element) {
         hits.forEach(hit => {
           const series = graphSeries[hit.seriesIndex], button = make('button', 'graph-popup-choice'); button.type = 'button';
           button.style.setProperty('--series-color', series.color);
-          button.append(make('span', '', series.name), make('span', '', yearReadout(hit.seriesIndex, previewYear)));
+          button.append(make('span', '', series.name), make('span', '', interpolateSample(samples[hit.seriesIndex], previewYear).toFixed(1)));
           button.addEventListener('click', () => openStory(series.id, previewYear, opener)); choices.append(button);
         });
         popup.append(choices);
@@ -330,7 +323,7 @@ export function mountGraph(element) {
         if (!story) { hidePreview(); return; }
         popup.setAttribute('aria-label', `${previewYear}: ${story.title}`);
         const header = make('div', 'graph-popup-header');
-        header.append(make('p', 'graph-popup-eyebrow', `${previewYear} · ${series.name}`), make('span', 'graph-popup-index', yearReadout(hit.seriesIndex, previewYear)));
+        header.append(make('p', 'graph-popup-eyebrow', `${previewYear} · ${series.name}`), make('span', 'graph-popup-index', interpolateSample(samples[hit.seriesIndex], previewYear).toFixed(1)));
         const mediaHost = make('div', 'graph-preview-media');
         popup.append(header, mediaHost, make('h3', 'graph-popup-title', story.title));
         const expand = make('button', 'graph-expand', 'Expand event ↗'); expand.type = 'button';
@@ -368,18 +361,7 @@ export function mountGraph(element) {
     const inner = make('div', 'graph-panel-inner'), mediaHost = make('div', 'graph-panel-media'), copy = make('div', 'graph-panel-copy');
     const heading = make('h3', '', story.title); heading.id = 'graph-panel-title'; heading.tabIndex = -1;
     copy.append(heading, make('p', 'graph-panel-blurb', story.blurb));
-    const observed = samples[graphSeries.indexOf(series)].find(point => point.year === story.year);
-    if (observed) {
-      const measurement = make('div', 'graph-observation');
-      measurement.append(make('p', '', series.metric), make('p', '', `${formatRaw(series, observed.raw)} · ${formatIndex(observed.value)} index (2020 = 100)`));
-      const dataSource = make('a', 'graph-source', 'Data source ↗');
-      dataSource.href = observed.sourceUrl; dataSource.target = '_blank'; dataSource.rel = 'noopener noreferrer';
-      measurement.append(dataSource); copy.append(measurement);
-    } else if (story.kind !== 'scenario') {
-      copy.append(make('p', 'graph-evidence', 'No comparable index observation for this year.'));
-    }
     const evidenceLabels = { 'lab-demo': 'Research demonstration', launch: 'Product launch', 'operational-report': 'Operational report', pilot: 'Deployment pilot' };
-    if (story.kind !== 'scenario') copy.append(make('p', 'graph-evidence', 'The video provides research context, not the numerical observation.'));
     if (story.evidenceType) copy.append(make('p', 'graph-evidence', evidenceLabels[story.evidenceType] || story.evidenceType));
     const source = safeSource(story.sourceUrl);
     if (source) {
@@ -425,8 +407,7 @@ export function mountGraph(element) {
   const inGrid = point => point.x >= layout.gx && point.x <= x(2040) && point.y >= layout.gy && point.y <= layout.gy + layout.gh;
   const inspectPoint = (point, tolerance) => {
     const hits = findLineHits(samples, activeSeries, point, layout, tolerance);
-    updateYear(2015 + (point.x - layout.gx) / layout.gw * 25);
-    return hits.filter(hit => Number.isFinite(interpolateSample(samples[hit.seriesIndex], year)));
+    updateYear(2015 + (point.x - layout.gx) / layout.gw * 25); return hits;
   };
   listen(plot, 'pointermove', event => {
     if (popup.contains(event.target) || (event.pointerType !== 'mouse' && !pointerStart)) return;
@@ -506,7 +487,7 @@ export function mountGraph(element) {
   const controller = {
     selectView, setYear: updateYear, openStory, closePanel,
     get status() {
-      return { year, view: selectedView, activeSeries: [...activeSeries], values: Object.fromEntries(graphSeries.map((series, index) => [series.id, interpolateSample(samples[index], year)])), endpoints: Object.fromEntries(graphSeries.map((series, index) => [series.id, latest[index]?.value ?? null])), measures: graphSeries.map(series => ({ id: series.id, metric: series.metric, status: series.status, baselineYear: series.baselineYear, baselineValue: series.baselineValue })), domain: { ...graphDomain }, layout: { ...layout }, preview: previewState, opened: opened ? { ...opened } : null, synthetic: false, baselineYear: 2020, renderer: 'echarts-svg' };
+      return { year, view: selectedView, activeSeries: [...activeSeries], values: Object.fromEntries(graphSeries.map((series, index) => [series.id, interpolateSample(samples[index], year)])), endpoints: Object.fromEntries(graphSeries.map((series, index) => [series.id, samples[index][250].value])), layout: { ...layout }, preview: previewState, opened: opened ? { ...opened } : null, synthetic: true, baselineYear: 2026, renderer: 'echarts-svg' };
     },
     destroy() {
       if (disposed) return;
