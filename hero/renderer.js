@@ -10,7 +10,7 @@ import { background, swell } from 'asciify-engine/kit';
 const INK = '#C7CDD0', PAPER = '#080A0B';
 const TAU = Math.PI * 2;
 
-export function mountHero({ motorElement, waveElement, pauseButton, posterElement, assetBase = new URL('./assets/', import.meta.url).href }) {
+export function mountHero({ motorElement, waveElement, pauseButton, posterElement, modelData, assetBase = new URL('./assets/', import.meta.url).href }) {
   if (!motorElement) throw new Error('The motor viewport is required.');
   const asset = (name) => new URL(name, assetBase.endsWith('/') ? assetBase : `${assetBase}/`).href;
   const canvas = document.createElement('canvas');
@@ -24,8 +24,8 @@ export function mountHero({ motorElement, waveElement, pauseButton, posterElemen
   const assemblyParts = [];
   let raf = 0, lastTick = 0, lastDraw = 0, seconds = 0, ready = false, disposed = false;
   let resizeRaf = 0, waveTimer = 0, wavesReady = false, wavesStarting = false, waveError = null;
-  let framePending = false, pendingPose = null, frameSubmission = Promise.resolve();
-  let sourcePixelRatio = 1.5, targetFps = 30, tier = 'unknown', slowFrames = 0, wavePlaying = false;
+  const sourcePixelRatio = 2, targetFps = 30;
+  let tier = 'unknown', wavePlaying = false, renderedTriangles = 0, renderedMeshes = 0;
   let appliedWidth = 0, appliedHeight = 0, appliedDpr = 0, pointerRect = null;
   const timings = { started: performance.now() };
   let manualPaused = false, reduced = media.matches, onscreen = true, error = null;
@@ -61,12 +61,11 @@ export function mountHero({ motorElement, waveElement, pauseButton, posterElemen
   }
   function draw(time = seconds, exact = false) {
     if (!renderer || !field || !model || disposed) return;
-    if (framePending) { if (exact) pendingPose = { time, exact }; return; }
     const started = performance.now();
     spinner.rotation.y = ((time % 20) / 20) * TAU;
     // Small, coherent breathing along the explosion axis; no source part bends.
     const expansion = 1 + 0.012 * Math.sin((time % 20) / 20 * TAU);
-    for (const part of assemblyParts) part.node.position.y = part.baseY + part.explosionY * (expansion - 1);
+    for (const part of assemblyParts) part.node.position.y = part.y * expansion;
     if (exact) { smoothPointer.x = 0; smoothPointer.y = 0; }
     else {
       smoothPointer.x += (pointer.x - smoothPointer.x) * 0.08;
@@ -76,23 +75,9 @@ export function mountHero({ motorElement, waveElement, pauseButton, posterElemen
     camera.position.set(smoothPointer.x * 35, smoothPointer.y * 35, 700);
     camera.lookAt(0, 0, 0);
     renderer.render(scene, camera);
-    // One explicit transfer per requested pose. The stock live worker otherwise
-    // captures this WebGL canvas again on every browser frame, even while paused.
-    framePending = true;
-    frameSubmission = field.setSource(renderer.domElement).then(() => {
-      if (!disposed) field.redraw();
-    }).catch(handleError).finally(() => {
-      framePending = false;
-      if (pendingPose && !disposed && ready) {
-        const pose = pendingPose; pendingPose = null; draw(pose.time, pose.exact);
-      }
-    });
+    field.redraw();
     drawCount++;
     lastFrameMs = performance.now() - started;
-    if (!exact && lastFrameMs > 1000 / targetFps * 0.8) slowFrames++;
-    else slowFrames = Math.max(0, slowFrames - 1);
-    // Keep pointer/scroll work responsive on slow drivers without changing glyph detail.
-    if (slowFrames >= 8 && targetFps > 15) { targetFps = targetFps === 30 ? 24 : 15; slowFrames = 0; }
   }
   function tick(now) {
     raf = 0;
@@ -119,8 +104,7 @@ export function mountHero({ motorElement, waveElement, pauseButton, posterElemen
     canvas.style.height = `${supersample * 100}%`;
     canvas.style.transformOrigin = '0 0';
     canvas.style.transform = supersample === 1 ? 'none' : `scale(${1 / supersample})`;
-    // Source shading does not need the ASCII atlas's 2x backing resolution.
-    // The output still has 4px glyphs and 8px shape-matching cells.
+    // Preserve the original source resolution as well as the glyph resolution.
     renderer.setPixelRatio(sourcePixelRatio);
     renderer.setSize(width, height, false);
     const compact = width < 600;
@@ -158,7 +142,6 @@ export function mountHero({ motorElement, waveElement, pauseButton, posterElemen
       renderer.render(scene, camera);
       field.setSource(renderer.domElement).then(() => { if (ready && !disposed) draw(seconds, true); }).catch(handleError);
     }
-    waves?.update({ look: { clear: waveClear() } });
   }
   function pointerMove(event) {
     if (!finePointer.matches || reduced || manualPaused) return;
@@ -188,16 +171,11 @@ export function mountHero({ motorElement, waveElement, pauseButton, posterElemen
   const controller = {
     canvas,
     get waveCanvas() { return waveElement?.querySelector('canvas') || null; },
-    get status() { return { ready, disposed, error, paused: manualPaused || reduced, active: active(), reducedMotion: reduced, visible: onscreen && !document.hidden, time: seconds, renderCount: drawCount, lastFrameMs, framePending, pendingPose: !!pendingPose, width, height, dpr: Math.min(devicePixelRatio || 1, 2), renderingPixelRatio: sourcePixelRatio, sourcePixelRatio, glyphPixelRatio: 2, targetFps, tier, workerRequested: true, wavesReady, waveError, timings: { ...timings }, visibleGlyphCellPx: 4, sourceClip: clipName, sourcePose: 0, loopSeconds: 20, sourceGeometryCount: 69, sourceTriangles: 973838, renderedTriangles: 469535, bounds: worldBounds, engine: 'asciify-engine@4.33.0' }; },
+    get status() { return { ready, disposed, error, paused: manualPaused || reduced, active: active(), reducedMotion: reduced, visible: onscreen && !document.hidden, time: seconds, renderCount: drawCount, lastFrameMs, framePending: false, pendingPose: false, width, height, dpr: Math.min(devicePixelRatio || 1, 2), renderingPixelRatio: sourcePixelRatio, sourcePixelRatio, glyphPixelRatio: 2, targetFps, tier, workerRequested: false, wavesReady, waveError, timings: { ...timings }, visibleGlyphCellPx: 4, sourceClip: clipName, sourcePose: 0, loopSeconds: 20, sourceGeometryCount: renderedMeshes, sourceTriangles: 973838, renderedTriangles, bounds: worldBounds, engine: 'asciify-engine@4.33.0' }; },
     pause() { manualPaused = true; sync(); },
     resume() { manualPaused = false; reduced = false; waves?.update({ reducedMotion: false }); sync(); },
     renderAt(time) { manualPaused = true; sync(); seconds = Number(time) || 0; draw(seconds, true); waves?.field?.redraw(); return controller.status; },
-    // Useful after renderAt(): source transfer is asynchronous in the stock
-    // worker API. This waits for submission, not a GPU-finished acknowledgement.
-    async whenFrameSubmitted() {
-      while (framePending || pendingPose) await frameSubmission;
-      return controller.status;
-    },
+    async whenFrameSubmitted() { return controller.status; },
     snapshot({ paper = false } = {}) {
       draw(seconds, true);
       const output = document.createElement('canvas'); output.width = canvas.width; output.height = canvas.height;
@@ -219,12 +197,6 @@ export function mountHero({ motorElement, waveElement, pauseButton, posterElemen
     },
   };
 
-  function waveClear() {
-    if (!waveElement) return false;
-    const r = waveElement.getBoundingClientRect(), m = motorElement.getBoundingClientRect();
-    if (!r.width || !r.height) return false;
-    return { x: (m.left - r.left) / r.width, y: (m.top - r.top) / r.height, width: m.width / r.width, height: m.height / r.height, feather: 0.3, shape: 'ellipse', pointer: 0.8 };
-  }
   function scheduleWaves() {
     if (!waveElement || waves || wavesStarting || waveTimer || !active()) return;
     // The decorative second GL context never gates the motor's first frame.
@@ -234,8 +206,8 @@ export function mountHero({ motorElement, waveElement, pauseButton, posterElemen
     wavesStarting = true;
     timings.wavesStarted = performance.now();
     try {
-      waves = background(waveElement, { preset: swell, palette: INK, speed: 0.2, cellSize: 12, cursor: 'fluid', mark: 'glyph', opacity: 0.08, lazy: false,
-        look: { worker: true, context: 'own', maxPixelRatio: 1, clear: waveClear(), font: '"IBM Plex Mono", monospace', fontWeight: 400, glyphScale: 1, cellAspect: 0.6, charset: ' .,:-=+*#%@', hover: 'fluid', tap: 'none', fluid: { radius: 0.12, force: 0.3, dissipation: 1.3, refraction: 0.012, glow: 0.15, curl: 12, resolution: 96 }, post: { bloom: 0, scanlines: 0, grain: 0, chroma: 0, curvature: 0 } } });
+      waves = background(waveElement, { preset: swell, palette: INK, speed: 0.2, cellSize: 12, cursor: 'fluid', mark: 'glyph', opacity: 0.08, lazy: false, clear: motorElement,
+        look: { font: '"IBM Plex Mono", monospace', fontWeight: 400, glyphScale: 1, cellAspect: 0.6, charset: ' .,:-=+*#%@', hover: 'fluid', tap: 'none', fluid: { radius: 0.12, force: 0.3, dissipation: 1.3, refraction: 0.012, glow: 0.15, curl: 12, resolution: 96 }, post: { bloom: 0, scanlines: 0, grain: 0, chroma: 0, curvature: 0 } } });
       await waves.field?.ready;
       if (disposed) return;
       wavesReady = true; timings.wavesReady = performance.now(); sync();
@@ -260,8 +232,6 @@ export function mountHero({ motorElement, waveElement, pauseButton, posterElemen
     updateControl();
     if (!isGlyphFieldSupported()) throw new Error('Hardware-accelerated WebGL2 is unavailable; displaying the sourced ASCII poster.');
     tier = glyphFieldTier();
-    sourcePixelRatio = tier === 'software' ? 1 : 1.5;
-    targetFps = tier === 'software' ? 15 : 30;
     // Network work proceeds together, while the HTML poster remains visible.
     const fontReady = document.fonts.load('400 12px "IBM Plex Mono"').then(async faces => {
       if (!faces.length) {
@@ -270,7 +240,11 @@ export function mountHero({ motorElement, waveElement, pauseButton, posterElemen
       }
       timings.fontLoaded = performance.now();
     });
-    const modelReady = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).loadAsync(asset('actuator.web.glb')).then(gltf => { timings.modelLoaded = performance.now(); return gltf; });
+    const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
+    const modelReady = (modelData
+      ? Promise.resolve(modelData).then(buffer => loader.parseAsync(buffer, assetBase))
+      : loader.loadAsync(asset('actuator.meshopt.glb'))
+    ).then(gltf => { timings.modelLoaded = performance.now(); return gltf; });
     const [gltf] = await Promise.all([modelReady, fontReady]);
     if (disposed) return controller;
     renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: 'high-performance' });
@@ -289,7 +263,9 @@ export function mountHero({ motorElement, waveElement, pauseButton, posterElemen
     clipName = 'Published CAD / exploded presentation';
     model.traverse(object => {
       if (!object.isMesh) return;
-      assemblyParts.push({ node: object, baseY: object.position.y, explosionY: object.userData.presentationY ?? object.position.y });
+      assemblyParts.push({ node: object, y: object.position.y });
+      renderedMeshes++;
+      renderedTriangles += (object.geometry.index?.count ?? object.geometry.attributes.position.count) / 3;
       // The CAD has no photography materials. A steel finish helps the stock
       // character sampler retain the tooth, race, pin and PCB silhouettes.
       const materials = Array.isArray(object.material) ? object.material : [object.material];
@@ -306,7 +282,7 @@ export function mountHero({ motorElement, waveElement, pauseButton, posterElemen
     renderer.render(scene, camera);
     timings.threeFirstFrame = performance.now();
     field = mountGlyphField(canvas, {
-      source: renderer.domElement, live: false, worker: true, context: 'own', fit: 'contain',
+      source: renderer.domElement, live: true, worker: false, fit: 'contain',
       color: 'ink', ink: INK, shade: 0, ramp: [], background: 'transparent', backdrop: 0,
       font: '"IBM Plex Mono", monospace', fontWeight: 400, glyphScale: 1,
       charset: FIELD_PHOTO_CHARSET, mark: 'glyph', glyphOrder: 'tone', sample: 'shape',
@@ -318,7 +294,7 @@ export function mountHero({ motorElement, waveElement, pauseButton, posterElemen
     await field.ready; field.pause();
     timings.fieldReady = performance.now();
     if (disposed) return controller;
-    ready = true; timings.motorReady = performance.now();
+    ready = true; draw(0, true); timings.motorReady = performance.now();
     if (pauseButton) pauseButton.hidden = false;
     motorElement.dataset.ready = 'true'; canvas.style.opacity = '1';
     if (posterElement) posterElement.hidden = true;

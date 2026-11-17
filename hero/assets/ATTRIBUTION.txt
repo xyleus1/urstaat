@@ -33,13 +33,12 @@ SHA-256: 8f5c44694c2c91b19c5a8d0b46ae7393ea230354098e2d783e753c6934b00a65
 Meshopt compression without quantization or simplification; every vertex
 attribute and oriented triangle was checked after decompression.
 
-Web display asset: actuator.web.glb (3,787,284 bytes), generated reproducibly by
-hero/optimize-model.mjs with glTF-Transform 4.5.1 and meshoptimizer. All 69 parts
-are retained; display tessellation uses 469,535 triangles at a requested 0.03%
-relative simplification-error limit. Position quantization adds at most
-0.001216 source millimeters of verified vertex displacement. Triangle topology
-is verified after quantization and compression. The exact source asset above
-remains available separately and is not downloaded by the live animation.
+The live animation loads this exact portable asset, with all 69 parts and
+973,838 triangles. It applies no display simplification or quantization.
+The browser-cache URL includes the asset's content hash; cached bytes are
+passed unchanged to the standard Three.js GLTFLoader.
+The older actuator.web.glb remains available for previously cached pages;
+the current animation does not request or render that simplified asset.
 
 ASCII renderer and Swell background: Asciify 4.33.0 by ayangabryl, MIT.
 https://github.com/ayangabryl/asciify-engine
