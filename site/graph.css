@@ -31,6 +31,7 @@
 .robotics-graph .graph-label-definition { color: var(--graph-muted); font-size: 9px; line-height: 15px; }
 .robotics-graph .graph-label-value { font-size: 12px; line-height: 17px; font-variant-numeric: tabular-nums; }
 .robotics-graph .graph-label-value > span { font-size: 10px; }
+.robotics-graph .graph-label-metric { color: var(--graph-muted); font-size: 10px; line-height: 14px; margin-top: 2px; }
 .robotics-graph .graph-scrubber { display: flex; align-items: center; gap: 18px; margin: 1px 0 0; min-height: 44px; }
 .robotics-graph .graph-scrubber label { color: var(--graph-muted); font-size: 12px; white-space: nowrap; }
 .robotics-graph .graph-scrubber output { color: var(--graph-ink); font-size: 13px; min-width: 36px; font-variant-numeric: tabular-nums; }

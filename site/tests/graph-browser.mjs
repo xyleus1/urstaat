@@ -21,132 +21,193 @@ await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
 const base = `http://127.0.0.1:${server.address().port}`;
 const browser = await puppeteer.launch({ headless: true, args: ['--disable-dev-shm-usage'] });
 const errors = [];
-const futureArtworkRequests = [];
+const futureArtworkRequests = [], providerRequests = [];
 try {
   const page = await browser.newPage();
   await page.setViewport({ width: 1440, height: 1000 });
   await page.setRequestInterception(true);
-  page.on('request', request => request.url().startsWith(base) || request.url().startsWith('data:') ? request.continue() : request.abort());
+  page.on('request', request => {
+    const url = request.url();
+    if (url.includes('/graph-media/future/')) futureArtworkRequests.push(url);
+    if (!url.startsWith(base) && !url.startsWith('data:')) { providerRequests.push(url); request.abort(); }
+    else request.continue();
+  });
   page.on('pageerror', error => errors.push(error.message));
-  page.on('request', request => { if (request.url().includes('/graph-media/future/')) futureArtworkRequests.push(request.url()); });
-  await page.goto(base, { waitUntil: 'networkidle0' });
-  await page.waitForFunction(() => window.__researchGraph?.status.layout.gw > 0);
+  const ready = () => page.waitForFunction(() => window.__researchGraph?.status.layout.gw > 0);
   const state = () => page.evaluate(() => window.__researchGraph.status);
+  const point = (year, value = 800) => page.evaluate(({ year, value }) => {
+    const { layout } = window.__researchGraph.status, rect = document.querySelector('.graph-plot').getBoundingClientRect();
+    return { x: rect.left + layout.gx + (year - 2015) / 25 * layout.gw, y: rect.top + layout.gy + layout.gh * (1 - value / 900) };
+  }, { year, value });
+  const menu = async count => {
+    await page.waitForSelector('.graph-popup[data-mode="menu"] .graph-popup-choice', { visible: true, timeout: 5000 });
+    assert.equal(await page.$$eval('.graph-popup-choice', nodes => nodes.length), count);
+    assert.equal(await page.$$eval('.graph-popup iframe, .graph-popup video, .graph-popup .graph-preview-media', nodes => nodes.length), 0, 'Year menus never mount media');
+    assert.equal((await state()).preview.mode, 'menu');
+  };
+  const hover = async (year, value = 800) => {
+    await page.mouse.move(10, 10);
+    const p = await point(year, value); await page.mouse.move(p.x, p.y);
+  };
+  const choose = async id => {
+    await page.click(`.graph-popup-choice[data-series="${id}"]`);
+    await page.waitForSelector('.graph-popup[data-mode="event"] .graph-preview-media', { visible: true });
+    assert.equal((await state()).preview.mode, 'event');
+  };
+  const expand = async id => {
+    await page.click('.graph-expand:not(.graph-preview-back)');
+    await page.waitForFunction(id => window.__researchGraph.status.opened?.id === id, {}, id);
+    assert.equal(await page.$$eval('.graph-popup iframe, .graph-popup video', nodes => nodes.length), 0);
+  };
+  const close = async () => {
+    await page.keyboard.press('Escape');
+    await page.waitForFunction(() => document.querySelector('.graph-panel').hidden);
+  };
+  const closedPopup = async () => {
+    await page.waitForFunction(() => window.__researchGraph.status.preview === null);
+    assert.ok(await page.$eval('.graph-popup', node => {
+      const wrapper = node.parentElement, rect = wrapper.getBoundingClientRect(), style = getComputedStyle(wrapper);
+      return rect.width <= 1 || rect.height <= 1 || style.display === 'none' || style.visibility === 'hidden' || style.pointerEvents === 'none';
+    }), 'A closed tooltip wrapper cannot intercept the graph');
+  };
+  const verifyRail = async () => {
+    const rail = await page.$$eval('.graph-label', nodes => nodes.map(node => {
+      const rect = node.getBoundingClientRect(), value = node.querySelector('.graph-label-value').getBoundingClientRect();
+      const metric = node.querySelector('.graph-label-metric'), bounds = metric.getBoundingClientRect();
+      return { name: node.querySelector('.graph-label-name').textContent, metric: metric.textContent, top: rect.top, bottom: rect.bottom, left: rect.left, right: rect.right, metricTop: bounds.top, valueBottom: value.bottom };
+    }));
+    assert.deepEqual(rail.map(item => item.metric), ['Language capability index', 'Embodied capability index', 'Task-specific capability index', 'Fleet scale index', 'Collected experience index', 'Cost-efficiency index']);
+    rail.forEach(item => assert.ok(item.metricTop >= item.valueBottom - 1, `${item.name} index is below its multiple`));
+    for (let a = 0; a < rail.length; a++) for (let b = a + 1; b < rail.length; b++) {
+      if (Math.min(rail[a].right, rail[b].right) - Math.max(rail[a].left, rail[b].left) > 1) {
+        const gap = Math.max(rail[a].top, rail[b].top) - Math.min(rail[a].bottom, rail[b].bottom);
+        assert.ok(gap >= 4, `Rail labels have separation: ${rail[a].name} / ${rail[b].name}: ${gap}`);
+      }
+    }
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+  };
+  await page.goto(base, { waitUntil: 'networkidle0' }); await ready();
   assert.deepEqual(Object.values((await state()).values), [100,100,100,100,100,100]);
+  assert.equal((await state()).synthetic, true);
+  assert.equal((await state()).baselineYear, 2026);
   assert.equal(await page.$('.graph-key'), null);
   const initialRail = await page.$$eval('.graph-label-value', nodes => nodes.map(node => node.textContent));
-  await page.evaluate(() => window.__researchGraph.setYear(2034.6));
-  assert.equal((await state()).year, 2035);
-  assert.deepEqual(await page.$$eval('.graph-label-value', nodes => nodes.map(node => node.textContent)), initialRail);
-
-  // All six curves coincide; keyboard access must expose all six choices.
-  await page.evaluate(() => { window.__researchGraph.setYear(2026); window.__researchGraph.selectView('all'); });
-  await page.click('.graph-open-year');
-  try { await page.waitForSelector('.graph-popup-choice', { visible: true, timeout: 5000 }); }
-  catch (error) {
-    console.log(JSON.stringify(await page.evaluate(() => ({ state: window.__researchGraph.status, popup: document.querySelector('.graph-popup')?.outerHTML, divs: [...document.querySelectorAll('.graph-plot div')].map(node => ({ style: node.getAttribute('style'), text: node.textContent.slice(0,100) })) })), null, 2));
-    console.log(errors); throw error;
+  const endpoints = (await state()).endpoints;
+  for (const year of [2035, 2040]) {
+    await page.evaluate(year => window.__researchGraph.setYear(year), year);
+    assert.ok(Object.values((await state()).values).every(Number.isFinite), 'All six future curves remain numeric');
+    assert.deepEqual((await state()).endpoints, endpoints);
+    assert.deepEqual(await page.$$eval('.graph-label-value', nodes => nodes.map(node => node.textContent)), initialRail);
   }
-  assert.equal(await page.$$eval('.graph-popup-choice', nodes => nodes.length), 6);
-  await page.keyboard.press('Escape');
-  assert.equal((await state()).preview, null);
+  assert.equal(await page.evaluate(() => document.body.textContent.includes('No numerical forecast')), false);
+  await verifyRail();
+
+  // Even empty space in a historical year starts at the full menu, with no video request.
+  await hover(2017); await menu(6);
+  assert.equal((await state()).year, 2017);
+  assert.deepEqual(providerRequests, []);
+  await page.$eval('.graph-popup-choice', node => { node.dataset.qaIdentity = 'same-year'; });
+  const sameYear = await point(2017, 700); await page.mouse.move(sameYear.x, sameYear.y);
+  await menu(6);
+  assert.equal(await page.$eval('.graph-popup-choice', node => node.dataset.qaIdentity), 'same-year');
+  await hover(2032); await menu(6); assert.equal((await state()).year, 2032);
+  await hover(2026, 100); await menu(6); assert.equal((await state()).year, 2026);
+  assert.deepEqual(providerRequests, []);
+  await page.mouse.move(10, 10); await closedPopup();
+  await page.click('.graph-open-year'); await menu(6);
+  await page.mouse.click(10, 10); await closedPopup();
+  await hover(2026, 100); await menu(6);
+  await page.keyboard.press('Escape'); assert.equal((await state()).preview, null);
+  await closedPopup();
   assert.equal(await page.evaluate(() => window.heroToggles), 0);
 
-  await page.click('.graph-open-year');
-  await page.waitForSelector('.graph-popup-choice', { visible: true });
-  await page.click('.graph-popup-choice');
-  await page.keyboard.press('Escape');
-  await page.waitForFunction(() => document.querySelector('.graph-panel').hidden);
-  assert.equal(await page.evaluate(() => document.activeElement.className), 'graph-open-year', 'Chooser retains original opener');
-
-  // A real line click, not a test-only state hook, opens the correct annual event.
-  await page.evaluate(() => { window.__researchGraph.selectView('series:deployment'); window.__researchGraph.setYear(2032); });
-  const coordinates = await page.evaluate(() => {
-    const { layout, values } = window.__researchGraph.status;
-    const rect = document.querySelector('.graph-plot').getBoundingClientRect();
-    return { x: rect.left + layout.gx + 17 / 25 * layout.gw, y: rect.top + layout.gy + layout.gh * (1 - values.deployment / 900) };
-  });
-  await page.mouse.click(coordinates.x, coordinates.y);
-  try { await page.waitForFunction(() => window.__researchGraph.status.opened?.year === 2032, { timeout: 5000 }); }
-  catch (error) { console.log(JSON.stringify({ coordinates, state: await state(), errors }, null, 2)); throw error; }
-  assert.equal(await page.$eval('.graph-panel .graph-sketch-placeholder', node => node.textContent), 'Sketch forthcoming');
-  assert.equal(await page.$$eval('.graph-panel img, .graph-panel iframe', nodes => nodes.length), 0, 'An intentional placeholder does not request missing media');
-  assert.equal(await page.$$eval('.graph-panel .is-unavailable', nodes => nodes.length), 0, 'An intentional placeholder is not an error state');
+  // A solo line still starts with a one-item menu; selecting it reveals the old preview.
+  await page.evaluate(() => window.__researchGraph.selectView('series:llm'));
+  await hover(2017); await menu(1); assert.deepEqual(providerRequests, []);
+  await choose('llm');
+  await page.waitForSelector('.graph-popup iframe', { visible: true });
+  assert.equal((await state()).opened, null, 'Choosing a line opens its preview before its panel');
+  assert.ok(await page.$eval('.graph-popup iframe', frame => frame.getBoundingClientRect().height >= 200));
+  await page.click('.graph-preview-back'); await menu(1);
+  await choose('llm'); await page.mouse.click(10, 10); await closedPopup();
+  assert.equal(await page.$('.graph-popup iframe'), null, 'Closing an event preview removes its player');
+  await hover(2017); await menu(1); await choose('llm'); await expand('llm-2017');
   await page.evaluate(() => window.__researchGraph.setYear(2036));
-  assert.equal((await state()).opened.year, 2032, 'Scrubbing must not replace pinned media');
-  await page.evaluate(() => window.__researchGraph.openStory('llm', 2017));
-  assert.equal(await page.$$eval('.graph-panel', nodes => nodes.length), 1);
-  assert.equal((await state()).opened.id, 'llm-2017');
-  assert.equal(await page.$$eval('.graph-panel iframe', nodes => nodes.length), 1);
-  await page.keyboard.press('Escape');
-  await page.waitForFunction(() => document.querySelector('.graph-panel').hidden);
-  assert.equal(await page.$$eval('.graph-panel iframe', nodes => nodes.length), 0);
-  assert.equal(await page.evaluate(() => window.heroToggles), 0);
+  assert.equal((await state()).opened.year, 2017, 'Scrubbing does not replace pinned media');
+  await close();
 
+  // Line clicks and the keyboard Open year action use exactly the same menu path.
+  await page.evaluate(() => { window.__researchGraph.selectView('series:deployment'); window.__researchGraph.setYear(2032); });
+  const line = await point(2032, (await state()).values.deployment);
+  await page.mouse.click(line.x, line.y); await menu(1);
+  await choose('deployment');
+  assert.equal(await page.$eval('.graph-popup .graph-sketch-placeholder', node => node.textContent), 'Sketch forthcoming');
+  await expand('deployment-2032');
+  assert.equal(await page.$$eval('.graph-panel .graph-sketch-placeholder', nodes => nodes.length), 1);
+  assert.equal(await page.$$eval('.graph-panel img, .graph-panel iframe, .graph-panel .is-unavailable', nodes => nodes.length), 0);
+  await close();
+  await page.mouse.move(10, 10);
   await page.focus('.graph-plot');
-  await page.keyboard.press('ArrowLeft'); assert.equal((await state()).year, 2035);
+  await page.keyboard.press('ArrowLeft'); assert.equal((await state()).year, 2031);
   await page.keyboard.press('Home'); assert.equal((await state()).year, 2015);
   await page.keyboard.press('End'); assert.equal((await state()).year, 2040);
-  await page.mouse.move(coordinates.x, coordinates.y);
-  await page.evaluate(() => window.__researchGraph.setYear(2030));
-  await page.mouse.wheel({ deltaY: 100 });
-  await page.waitForFunction(() => window.__researchGraph.status.year === 2031);
+  await page.keyboard.press('Enter'); await menu(1);
+  await page.keyboard.press('Enter');
+  await page.waitForSelector('.graph-popup[data-mode="event"]', { visible: true });
+  await page.click('.graph-preview-back');
+  await new Promise(resolve => setTimeout(resolve, 450));
+  await menu(1);
+  await page.keyboard.press('Escape');
+  await closedPopup();
+  await page.click('.graph-open-year'); await menu(1);
+  await choose('deployment'); await expand('deployment-2040'); await close();
+  assert.equal(await page.evaluate(() => document.activeElement.className), 'graph-open-year');
+
+  await page.focus('.graph-plot');
+  await page.evaluate(() => {
+    window.__researchGraph.setYear(2030);
+    document.querySelector('.graph-plot').dispatchEvent(new WheelEvent('wheel', { deltaY: 100, bubbles: true, cancelable: true }));
+  });
+  assert.equal((await state()).year, 2031);
   await page.evaluate(async () => {
-    const plot = document.querySelector('.graph-plot');
     await new Promise(resolve => setTimeout(resolve, 190));
     for (let i = 0; i < 6; i++) {
-      plot.dispatchEvent(new WheelEvent('wheel', { deltaY: 8, bubbles: true, cancelable: true }));
+      document.querySelector('.graph-plot').dispatchEvent(new WheelEvent('wheel', { deltaY: 8, bubbles: true, cancelable: true }));
       await new Promise(resolve => setTimeout(resolve, 20));
     }
   });
-  assert.equal((await state()).year, 2032, 'Fine trackpad deltas accumulate into exactly one annual step');
+  assert.equal((await state()).year, 2032);
+  assert.equal(await page.evaluate(() => window.heroToggles), 0);
 
-  // Enter the real hover tooltip across the chart-to-popup gap, then expand it.
-  await page.evaluate(() => { window.__researchGraph.selectView('series:llm'); window.__researchGraph.setYear(2017); });
-  const hoverPoint = await page.evaluate(() => {
-    const { layout, values } = window.__researchGraph.status, rect = document.querySelector('.graph-plot').getBoundingClientRect();
-    return { x: rect.left + layout.gx + 2 / 25 * layout.gw, y: rect.top + layout.gy + layout.gh * (1 - values.llm / 900) };
-  });
-  await page.mouse.move(hoverPoint.x, hoverPoint.y);
-  await page.waitForSelector('.graph-popup iframe', { visible: true });
-  assert.ok(await page.$eval('.graph-popup iframe', frame => frame.getBoundingClientRect().height >= 200));
-  const expandRect = await page.$eval('.graph-expand', button => { const r = button.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
-  await page.mouse.move(expandRect.x, expandRect.y, { steps: 12 });
-  await page.mouse.click(expandRect.x, expandRect.y);
-  assert.equal((await state()).opened.id, 'llm-2017');
-  assert.equal(await page.$$eval('.graph-popup iframe', nodes => nodes.length), 0);
-  await page.keyboard.press('Escape');
-  await page.waitForFunction(() => document.querySelector('.graph-panel').hidden);
-
-  // The future placeholder is the same clickable media surface as a final sketch.
-  await page.evaluate(() => { window.__researchGraph.selectView('series:hardware'); window.__researchGraph.setYear(2030); });
-  const sketchPoint = await page.evaluate(() => {
-    const { layout, values } = window.__researchGraph.status, rect = document.querySelector('.graph-plot').getBoundingClientRect();
-    return { x: rect.left + layout.gx + 15 / 25 * layout.gw, y: rect.top + layout.gy + layout.gh * (1 - values.hardware / 900) };
-  });
-  await page.mouse.move(sketchPoint.x, sketchPoint.y);
-  await page.waitForSelector('.graph-popup .graph-sketch-placeholder', { visible: true });
-  await page.click('.graph-popup .graph-media-open');
-  assert.equal((await state()).opened.id, 'hardware-2030');
-  assert.equal(await page.$$eval('.graph-panel .graph-sketch-placeholder', nodes => nodes.length), 1);
-  await page.keyboard.press('Escape');
-  await page.waitForFunction(() => document.querySelector('.graph-panel').hidden);
-
+  // Touch starts at the menu too, including empty grid space and a single series.
   await page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
-  await page.setViewport({ width: 390, height: 844 });
-  await page.waitForFunction(() => window.__researchGraph.status.layout.compact);
-  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
-  await page.evaluate(() => window.__researchGraph.openStory('hardware', 2027));
-  assert.equal((await state()).opened.kind, 'scenario');
-  assert.equal(await page.$$eval('.graph-panel .graph-sketch-placeholder', nodes => nodes.length), 1);
-  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
-  await page.evaluate(() => window.__researchGraph.closePanel());
-  assert.equal(await page.$eval('.graph-panel', panel => panel.hidden), true);
+  await page.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });
+  await page.goto(base, { waitUntil: 'networkidle0' }); await ready();
+  await verifyRail();
+  const blank = await point(2035, 800); await page.touchscreen.tap(blank.x, blank.y); await menu(6);
+  await choose('hardware');
+  await page.click('.graph-popup .graph-media-open');
+  assert.equal((await state()).opened.id, 'hardware-2035');
+  await close();
+  await page.evaluate(() => window.__researchGraph.selectView('series:hardware'));
+  const solo = await point(2024, 800); await page.touchscreen.tap(solo.x, solo.y); await menu(1);
+  await page.keyboard.press('Escape');
+  await page.evaluate(() => scrollTo(0, 0));
+  const panStart = await point(2028, 400), beforePan = await page.evaluate(() => scrollY);
+  const touch = await page.createCDPSession();
+  await touch.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: panStart.x, y: panStart.y }] });
+  for (let step = 1; step <= 6; step++) {
+    await touch.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: panStart.x, y: panStart.y - step * 24 }] });
+    await new Promise(resolve => setTimeout(resolve, 20));
+  }
+  await touch.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+  await page.waitForFunction(before => scrollY > before + 5, { timeout: 5000 }, beforePan);
+  await touch.detach();
   await page.evaluate(() => window.__researchGraph.destroy());
   assert.equal(await page.evaluate(() => '__roboticsGraph' in window), false);
   assert.deepEqual(errors, []);
-  assert.deepEqual(futureArtworkRequests, [], 'No placeholder issues a request for a missing sketch');
-  console.log('Graph component browser checks passed: rail, annual input, overlap, media replacement, future placeholders, Escape, mobile, reduced motion, teardown.');
+  assert.deepEqual(futureArtworkRequests, [], 'Placeholders do not request missing sketches');
+  console.log('Graph browser checks passed: menu-first blank/line hover and click, previews, Back, zero menu media, annual input, unchanged future curves, rail metrics, desktop/mobile layout, touch, Escape, teardown.');
 } finally {
   await browser.close();
   await new Promise(resolve => server.close(resolve));

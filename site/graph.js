@@ -155,7 +155,7 @@ export function mountGraph(element) {
   const envelopes = graphSeries.map((_, index) => [sampleSeries(index, -1.2), sampleSeries(index, 1.2)]);
   let year = 2026, selectedView = 'all', activeSeries = new Set(graphSeries.map(series => series.id));
   let layout, disposed = false, resizeFrame = 0, hoverTimer, hideTimer, previewMedia, panelMedia, panelAnimation, popupAnimation;
-  let previewKey = '', previewState = null, opened = null, lastOpener = null, panelRevision = 0;
+  let previewKey = '', pendingPreviewKey = '', previewState = null, opened = null, lastOpener = null, panelRevision = 0;
   let tooltipAnchor = [0, 0], pointerStart = null, wheelDelta = 0, wheelTime = 0, wheelEventTime = 0, popupDistance = Infinity;
   const disposers = [];
   const listen = (target, type, handler, options) => {
@@ -170,9 +170,9 @@ export function mountGraph(element) {
       <span class="graph-status">Illustrative index · 2026 = 100</span>
     </div>
     <div class="graph-stage">
-      <div class="graph-plot" tabindex="0" role="group" aria-label="Six illustrative robotics trajectories from 2015 to 2040. Use arrow keys to choose a year and Enter to open its event."></div>
+      <div class="graph-plot" tabindex="0" role="group" aria-label="Six illustrative robotics trajectories from 2015 to 2040. Use arrow keys to choose a year and Enter to open its menu."></div>
       <div class="graph-labels" role="group" aria-label="2040 endpoints. Choose a trajectory to highlight it.">
-        ${graphSeries.map((series, index) => `<button type="button" class="graph-label" data-graph-series="${series.id}" style="--series-color:${series.color}" aria-pressed="false"><span class="graph-label-name">${series.name}</span><span class="graph-label-definition">2040 · 2026 = 100</span><span class="graph-label-value">${samples[index][250].value.toFixed(1)} <span>· ${(samples[index][250].value / 100).toFixed(2)}×</span></span></button>`).join('')}
+        ${graphSeries.map((series, index) => `<button type="button" class="graph-label" data-graph-series="${series.id}" style="--series-color:${series.color}" aria-pressed="false"><span class="graph-label-name">${series.name}</span><span class="graph-label-definition">2040 · 2026 = 100</span><span class="graph-label-value">${samples[index][250].value.toFixed(1)} <span>· ${(samples[index][250].value / 100).toFixed(2)}×</span></span><span class="graph-label-metric">${series.definition}</span></button>`).join('')}
       </div>
     </div>
     <div class="graph-scrubber"><label for="trajectory-year">Explore a year</label><input id="trajectory-year" type="range" min="2015" max="2040" step="1" value="2026" aria-label="Year to inspect"><output for="trajectory-year">2026</output><button type="button" class="graph-open-year">Open year <span aria-hidden="true">↗</span></button></div>
@@ -207,6 +207,9 @@ export function mountGraph(element) {
     yAxis: { type: 'value', min: 0, max: 900, interval: 100, axisLine: { show: false }, axisTick: { show: false }, axisLabel: { color: '#929A9F', fontSize: 11, margin: 12 }, splitLine: { lineStyle: { color: '#343B40', width: .7 } }, minorTick: { splitNumber: 2 }, minorSplitLine: { show: true, lineStyle: { color: '#20272C', width: .5 } } },
     tooltip: {
       trigger: 'item', triggerOn: 'none', renderMode: 'html', enterable: true, confine: true,
+      // This menu owns its hide lifecycle; ECharts must not dismiss focused
+      // content when switching between the differently sized menu and preview.
+      alwaysShowContent: true,
       transitionDuration: 0, hideDelay: 320, padding: 0, borderWidth: 0, backgroundColor: 'transparent',
       extraCssText: 'box-shadow:none;white-space:normal;z-index:30;', formatter: () => popup,
       position(_point, _params, _dom, _rect, size) {
@@ -234,7 +237,7 @@ export function mountGraph(element) {
       { id: 'year-pill', type: 'rect', silent: true, z: 7, shape: { x: clamp(currentX - 25, layout.gx, x(2040) - 50), y: layout.gy - 28, width: 50, height: 21 }, style: { fill: '#C7CDD0' } },
       { id: 'year-text', type: 'text', silent: true, z: 8, x: clamp(currentX, layout.gx + 25, x(2040) - 25), y: layout.gy - 17, style: { text: String(year), fill: '#080A0B', align: 'center', verticalAlign: 'middle', font: `11px ${font}` } },
     ];
-    const endpoints = placeEndpointLabels(graphSeries.map((series, index) => ({ id: series.id, index, y: y(samples[index][250].value) })), layout.gy - 5, layout.gy + layout.gh - 45);
+    const endpoints = placeEndpointLabels(graphSeries.map((series, index) => ({ id: series.id, index, y: y(samples[index][250].value) })), layout.gy - 5, layout.gy + layout.gh - 66, 70);
     graphSeries.forEach((series, index) => {
       const active = activeSeries.has(series.id), pointY = y(interpolateSample(samples[index], year));
       elements.push(
@@ -244,7 +247,7 @@ export function mountGraph(element) {
       const endpoint = endpoints.find(item => item.id === series.id), labelX = x(2040) + 46;
       labels[index].style.left = `${labelX}px`; labels[index].style.top = `${endpoint.labelY}px`;
       labels[index].style.width = `${Math.max(0, layout.width - labelX)}px`;
-      labels[index].setAttribute('aria-label', `Highlight ${series.name}. 2040 index ${samples[index][250].value.toFixed(1)}, ${(samples[index][250].value / 100).toFixed(2)} times its 2026 baseline.`);
+      labels[index].setAttribute('aria-label', `Highlight ${series.name}. Illustrative ${series.definition.toLowerCase()}. 2040 index ${samples[index][250].value.toFixed(1)}, ${(samples[index][250].value / 100).toFixed(2)} times its 2026 baseline.`);
       elements.push({ id: `leader-${series.id}`, type: 'polyline', silent: true, ignore: layout.compact, z: 2, shape: { points: [[x(2040), endpoint.y], [x(2040) + 14, endpoint.y], [labelX - 14, endpoint.labelY + 8], [labelX - 5, endpoint.labelY + 8]] }, style: { stroke: series.color, lineWidth: .8, fill: null, opacity: active ? .85 : .13 } });
     });
     chart.setOption({ graphic: { elements } });
@@ -288,40 +291,53 @@ export function mountGraph(element) {
 
   function hidePreview() {
     clearTimeout(hoverTimer); clearTimeout(hideTimer); previewMedia?.destroy(); previewMedia = null;
-    previewState = null; previewKey = ''; popupDistance = Infinity; popupAnimation?.cancel(); popup.hidden = true;
+    previewState = null; previewKey = ''; pendingPreviewKey = ''; popupDistance = Infinity; popupAnimation?.cancel(); popup.hidden = true;
     if (!disposed) chart.dispatchAction({ type: 'hideTip' });
   }
   function scheduleHide() {
+    clearTimeout(hoverTimer); pendingPreviewKey = '';
     clearTimeout(hideTimer);
     hideTimer = setTimeout(() => { if (!popup.matches(':hover') && !popup.contains(document.activeElement)) hidePreview(); }, 320);
   }
-  function showPreview(hits, anchor, { immediate = false, focus = false, opener = plot } = {}) {
+  const yearChoices = () => graphSeries.map((series, seriesIndex) => ({ id: series.id, seriesIndex })).filter(hit => activeSeries.has(hit.id));
+  const showYearMenu = (anchor, options) => showPreview(yearChoices(), anchor, { ...options, menu: true });
+  function showPreview(hits, anchor, { immediate = false, focus = false, opener = plot, menu = false } = {}) {
     if (!hits.length || disposed) return;
     clearTimeout(hideTimer);
-    const key = `${year}:${hits.map(hit => hit.id).sort().join(',')}`;
-    if (key === previewKey) return;
+    const key = `${year}:${menu ? 'menu' : 'event'}:${hits.map(hit => hit.id).sort().join(',')}`;
+    if (key === previewKey) {
+      if (focus) popup.querySelector('button')?.focus({ preventScroll: true });
+      return;
+    }
+    if (!immediate && key === pendingPreviewKey) return;
     clearTimeout(hoverTimer);
+    pendingPreviewKey = key;
     const previewYear = year;
     const render = () => {
-      if (disposed || year !== previewYear) return;
+      if (disposed || year !== previewYear || pendingPreviewKey !== key) return;
+      pendingPreviewKey = '';
       previewMedia?.destroy(); previewMedia = null;
-      previewKey = key; previewState = { year: previewYear, series: hits.map(hit => hit.id) }; tooltipAnchor = anchor;
+      previewKey = key; previewState = { year: previewYear, series: hits.map(hit => hit.id), mode: menu ? 'menu' : 'event' }; tooltipAnchor = anchor;
+      popup.dataset.mode = previewState.mode;
       popup.hidden = false; popup.replaceChildren();
-      if (hits.length > 1) {
+      if (menu) {
         popup.setAttribute('aria-label', `Choose a trajectory for ${previewYear}`);
         popup.append(make('p', 'graph-popup-eyebrow', `${previewYear} · Choose a trajectory`));
         const choices = make('div', 'graph-popup-choices');
         hits.forEach(hit => {
           const series = graphSeries[hit.seriesIndex], button = make('button', 'graph-popup-choice'); button.type = 'button';
+          button.dataset.series = series.id;
           button.style.setProperty('--series-color', series.color);
           button.append(make('span', '', series.name), make('span', '', interpolateSample(samples[hit.seriesIndex], previewYear).toFixed(1)));
-          button.addEventListener('click', () => openStory(series.id, previewYear, opener)); choices.append(button);
+          button.addEventListener('click', () => showPreview([hit], anchor, { immediate: true, focus: true, opener })); choices.append(button);
         });
         popup.append(choices);
       } else {
         const hit = hits[0], series = graphSeries[hit.seriesIndex], story = getStory(series.id, previewYear);
         if (!story) { hidePreview(); return; }
         popup.setAttribute('aria-label', `${previewYear}: ${story.title}`);
+        const back = make('button', 'graph-expand graph-preview-back', `← Back to ${previewYear} menu`); back.type = 'button';
+        back.addEventListener('click', () => showYearMenu(anchor, { immediate: true, focus: true, opener })); popup.append(back);
         const header = make('div', 'graph-popup-header');
         header.append(make('p', 'graph-popup-eyebrow', `${previewYear} · ${series.name}`), make('span', 'graph-popup-index', interpolateSample(samples[hit.seriesIndex], previewYear).toFixed(1)));
         const mediaHost = make('div', 'graph-preview-media');
@@ -419,14 +435,17 @@ export function mountGraph(element) {
     }
     const point = pointerPosition(event);
     if (!inGrid(point) && !pointerStart) { scheduleHide(); return; }
-    const hits = inspectPoint(point, event.pointerType === 'mouse' ? 8 : 18);
+    inspectPoint(point, event.pointerType === 'mouse' ? 8 : 18);
     if (pointerStart && Math.hypot(event.clientX - pointerStart.x, event.clientY - pointerStart.y) > 5) pointerStart.dragged = true;
-    if (hits.length && !pointerStart?.dragged) showPreview(hits, [x(year), y(interpolateSample(samples[hits[0].seriesIndex], year))]);
+    if (!pointerStart?.dragged) showYearMenu([x(year), clamp(point.y, layout.gy, layout.gy + layout.gh)]);
     else scheduleHide();
   });
   listen(plot, 'pointerdown', event => {
     if (popup.contains(event.target) || event.button !== 0) return;
     const point = pointerPosition(event); if (!inGrid(point)) return;
+    // Suppress compatibility mouse focus after a touch tap opens the menu.
+    // Native vertical panning remains governed by touch-action: pan-y.
+    if (event.pointerType !== 'mouse') event.preventDefault();
     pointerStart = { x: event.clientX, y: event.clientY, id: event.pointerId, dragged: false }; plot.focus({ preventScroll: true });
     if (event.pointerType === 'mouse') plot.setPointerCapture(event.pointerId);
     inspectPoint(point, event.pointerType === 'mouse' ? 8 : 18);
@@ -437,18 +456,15 @@ export function mountGraph(element) {
     if (plot.hasPointerCapture(event.pointerId)) plot.releasePointerCapture(event.pointerId);
     if (wasDragged) return;
     const point = pointerPosition(event); if (!inGrid(point)) return;
-    const hits = inspectPoint(point, event.pointerType === 'mouse' ? 8 : 18);
-    if (hits.length === 1) openStory(hits[0].id, year, plot);
-    else if (hits.length) showPreview(hits, [x(year), point.y], { immediate: true, focus: true });
+    inspectPoint(point, event.pointerType === 'mouse' ? 8 : 18);
+    showYearMenu([x(year), point.y], { immediate: true, focus: true });
   });
   listen(plot, 'pointercancel', () => { pointerStart = null; hidePreview(); });
   listen(plot, 'pointerleave', scheduleHide);
-  listen(popup, 'pointerenter', () => { clearTimeout(hideTimer); clearTimeout(hoverTimer); });
+  listen(popup, 'pointerenter', () => { clearTimeout(hideTimer); clearTimeout(hoverTimer); pendingPreviewKey = ''; });
   listen(popup, 'pointerleave', scheduleHide); listen(popup, 'focusin', () => clearTimeout(hideTimer)); listen(popup, 'focusout', scheduleHide);
   const openYear = opener => {
-    const hits = graphSeries.map((series, seriesIndex) => ({ id: series.id, seriesIndex })).filter(hit => activeSeries.has(hit.id));
-    if (hits.length === 1) openStory(hits[0].id, year, opener);
-    else showPreview(hits, [x(year), y(100)], { immediate: true, focus: true, opener });
+    showYearMenu([x(year), y(100)], { immediate: true, focus: true, opener });
   };
   listen(element.querySelector('.graph-open-year'), 'click', event => openYear(event.currentTarget));
   listen(plot, 'keydown', event => {
