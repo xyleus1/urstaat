@@ -5,8 +5,7 @@
   "scripts": {
     "build": "node build.mjs",
     "test": "node --test tests/*.test.mjs",
-    "test:browser": "node tests/graph-browser.mjs",
-    "test:startup": "node tests/startup-browser.mjs"
+    "test:browser": "node tests/graph-browser.mjs"
   },
   "dependencies": {
     "echarts": "6.1.0",

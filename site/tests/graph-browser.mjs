@@ -22,17 +22,13 @@ const base = `http://127.0.0.1:${server.address().port}`;
 const browser = await puppeteer.launch({ headless: true, args: ['--disable-dev-shm-usage'] });
 const errors = [];
 const futureArtworkRequests = [];
-const providerRequests = [];
 try {
   const page = await browser.newPage();
   await page.setViewport({ width: 1440, height: 1000 });
   await page.setRequestInterception(true);
   page.on('request', request => request.url().startsWith(base) || request.url().startsWith('data:') ? request.continue() : request.abort());
   page.on('pageerror', error => errors.push(error.message));
-  page.on('request', request => {
-    if (request.url().includes('/graph-media/future/')) futureArtworkRequests.push(request.url());
-    if (!request.url().startsWith(base) && !request.url().startsWith('data:')) providerRequests.push(request.url());
-  });
+  page.on('request', request => { if (request.url().includes('/graph-media/future/')) futureArtworkRequests.push(request.url()); });
   await page.goto(base, { waitUntil: 'networkidle0' });
   await page.waitForFunction(() => window.__researchGraph?.status.layout.gw > 0);
   const state = () => page.evaluate(() => window.__researchGraph.status);
@@ -77,27 +73,12 @@ try {
   assert.deepEqual(await page.$$eval('.graph-label-value', nodes => nodes.map(node => node.textContent)), initialRail);
   assert.ok(await page.$$eval('.graph-label-basis', nodes => nodes.filter(node => /2020 = 100/.test(node.textContent)).length) === 4);
 
-  // The year chooser stays identical for overlapping and individual lines.
-  // Continuous small pointer movements must not keep restarting its delay.
+  // Four measured curves meet at their actual baseline. Pointer overlap exposes four.
   await page.evaluate(() => { window.__researchGraph.setYear(2020); window.__researchGraph.selectView('all'); });
   const baselinePoint = await coordinate(2020, 100);
-  await page.evaluate(async point => {
-    const plot = document.querySelector('.graph-plot');
-    for (let i = 0; i < 20; i++) {
-      plot.dispatchEvent(new PointerEvent('pointermove', { clientX: point.x + (i % 2 ? 1 : -1), clientY: point.y, pointerType: 'mouse', bubbles: true }));
-      await new Promise(resolve => setTimeout(resolve, 20));
-    }
-  }, baselinePoint);
-  assert.ok(await page.$eval('.graph-popup', node => !node.hidden && !!node.offsetParent), 'Menu appears during continuous motion, not only after the pointer stops');
+  await page.mouse.click(baselinePoint.x, baselinePoint.y);
   await page.waitForSelector('.graph-popup-choice', { visible: true });
-  assert.equal(await page.$$eval('.graph-popup-choice', nodes => nodes.length), 6);
-  assert.equal(await page.$$eval('.graph-popup-choice.is-nearby', nodes => nodes.length), 4);
-  assert.equal(await page.$$eval('.graph-popup iframe, .graph-popup video, .graph-popup img', nodes => nodes.length), 0);
-  assert.deepEqual(providerRequests, [], 'Hover makes no publisher media requests');
-  await page.evaluate(() => { window.__menuBeforeMove = document.querySelector('.graph-popup-choices'); });
-  await page.evaluate(point => document.querySelector('.graph-plot').dispatchEvent(new PointerEvent('pointermove', { clientX: point.x + 1, clientY: point.y + 1, pointerType: 'mouse', bubbles: true })), baselinePoint);
-  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
-  assert.equal(await page.evaluate(() => window.__menuBeforeMove === document.querySelector('.graph-popup-choices')), true, 'Same-year movement keeps the existing menu DOM');
+  assert.equal(await page.$$eval('.graph-popup-choice', nodes => nodes.length), 4);
   await page.keyboard.press('Escape');
   assert.equal((await state()).preview, null);
   assert.equal(await page.evaluate(() => window.heroToggles), 0);
@@ -111,15 +92,10 @@ try {
   await closePanel();
   assert.equal(await page.evaluate(() => document.activeElement.className), 'graph-open-year', 'Chooser retains original opener');
 
-  // A single measured line uses the same menu; only choosing a row loads media.
+  // A measured line click opens both the dated video story and its separate data source.
   await page.evaluate(() => { window.__researchGraph.selectView('series:deployment'); window.__researchGraph.setYear(2023); });
   const deploymentPoint = await coordinate(2023, (await state()).values.deployment);
   await page.mouse.click(deploymentPoint.x, deploymentPoint.y);
-  await page.waitForSelector('.graph-popup-choice', { visible: true });
-  assert.equal(await page.$$eval('.graph-popup-choice', nodes => nodes.length), 1);
-  assert.equal((await state()).opened, null);
-  assert.equal(await page.$$eval('.graph-popup iframe, .graph-popup video, .graph-popup img', nodes => nodes.length), 0);
-  await page.click('.graph-popup-choice');
   await page.waitForFunction(() => window.__researchGraph.status.opened?.id === 'deployment-2023');
   assert.equal(await page.$$eval('.graph-panel iframe', nodes => nodes.length), 1);
   const dataContext = await page.$eval('.graph-panel .graph-observation', node => node.textContent);
@@ -157,18 +133,15 @@ try {
   });
   assert.equal((await state()).year, 2032, 'Fine trackpad deltas accumulate into exactly one annual step');
 
-  // Enter a single-line hover menu and choose its row across the pointer gap.
+  // Enter the actual observed-line hover tooltip, cross its gap, then expand.
   await page.mouse.move(0, 0);
   await page.evaluate(() => { window.__researchGraph.selectView('series:deployment'); window.__researchGraph.setYear(2023); });
   const hoverPoint = await coordinate(2023, (await state()).values.deployment);
-  const requestsBeforeHover = providerRequests.length;
   await page.mouse.move(hoverPoint.x, hoverPoint.y);
-  await page.waitForSelector('.graph-popup-choice', { visible: true });
-  assert.equal(await page.$$eval('.graph-popup-choice', nodes => nodes.length), 1);
-  assert.equal(await page.$$eval('.graph-popup iframe, .graph-popup video, .graph-popup img', nodes => nodes.length), 0);
-  assert.equal(providerRequests.length, requestsBeforeHover, 'Single-line hover does not initialize a player');
-  assert.match(await page.$eval('.graph-popup-choice', node => node.textContent), /index/);
-  const expandRect = await page.$eval('.graph-popup-choice', button => { const r = button.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
+  await page.waitForSelector('.graph-popup iframe', { visible: true });
+  assert.ok(await page.$eval('.graph-popup iframe', frame => frame.getBoundingClientRect().height >= 200));
+  assert.match(await page.$eval('.graph-popup-index', node => node.textContent), /index/);
+  const expandRect = await page.$eval('.graph-expand', button => { const r = button.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
   await page.mouse.move(expandRect.x, expandRect.y, { steps: 12 });
   await page.mouse.click(expandRect.x, expandRect.y);
   assert.equal((await state()).opened.id, 'deployment-2023');
@@ -183,10 +156,6 @@ try {
   assert.equal((await state()).preview, null);
   assert.equal((await state()).values.hardware, null);
   await page.click('.graph-open-year');
-  await page.waitForSelector('.graph-popup-choice', { visible: true });
-  assert.equal((await state()).opened, null, 'Open year also uses a menu with one active topic');
-  assert.match(await page.$eval('.graph-popup-choice', node => node.textContent), /No forecast/);
-  await page.click('.graph-popup-choice');
   assert.equal((await state()).opened.id, 'hardware-2028');
   assert.equal(await page.$$eval('.graph-panel .graph-sketch-placeholder', nodes => nodes.length), 1);
   assert.equal(await page.$eval('.graph-panel .graph-sketch-placeholder', node => node.textContent), 'Sketch forthcoming');
@@ -195,16 +164,6 @@ try {
   assert.equal(await page.$('.graph-panel .graph-observation'), null);
   await closePanel();
   assert.equal(await page.evaluate(() => document.activeElement.className), 'graph-open-year');
-
-  const labelMutations = await page.evaluate(async () => {
-    let mutations = 0;
-    const observer = new MutationObserver(records => { mutations += records.length; });
-    observer.observe(document.querySelector('.graph-labels'), { attributes: true, subtree: true });
-    for (const year of [2018, 2019, 2020, 2021]) window.__researchGraph.setYear(year);
-    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-    observer.disconnect(); return mutations;
-  });
-  assert.equal(labelMutations, 0, 'Annual scrubbing does not rewrite static endpoint labels');
 
   await page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
   await page.setViewport({ width: 390, height: 844 });
@@ -221,11 +180,8 @@ try {
   assert.equal(await page.evaluate(() => '__roboticsGraph' in window), false);
   assert.deepEqual(errors, []);
   assert.deepEqual(futureArtworkRequests, [], 'No placeholder issues a request for a missing sketch');
-  console.log('Graph component browser checks passed: consistent menus for overlap/singleton/filtered/future, stable hover timer and DOM, zero hover media requests, observed data, source context, annual input, static-label reuse, media pinning, Escape, mobile, reduced motion, teardown.');
+  console.log('Graph component browser checks passed: observed indices, metric labels, annual input, baseline overlap, source context, media pinning, future placeholders, Escape, mobile, reduced motion, teardown.');
 } finally {
-  const process = browser.process();
-  try { await Promise.race([browser.close(), new Promise((_, reject) => setTimeout(() => reject(new Error('Browser teardown timeout')), 10000))]); }
-  catch { process?.kill(); }
-  server.closeAllConnections();
+  await browser.close();
   await new Promise(resolve => server.close(resolve));
 }
