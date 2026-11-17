@@ -1,4 +1,4 @@
-import { observedGraph } from './graph-observations.js?v=continuous-indices-1';
+import { observedGraph } from './graph-observations.js?v=deployment-paths-1';
 import { scaleSymlog } from './vendor/scale-vendor.js?v=continuous-indices-1';
 
 // Numeric observations and scenario samples are generated offline from the
@@ -17,7 +17,7 @@ export function inverseDisplayValue(value) {
 }
 export const graphSeries = Object.freeze([
   { id: 'llm', name: 'LLM performance', color: '#8EAAF0' },
-  { id: 'humanoid', name: 'Humanoid development', color: '#D98B6A' },
+  { id: 'humanoid', name: 'Humanoid deployment', color: '#D98B6A' },
   { id: 'specialist', name: 'Specialist robots', color: '#A4BB8E' },
   { id: 'deployment', name: 'Robot deployment', color: '#F07855' },
   { id: 'data', name: 'Interaction data', color: '#C8B57A' },
@@ -28,7 +28,7 @@ export const graphViews = Object.freeze([
   { id: 'all', label: 'All systems', series: graphSeries.map(series => series.id) },
   { id: 'intelligence', label: 'Intelligence → action', series: ['llm', 'humanoid'] },
   { id: 'data', label: 'The data bottleneck', series: ['data', 'llm'] },
-  { id: 'deployment', label: 'Deployment', series: ['deployment', 'hardware'] },
+  { id: 'deployment', label: 'Deployment', series: ['deployment', 'humanoid', 'hardware'] },
   { id: 'specialist', label: 'Specialist robots', series: ['specialist'] },
 ]);
 
@@ -62,9 +62,24 @@ export function readingAt(index, year) {
   return observations[index]?.get(target) || reconstructions[index]?.get(target) || projections[index]?.get(target) || null;
 }
 
+// Inspection stops are independent of the continuous drawing samples and the
+// annual model readings. Keep the historical boundary before future milestones.
+export const inspectionYears = Object.freeze([
+  ...Array.from({ length: graphDomain.dividerYear - graphDomain.firstYear + 1 }, (_, index) => graphDomain.firstYear + index),
+  ...Array.from({ length: Math.floor(graphDomain.lastYear / 5) - Math.floor(graphDomain.dividerYear / 5) }, (_, index) => (Math.floor(graphDomain.dividerYear / 5) + index + 1) * 5),
+]);
+
 export function snapYear(value) {
-  const year = Number(value);
-  return Math.round(Math.max(graphDomain.firstYear, Math.min(graphDomain.lastYear, Number.isFinite(year) ? year : graphDomain.dividerYear)));
+  const numeric = Number(value);
+  const year = Math.max(graphDomain.firstYear, Math.min(graphDomain.lastYear, Number.isFinite(numeric) ? numeric : graphDomain.dividerYear));
+  // A midpoint advances to the later stop, matching historical year rounding.
+  return inspectionYears.reduce((nearest, candidate) => Math.abs(candidate - year) <= Math.abs(nearest - year) ? candidate : nearest);
+}
+
+export function stepYear(value, direction) {
+  const index = inspectionYears.indexOf(snapYear(value));
+  const step = direction > 0 ? 1 : direction < 0 ? -1 : 0;
+  return inspectionYears[Math.max(0, Math.min(inspectionYears.length - 1, index + step))];
 }
 
 export function interpolateSample(points, year) {

@@ -54,6 +54,8 @@ URLS = {
     'robonet': 'https://www.tensorflow.org/datasets/catalog/robonet',
     'droid': 'https://storage.googleapis.com/gresearch/robotics/droid/1.0.0/dataset_info.json',
     'agibot': 'https://raw.githubusercontent.com/OpenDriveLab/AgiBot-World/main/README.md',
+    'counterpoint2025': 'https://counterpointresearch.com/en/insights/Global-Humanoid-Robot-Installations-Reach-16,000-Units-in-2025-as-Mass-Production-Picks-Pace',
+    'counterpoint2026': 'https://counterpointresearch.com/en/insights/global-humanoid-robot-shipments-soar-nearly-300-percent-yoy-in-h1-2026',
 }
 
 
@@ -66,6 +68,7 @@ def refresh():
     import yaml
     import pymupdf
     sources = {}
+    previous = json.loads(INPUT.read_text(encoding='utf-8')) if INPUT.exists() else {}
 
     def get(key):
         request = urllib.request.Request(URLS[key], headers={'User-Agent': 'Mozilla/5.0', 'Referer': 'https://ifr.org/'})
@@ -135,6 +138,17 @@ def refresh():
         assert count in agibot, f'AgiBot source count changed: {count}'
     assert '2025/03/01' in agibot and '2024/12/30' in agibot
 
+    # These two public articles block direct clients. Their bounded numerical
+    # snapshot was verified from the rendered primary articles, not error HTML.
+    # Retain that audit explicitly rather than pretending a failed refresh is new data.
+    for key in ['counterpoint2025', 'counterpoint2026']:
+        if key not in previous.get('sources', {}):
+            raise RuntimeError('Verify the Counterpoint rendered articles and add the humanoid deployment snapshot before refreshing.')
+        sources[key] = {**previous['sources'][key], 'refreshStatus': 'Retained verified rendered-article snapshot; direct HTML requires provider access.'}
+    humanoid_deployments = previous.get('humanoidDeployments')
+    if not humanoid_deployments:
+        raise RuntimeError('Missing audited annual humanoid deployment snapshot.')
+
     input_data = {
         'schemaVersion': 1, 'reviewedOn': REVIEWED, 'sources': sources,
         'metr': {'benchmark': metr['benchmark_name'], 'metric': 'p80_horizon_length', 'unit': 'minutes', 'results': results},
@@ -149,6 +163,7 @@ def refresh():
                          {'year': 2025, 'method': 'SimbaV2', 'value': .776, 'ciLow': .705, 'ciHigh': .849, 'source': 'simba', 'sourceLocation': 'Table 20, PDF page 44'},
                          {'year': 2026, 'method': 'DR.Q', 'value': .825, 'ciLow': .748, 'ciHigh': .902, 'source': 'drq', 'sourceLocation': 'HumanoidBench without dexterous hands: Mean; 500K steps with action repeat 2 = 1M environment steps'},
                      ]},
+        'humanoidDeployments': humanoid_deployments,
         'corpora': [
             {'id': 'robonet', 'family': 'robonet', 'releaseYear': 2019, 'releaseDate': '2019', 'datePrecision': 'publication year', 'count': 162417, 'source': 'robonet', 'version': 'TFDS 4.0.1',
              'detail': '2019 corpus; exact episode count reconstructed from its pinned TFDS 4.0.1 representation. The original paper reports approximately 162k trajectories. Not a contemporaneous 2019 manifest audit.'},
@@ -195,37 +210,35 @@ def build():
         'methodology': 'Annual record-setting results by model release year. METR stitches Horizon 1.0 results before 2023 to Horizon 1.1 afterward. Earlier results are retrospective evaluations. Source intervals are divided by the fixed 2025 point estimate; they are not jointly estimated ratio intervals. Missing annual history is separately identified as reconstructed; it is not a METR measurement.',
         'baselineValue': annual[2025]['estimate'], 'observations': llm_observations,
     }
-    h = inputs['humanoid']
+    h = inputs['humanoidDeployments']
     series['humanoid'] = {
-        'metric': 'HumanoidBench locomotion: mean success-normalized return', 'definition': 'HumanoidBench · 14-task locomotion',
-        'unit': 'success-normalized return', 'sourceName': 'SimbaV2 / DR.Q evaluations', 'sourceUrl': 'https://proceedings.mlr.press/v306/lyu26f.html',
-        'scope': h['protocol'] + ' Two selected comparable published methods; not a census of the globally best humanoid or general physical capability.',
-        'methodology': 'Each task return is normalized as (return − random-policy return) / (target-success return − random-policy return), then the 14 tasks are averaged. A value of 1 denotes the success reference, not a success percentage or a mathematical maximum. Earlier task suites and training budgets are not mixed into this series.',
-        'baselineValue': .776,
-        'observations': [observation(row['year'], row['value'], row['source'], sourceName=row['method'], coverage='selected-method',
-            ciLowRaw=row['ciLow'], ciHighRaw=row['ciHigh'], intervalLabel='Reported 95% bootstrap interval',
-            precision='Three decimal places in published table', detail=f"{row['method']}; {h['protocol']} {row['sourceLocation']}. Publication year, not an inferred earlier measurement.") for row in h['observations']],
+        'metric': 'Annual humanoid robot deployments, installations and shipments proxy', 'definition': 'Counterpoint · annual humanoid deployments',
+        'unit': 'robots/year', 'sourceName': 'Counterpoint Research', 'sourceUrl': source('counterpoint2025'),
+        'scope': h['scope'],
+        'methodology': 'The reported approximate 2025 installation count is the only full-year historical anchor. Earlier counts are unavailable, not backcast from a benchmark. The 2026 shipment forecast is a conservative scenario anchor, not an observed full-year total. Installations and shipments are proxies with different coverage; normalized line heights do not measure market share.',
+        'baselineValue': 16000,
+        'observations': [observation(row['year'], row['value'], row['source'], sourceName='Counterpoint Research',
+            date=f"{row['year']}-12-31", coverage='annual-installations-estimate', approximate=True,
+            precision=row['precision'], detail=row['detail']) for row in h['observations']],
     }
     ifr = inputs['ifr']
     for identity, key, exact_key, metric, definition, unit in [
         ('specialist', 'installations', 'installationExactYears', 'IFR annual industrial robot installations', 'IFR · annual industrial installations', 'robots/year'),
-        ('deployment', 'stock', 'stockExactYears', 'IFR operational industrial robot stock', 'IFR · industrial robots in operation', 'robots'),
+        ('deployment', 'installations', 'installationExactYears', 'Annual robot deployments, industrial installations proxy', 'IFR · annual industrial deployment proxy', 'robots/year'),
     ]:
         observations = []
         for offset, raw in enumerate(ifr[key]):
             year = ifr['firstYear'] + offset
             exact = year in ifr[exact_key]
             source_key = 'ifr2026' if year == 2025 else ('ifr2025' if exact else 'ifrChart2026')
-            if identity == 'deployment' and year == 2019:
-                source_key = 'ifrChart2024'
             observations.append(observation(year, raw, source_key, sourceName='International Federation of Robotics',
                 date=f'{year}-12-31', approximate=not exact,
                 precision='Published unit count' if exact else 'Rounded to nearest 1,000 robots in source chart',
-                detail=('Annual installations' if identity == 'specialist' else 'Year-end operational stock') +
+                detail='Annual installations' +
                     '; industrial robots worldwide. ' + ('Exact count from executive summary.' if exact else 'Chart value retains source rounding.')))
         series[identity] = {'metric': metric, 'definition': definition, 'unit': unit,
             'sourceName': 'International Federation of Robotics', 'sourceUrl': source('ifr2026'),
-            'scope': 'Industrial robots worldwide; excludes a comprehensive count of service, medical and general-purpose humanoid robots. ' + ('Installations are a specialist-adoption proxy, not task performance.' if identity == 'specialist' else 'Operational stock is a deployment proxy, not robot intelligence.'),
+            'scope': 'Industrial robots worldwide; excludes a comprehensive count of service, medical and general-purpose humanoid robots. ' + ('Installations are a specialist-adoption proxy, not task performance.' if identity == 'specialist' else 'Annual installations anchor the authored future deployment scenario; historical observations are not a census of all robot categories.'),
             'methodology': 'Annual publisher totals, preserving the precision and vintage of each source. Historical observations are distinct from IFR and site-authored projections. No changing service-robot survey samples are combined with this industrial series.',
             'baselineValue': observations[-1]['raw'], 'observations': observations}
 
@@ -277,21 +290,21 @@ def build():
     logs = [math.log(row['estimate']) for row in fit]
     mean_t, mean_log = statistics.mean(times), statistics.mean(logs)
     growth = sum((t - mean_t) * (value - mean_log) for t, value in zip(times, logs)) / sum((t - mean_t) ** 2 for t in times)
-    stock = {row['year']: row['raw'] for row in series['deployment']['observations']}
     installed = {row['year']: row['raw'] for row in series['specialist']['observations']}
-    attrition = sum(installed[year] - (stock[year] - stock[year-1]) for year in [2023, 2024, 2025]) / sum(stock[year-1] for year in [2023, 2024, 2025])
     data_anchor = series['data']['baselineValue']
     # User-directed scenario targets, not inferred publisher forecasts.
     data_factor = 30
     parameters = {
         'llm': {'growthRate': growth, 'fitRecordCount': len(fit), 'fitRecords': [{'model': row['model'], 'date': row['date'], 'minutes': row['estimate']} for row in fit],
                 'ceilingMinutes': 10 * 2000 * 60, 'anchorYear': 2026, 'anchorMinutes': annual[2026]['estimate'], 'pauseYear': 2035, 'workHoursPerYear': 2000},
-        'humanoid': {'anchorYear': 2026, 'anchorScore': .825, 'targetYear': 2040, 'targetScore': 1.0, 'midpoint': 2031, 'slope': .33},
+        'humanoid': {'anchorYear': 2026, 'anchorDeployments': h['forecast2026Shipments'], 'growthExponent': .6,
+                     'growthTransition': 10, 'linkedSeries': 'deployment', 'forecastQualifier': h['forecastQualifier']},
         'data': {'anchorYear': 2026, 'anchorEpisodes': data_anchor, 'ceilingFactor': data_factor, 'ceilingEpisodes': data_anchor * data_factor,
                  'growthRate': math.log(19 * (data_factor - 1)) / 5, 'plateauYear': 2031, 'plateauFraction': .95},
         'specialist': {'anchorYear': 2026, 'anchorInstallations': ifr['forecast2026Installations'], 'peakYear': 2031,
                        'peakInstallations': 4 * installed[2025], 'endYear': 2040, 'endInstallations': .25 * installed[2025]},
-        'deployment': {'attritionRate': attrition, 'calibrationYears': [2023, 2024, 2025], 'anchorYear': 2025, 'anchorStock': stock[2025]},
+        'deployment': {'anchorYear': 2026, 'anchorDeployments': ifr['forecast2026Installations'], 'linkedSeries': 'llm',
+                       'scope': 'Author-selected total-deployment scenario anchored to the annual industrial proxy, not a published forecast for all robots.'},
         'hardware': {'anchorYear': 2026, 'anchorPrice': prices[-1]['raw'], 'floorFraction': .03, 'halfLifeYears': 1.1},
     }
 
@@ -303,40 +316,63 @@ def build():
             return p['anchorInstallations'] * (p['peakInstallations'] / p['anchorInstallations']) ** ((year - 2026) / 5)
         return p['peakInstallations'] * (p['endInstallations'] / p['peakInstallations']) ** ((year - 2031) / 9)
 
-    projected_stock = {2025: stock[2025]}
-    for year in range(2026, 2041):
-        projected_stock[year] = projected_stock[year-1] * (1 - attrition) + specialists(year)
+    # A restrained, monotone change of pace gives the future the same varied
+    # curvature as historical PCHIP paths. Inspection milestones and the existing
+    # 2031 peak/plateau, 2035 pause and 2040 endpoints remain exactly in place.
+    timing_years = list(range(2026, LAST_YEAR + 1))
+    timing_offsets = {
+        'llm': [0, -.25, .12, -.22, 0, 0, .18, -.15, .08, 0, .20, .06, -.18, .10, 0],
+        'data': [0, -.18, .24, -.12, 0, 0, .12, -.20, .16, 0, .18, -.08, -.12, .16, 0],
+        'specialist': [0, -.20, .16, -.15, 0, 0, .14, -.18, .10, 0, .16, -.10, .18, -.12, 0],
+        'hardware': [0, -.14, .18, -.20, 0, 0, .16, -.12, .20, 0, .12, -.18, .08, -.10, 0],
+    }
+    timing_curves = {identity: PchipInterpolator(timing_years, [year + offset for year, offset in zip(timing_years, offsets)])
+                     for identity, offsets in timing_offsets.items()}
+    parameters['timing'] = {'method': 'Monotone PCHIP pace variation; not additional observations',
+                            'years': timing_years, 'offsetYears': timing_offsets,
+                            'fixedYears': [2026, 2030, 2031, 2035, 2040]}
+
+    def scenario_year(identity, year):
+        return float(timing_curves[identity](year)) if year > 2026 and identity in timing_curves else year
 
     def forecast(identity, year):
         p = parameters[identity]
+        phase = scenario_year(identity, year)
         if identity == 'llm':
-            return p['ceilingMinutes'] / (1 + (p['ceilingMinutes'] / p['anchorMinutes'] - 1) * math.exp(-p['growthRate'] * (min(year, p['pauseYear']) - 2026)))
+            return p['ceilingMinutes'] / (1 + (p['ceilingMinutes'] / p['anchorMinutes'] - 1) * math.exp(-p['growthRate'] * (min(phase, p['pauseYear']) - 2026)))
         if identity == 'humanoid':
-            sigmoid = lambda y: 1 / (1 + math.exp(-p['slope'] * (y - p['midpoint'])))
-            fraction = (sigmoid(year) - sigmoid(2026)) / (sigmoid(2040) - sigmoid(2026))
-            return p['anchorScore'] + (p['targetScore'] - p['anchorScore']) * fraction
+            if year == 2025:
+                return series['humanoid']['baselineValue']
+            growth_factor = forecast('deployment', year) / parameters['deployment']['anchorDeployments']
+            transition, exponent = p['growthTransition'], p['growthExponent']
+            humanoid_growth = 1 + transition / exponent * ((1 + (growth_factor - 1) / transition) ** exponent - 1)
+            return p['anchorDeployments'] * humanoid_growth
         if identity == 'data':
-            return p['ceilingEpisodes'] / (1 + (p['ceilingFactor'] - 1) * math.exp(-p['growthRate'] * (year - 2026)))
+            return p['ceilingEpisodes'] / (1 + (p['ceilingFactor'] - 1) * math.exp(-p['growthRate'] * (phase - 2026)))
         if identity == 'hardware':
-            return p['anchorPrice'] * (p['floorFraction'] + (1 - p['floorFraction']) * 2 ** (-(year - 2026) / p['halfLifeYears']))
+            return p['anchorPrice'] * (p['floorFraction'] + (1 - p['floorFraction']) * 2 ** (-(phase - 2026) / p['halfLifeYears']))
         if identity == 'specialist':
-            return specialists(year)
+            return specialists(phase)
         if identity == 'deployment':
-            start = min(2039, math.floor(year))
-            return projected_stock[start] + (projected_stock[start+1] - projected_stock[start]) * (year - start)
+            if year == 2025:
+                return series['deployment']['baselineValue']
+            return p['anchorDeployments'] * forecast('llm', year) / parameters['llm']['anchorMinutes']
         raise ValueError(identity)
+
+    parameters['humanoid']['initialModeledShare'] = h['forecast2026Shipments'] / parameters['deployment']['anchorDeployments']
+    parameters['humanoid']['endModeledShare'] = forecast('humanoid', LAST_YEAR) / forecast('deployment', LAST_YEAR)
 
     scenario_notes = {
         'llm': ('https://ai-2040.com/supplements/takeoff-forecast', 'METR trend / Plan A-inspired scenario',
                 'Logistic scenario anchored to the latest measured 2026 p80 horizon. Initial growth is fitted to 2023–2026 Horizon 1.1 records; a 10-work-year ceiling (2,000 hours/year) is an author-set anchor informed by AI 2040’s autonomous-coding threshold, not a measured maximum or a TED-AI equivalence. The 2035 level is held through 2040; no numerical resumption jump is invented.'),
-        'humanoid': ('https://proceedings.mlr.press/v306/lyu26f.html', 'HumanoidBench-anchored scenario',
-                     'The retained rising sigmoid timing is rescaled from the measured 2026 score of 0.825 to the task-success reference of 1.0 in 2040. This target is a scenario assumption, not universal humanoid competence or a benchmark ceiling.'),
+        'humanoid': (source('counterpoint2026'), 'Annual humanoid-deployment scenario',
+                     'The approximate 16,000 additional installations reported for 2025 replace the former benchmark-return measure. The 2026 anchor of 50,000 is a conservative reference to a published forecast of more than 50,000 shipments, not an observed full-year count. Future humanoid deployments initially follow modeled robot deployment growth, then grow sublinearly with exponent 0.6 and transition multiplier 10. Counts keep rising while their ratio to the modeled total shrinks. This ratio is an author-set relationship, not observed market share; the historical industrial proxy and humanoid shipment survey cover different populations.'),
         'data': ('https://github.com/OpenDriveLab/AgiBot-World', 'Public-corpus growth scenario',
                  'Logistic growth from the fixed inventory to an author-selected ceiling of 30 times its 2025 episode count; the curve reaches 95% of that ceiling in 2031. The ceiling, timing and saturation are scenario assumptions, not a prediction by the dataset publishers or an extrapolated historical CAGR.'),
         'specialist': (source('ifr2026'), 'IFR forecast / specialist-adoption scenario',
                        '2026 uses IFR’s 655,000-installation forecast. The site-authored annual scenario then grows geometrically to four times the 2025 count in 2031 and declines to one quarter of that 2025 count in 2040. A shape-preserving cubic rounds the peak between annual values without overshoot. These later targets are assumptions, not historical observations or IFR forecasts.'),
-        'deployment': (source('ifr2026'), 'Industrial-stock accounting scenario',
-                       'Previous stock plus projected installations minus an annual attrition residual calibrated from the 2023–2025 IFR balance. The residual includes retirements and statistical revisions; it is not a directly measured retirement rate. The stock is recalculated from the same installation scenario. Fractional-year connectors interpolate the annual accounting results.'),
+        'deployment': (source('ifr2026'), 'LLM-linked annual deployment scenario',
+                       'Annual industrial installations replace the former operating-stock measure so both deployment series use robots per year. The authored future total-deployment scenario starts at the IFR 2026 industrial forecast of 655,000 and follows the same proportional growth, slowdown and 2035 pause as the LLM path. It is independent of the specialist-adoption curve. Industrial installations are a historical proxy, not a census of all robots, and the future count trajectory is not an IFR forecast.'),
         'hardware': ('https://www.boj.or.jp/en/statistics/outline/exp/pi/cgpi_2020/outline.htm', 'Robot-cost scenario',
                      'Author-selected cost decline from the January–October 2026 observed average: a 3% floor and a 1.1-year halving time for the distance above that floor. This reaches approximately 7.15% of the 2026 anchor in 2031; it is not a Bank of Japan price forecast.'),
     }
@@ -359,7 +395,7 @@ def build():
                 point['ciLow'] = point['ciLowRaw'] / baseline * 100
                 point['ciHigh'] = point['ciHighRaw'] / baseline * 100
         assert next(row['raw'] for row in item['observations'] if row['year'] == 2025) == baseline
-        start = 2025 if identity in ['specialist', 'deployment'] else 2026
+        start = 2025 if identity in ['humanoid', 'specialist', 'deployment'] else 2026
         url, name, detail = scenario_notes[identity]
         item['scenario'] = {'startYear': start, 'sourceUrl': url, 'sourceName': name, 'detail': detail, 'coverage': 'modeled-scenario'}
         observed = {point['year']: point for point in item['observations']}
@@ -368,48 +404,41 @@ def build():
             # Copy the shared measured anchor exactly rather than round-tripping
             # through a formula and accidentally changing its final binary digit.
             raw = observed[year]['raw'] if year == start and year in observed else forecast(identity, year)
-            item['projections'].append({'year': year, 'raw': raw, 'value': raw / baseline * 100})
+            projection = {'year': year, 'raw': raw, 'value': raw / baseline * 100}
+            if identity == 'humanoid' and year >= 2026:
+                projection['modeledRobotDeployments'] = forecast('deployment', year)
+                projection['modeledShare'] = raw / projection['modeledRobotDeployments']
+            item['projections'].append(projection)
 
         anchors = item['observations']
         first = anchors[0]
         # Skip repeated inventory totals when choosing the first supported trend.
         # A negative measured trend (e.g. BOJ prices in 2020–21) is kept negative.
-        second = next(point for point in anchors[1:] if point['raw'] != first['raw'])
-        first_rate = math.log(second['raw'] / first['raw']) / (second['year'] - first['year'])
+        second = next((point for point in anchors[1:] if point['raw'] != first['raw']), first)
+        first_rate = math.log(second['raw'] / first['raw']) / (second['year'] - first['year'] or 1)
         measured_curve = PchipInterpolator(
             [point['year'] for point in anchors],
-            [display_value(point['value']) for point in anchors], extrapolate=False)
+            [display_value(point['value']) for point in anchors], extrapolate=False) if len(anchors) > 1 else None
         reconstruction = []
-        for year in range(FIRST_YEAR, start + 1):
+        history_start = first['year'] if identity == 'humanoid' else FIRST_YEAR
+        for year in range(history_start, start + 1):
             if year in observed:
                 continue
             if year < first['year']:
                 supporting = [first, second]
-                if identity == 'humanoid':
-                    logit = lambda value: math.log(value / (1 - value))
-                    rate = (logit(second['raw']) - logit(first['raw'])) / (second['year'] - first['year'])
-                    raw = 1 / (1 + math.exp(-(logit(first['raw']) + rate * (year - first['year']))))
-                    method = 'logit-backcast'
-                    explanation = (
-                        'Retrospective estimate under the later 14-task HumanoidBench protocol. '
-                        'The 2025–2026 selected-method logit slope is extended backward, using '
-                        'the task-success reference 1 as an assumed asymptote for this backcast. '
-                        'This is not a historical benchmark result or a claim that 1 is a mathematical maximum.'
+                raw = first['raw'] * math.exp(first_rate * (year - first['year']))
+                method = 'log-linear-backcast'
+                explanation = (
+                    f"The log(raw) slope between the first distinct observed anchors "
+                    f"({first['year']} and {second['year']}) is extended backward. "
+                    'This is an extrapolated estimate, not a publisher observation.'
+                )
+                if identity == 'data':
+                    explanation += (
+                        ' These corpora were not yet released; the value is a hypothetical '
+                        'antecedent trajectory, not episodes available in the named inventory.'
                     )
-                else:
-                    raw = first['raw'] * math.exp(first_rate * (year - first['year']))
-                    method = 'log-linear-backcast'
-                    explanation = (
-                        f"The log(raw) slope between the first distinct observed anchors "
-                        f"({first['year']} and {second['year']}) is extended backward. "
-                        'This is an extrapolated estimate, not a publisher observation.'
-                    )
-                    if identity == 'data':
-                        explanation += (
-                            ' These corpora were not yet released; the value is a hypothetical '
-                            'antecedent trajectory, not episodes available in the named inventory.'
-                        )
-                slope = rate if identity == 'humanoid' else first_rate
+                slope = first_rate
             else:
                 before = max((point for point in anchors if point['year'] < year), key=lambda point: point['year'])
                 after = min((point for point in anchors if point['year'] > year), key=lambda point: point['year'])
@@ -439,9 +468,9 @@ def build():
         item['reconstructed'] = reconstruction
         item['interpolation'] = {'method': 'PCHIP in common symlog-log coordinates', 'stepYears': SAMPLE_STEP, 'detail': interpolation_note}
         item['reconstruction'] = {
-            'firstYear': FIRST_YEAR, 'firstObservedYear': first['year'],
-            'method': 'logit-backcast' if identity == 'humanoid' else 'log-linear-backcast',
-            'detail': 'Estimated historical years are separate from unchanged source observations. No confidence intervals are invented for estimates.',
+            'firstYear': history_start, 'firstObservedYear': first['year'],
+            'method': 'unreported-before-first-observation' if identity == 'humanoid' else 'log-linear-backcast',
+            'detail': 'No humanoid deployment counts are invented before 2025.' if identity == 'humanoid' else 'Estimated historical years are separate from unchanged source observations. No confidence intervals are invented for estimates.',
         }
 
         # One interpolator spans history and future so joins at 2025/2026 are C1,
@@ -449,10 +478,10 @@ def build():
         annual_knots = {point['year']: point for point in item['projections']}
         annual_knots.update({point['year']: point for point in reconstruction})
         annual_knots.update(observed)
-        years = list(range(FIRST_YEAR, LAST_YEAR + 1))
+        years = list(range(history_start, LAST_YEAR + 1))
         curve = PchipInterpolator(years, [display_value(annual_knots[year]['value']) for year in years])
         samples = []
-        for tick in range(FIRST_YEAR * 20, LAST_YEAR * 20 + 1):
+        for tick in range(history_start * 20, LAST_YEAR * 20 + 1):
             year = tick / 20
             if tick % 20 == 0:
                 point = annual_knots[int(year)]
@@ -488,7 +517,8 @@ def build():
         + 'export const observedGraph = ' + json.dumps(result, ensure_ascii=False, separators=(',', ':'), allow_nan=False) + ';\n', encoding='utf-8')
     print(json.dumps({'baselines': {key: item['baselineValue'] for key, item in series.items()},
                       'hardware2026Ytd': prices[-1]['raw'], 'domain': result['domain'],
-                      'llmGrowthRate': growth, 'attritionRate': attrition,
+                      'llmGrowthRate': growth,
+                      'humanoidModeledShares': {key: parameters['humanoid'][key] for key in ['initialModeledShare', 'endModeledShare']},
                       'endpoints': {key: item['projections'][-1]['value'] for key, item in series.items()}}, indent=2))
 
 

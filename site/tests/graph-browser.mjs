@@ -88,7 +88,8 @@ try {
       const metric = node.querySelector('.graph-label-metric'), bounds = metric.getBoundingClientRect();
       return { name: node.querySelector('.graph-label-name').textContent, metric: metric.textContent, top: rect.top, bottom: rect.bottom, left: rect.left, right: rect.right, metricTop: bounds.top, valueBottom: value.bottom };
     }));
-    [/METR/i, /HumanoidBench/i, /IFR|industrial/i, /IFR|industrial/i, /episodes|corpora/i, /BOJ|Bank of Japan/i].forEach((pattern, i) => assert.match(rail[i].metric, pattern));
+    [/METR/i, /humanoid.*(?:deployment|shipment)|(?:deployment|shipment).*humanoid/i, /IFR|industrial/i, /IFR|industrial/i, /episodes|corpora/i, /BOJ|Bank of Japan/i].forEach((pattern, i) => assert.match(rail[i].metric, pattern));
+    assert.equal(rail[1].name, 'Humanoid deployment');
     rail.forEach(item => assert.ok(item.metricTop >= item.valueBottom - 1, `${item.name} index is below its multiple`));
     for (let a = 0; a < rail.length; a++) for (let b = a + 1; b < rail.length; b++) {
       if (Math.min(rail[a].right, rail[b].right) - Math.max(rail[a].left, rail[b].left) > 1) {
@@ -112,9 +113,9 @@ try {
     const projected = await page.evaluate(() => {
       const graph = window.__researchGraph;
       return {
-        specialist: graph.pointFor('specialist', 2040).y - graph.pointFor('specialist', 2031).y,
-        hardware: graph.pointFor('hardware', 2031).y - graph.pointFor('hardware', 2026).y,
-        data: graph.pointFor('data', 2026).y - graph.pointFor('data', 2031).y,
+        specialist: graph.pointFor('specialist', 2040).y - graph.pointFor('specialist', 2030).y,
+        hardware: graph.pointFor('hardware', 2030).y - graph.pointFor('hardware', 2026).y,
+        data: graph.pointFor('data', 2026).y - graph.pointFor('data', 2030).y,
       };
     });
     for (const [id, distance] of Object.entries(projected)) assert.ok(distance >= minimum, `${id} forecast has a visible ${distance.toFixed(1)}px change`);
@@ -142,11 +143,50 @@ try {
   }
   assert.equal(await page.evaluate(() => document.body.textContent.includes('No numerical forecast')), false);
   await verifyRail();
+  for (const [requested, expected] of [[2027, 2026], [2028, 2030], [2032, 2030], [2033, 2035], [2038, 2040]]) {
+    await page.evaluate(year => window.__researchGraph.setYear(year), requested);
+    assert.equal((await state()).year, expected, `Controller input ${requested} snaps to ${expected}`);
+    assert.equal(await page.$eval('#trajectory-year', input => Number(input.value)), expected);
+  }
+  // Even an input inside the current stop's interval must restore the slider
+  // thumb, without depending on a graph-state change to do so.
+  await page.evaluate(() => {
+    window.__researchGraph.setYear(2030);
+    const input = document.querySelector('#trajectory-year');
+    input.value = '2031'; input.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+  assert.equal((await state()).year, 2030);
+  assert.equal(await page.$eval('#trajectory-year', input => input.value), '2030');
+  const range = await page.$eval('#trajectory-year', input => { const r = input.getBoundingClientRect(); return { x: r.x, y: r.y, width: r.width, height: r.height }; });
+  await page.mouse.click(range.x + range.width * .72, range.y + range.height / 2);
+  assert.equal((await state()).year, 2035, 'Pointer input on the year-coordinate slider snaps to a future stop');
+  await page.focus('#trajectory-year');
+  await page.evaluate(() => window.__researchGraph.setYear(2025));
+  for (const expected of [2026, 2030, 2035, 2040, 2040]) {
+    await page.keyboard.press('ArrowRight'); assert.equal((await state()).year, expected, 'Slider moves forward by inspection stops');
+  }
+  for (const expected of [2035, 2030, 2026, 2025]) {
+    await page.keyboard.press('ArrowLeft'); assert.equal((await state()).year, expected, 'Slider moves backward through the historical boundary');
+  }
+  await page.keyboard.press('PageUp'); assert.equal((await state()).year, 2026);
+  await page.keyboard.press('PageUp'); assert.equal((await state()).year, 2030);
+  await page.keyboard.press('PageDown'); assert.equal((await state()).year, 2026);
+  await page.keyboard.press('Home'); assert.equal((await state()).year, 2015);
+  await page.keyboard.press('End'); assert.equal((await state()).year, 2040);
+  await page.keyboard.press('Enter'); await menu(6);
+  assert.equal((await state()).preview.year, 2040, 'Slider Enter opens the inspected milestone menu');
+  await page.keyboard.press('Escape'); await closedPopup();
+  report.checks.push('Controller, pointer slider, same-stop normalization, slider arrows/PageUp/PageDown/Home/End and Enter preserve annual history with 2030/2035/2040 future stops');
   await page.evaluate(() => window.__researchGraph.setYear(2025));
   for (const id of ['llm', 'humanoid', 'specialist', 'deployment', 'data', 'hardware']) {
-    for (const year of [2015, 2025, 2031, 2040]) {
+    for (const year of [2015, 2025, 2030, 2040]) {
       const measured = await page.evaluate(({ id, year }) => window.__researchGraph.pointFor(id, year), { id, year });
       const reading = await page.evaluate(({ id, year }) => { window.__researchGraph.setYear(year); return window.__researchGraph.status.readings[id]; }, { id, year });
+      if (id === 'humanoid' && year === 2015) {
+        assert.equal(reading, null, 'No humanoid deployment history is fabricated before the 2025 shipment anchor');
+        assert.equal(measured, null, 'Unreported humanoid counts do not create a plotted point');
+        continue;
+      }
       const expected = await point(year, reading.value);
       const bounds = await page.$eval('.graph-plot', node => { const rect = node.getBoundingClientRect(); return { x: rect.left, y: rect.top }; });
       assert.ok(Math.abs(measured.x + bounds.x - expected.x) < 1.5, `${id}/${year} x conversion`);
@@ -159,24 +199,26 @@ try {
   }
   await page.evaluate(() => window.__researchGraph.setYear(2021));
   assert.ok((await state()).values.llm > 0);
-  assert.ok((await state()).values.humanoid > 0);
+  assert.equal((await state()).values.humanoid, null);
   assert.equal((await state()).readings.llm.kind, 'reconstructed');
-  assert.equal((await state()).readings.humanoid.kind, 'reconstructed');
-  assert.ok(await page.evaluate(() => window.__researchGraph.pointFor('humanoid', 2021)));
+  assert.equal((await state()).readings.humanoid, null);
+  assert.equal(await page.evaluate(() => window.__researchGraph.pointFor('humanoid', 2021)), null);
   assert.doesNotMatch(await page.$eval('#graph', node => node.textContent), /NaN|Infinity|undefined/);
   await verifyForecastShapes(40);
   await page.$('#graph').then(element => element.screenshot({ path: resolve(outputDirectory, 'sourced-graph-desktop.png') }));
-  report.checks.push('Desktop: real metric rail, 2025 normalization, one compressed-index mapping, full 2015 start, and classified historical reconstructions');
+  report.checks.push('Desktop: deployment-count metric rail, 2025 normalization, one compressed-index mapping, retained 2015 histories, classified reconstructions, and no invented pre-2025 humanoid counts');
 
   // Even empty space in a historical year starts at the full menu, with no video request.
   await hover(2017); await menu(6);
   assert.equal((await state()).year, 2017);
+  assert.match(await page.$eval('.graph-popup-choice[data-series="humanoid"]', node => node.textContent), /not reported/i);
   assert.deepEqual(providerRequests, []);
   await page.$eval('.graph-popup-choice', node => { node.dataset.qaIdentity = 'same-year'; });
   const sameYear = await point(2017, 700); await page.mouse.move(sameYear.x, sameYear.y);
   await menu(6);
   assert.equal(await page.$eval('.graph-popup-choice', node => node.dataset.qaIdentity), 'same-year');
-  await hover(2032); await menu(6); assert.equal((await state()).year, 2032);
+  await hover(2032); await menu(6); assert.equal((await state()).year, 2030);
+  assert.equal((await state()).preview.year, 2030, 'A hovered future position opens the snapped milestone menu');
   await page.screenshot({ path: resolve(outputDirectory, 'sourced-graph-year-menu.png') });
   await hover(2026, 100); await menu(6); assert.equal((await state()).year, 2026);
   assert.deepEqual(providerRequests, []);
@@ -212,6 +254,7 @@ try {
   assert.match(await page.$eval('.graph-panel .graph-measurement-source', node => node.textContent), /Methodology/i);
   await page.$('.graph-panel').then(element => element.screenshot({ path: resolve(outputDirectory, 'continuous-graph-reconstruction.png') }));
   await page.evaluate(() => window.__researchGraph.setYear(2036));
+  assert.equal((await state()).year, 2035);
   assert.equal((await state()).opened.year, 2017, 'Scrubbing does not replace pinned media');
   await close();
 
@@ -237,21 +280,47 @@ try {
   assert.match(await page.$eval('.graph-panel .graph-measurement-name', node => node.textContent), /robot|BOJ|Bank of Japan/i);
   await close();
 
+  // Historical demonstrations remain available even where deployment counts
+  // were not reported; their media must not fabricate a quantitative history.
+  await page.evaluate(() => window.__researchGraph.selectView('series:humanoid'));
+  await hover(2017); await menu(1); await choose('humanoid');
+  assert.equal(await page.$eval('.graph-popup .graph-measurement', node => node.dataset.kind), 'unreported');
+  assert.match(await page.$eval('.graph-popup .graph-measurement-status', node => node.textContent), /No comparable observation reported for 2017/);
+  assert.equal(await page.$('.graph-popup .graph-measurement-value'), null);
+  await expand('humanoid-2017');
+  assert.equal(await page.$eval('.graph-panel .graph-measurement', node => node.dataset.kind), 'unreported');
+  assert.equal(await page.$('.graph-panel .graph-measurement-value'), null);
+  assert.doesNotMatch(await page.$eval('.graph-panel .graph-measurement', node => node.textContent), /of modeled robot deployments/);
+  await close();
+
+  await hover(2035); await menu(1); await choose('humanoid');
+  const modeledShare = (await state()).readings.humanoid.modeledShare;
+  assert.ok(Number.isFinite(modeledShare) && modeledShare > 0 && modeledShare < 1);
+  await expand('humanoid-2035');
+  const shareText = new Intl.NumberFormat('en-US', { style: 'percent', maximumFractionDigits: 2 }).format(modeledShare);
+  assert.ok((await page.$eval('.graph-panel .graph-measurement', node => node.textContent)).includes(`${shareText} of modeled robot deployments.`));
+  await close();
+
   // Line clicks and the keyboard Open year action use exactly the same menu path.
   await page.evaluate(() => { window.__researchGraph.selectView('series:deployment'); window.__researchGraph.setYear(2032); });
-  const line = await point(2032, (await state()).values.deployment);
+  assert.equal((await state()).year, 2030);
+  const line = await point(2030, (await state()).values.deployment);
   await page.mouse.click(line.x, line.y); await menu(1);
   await choose('deployment');
   assert.equal(await page.$eval('.graph-popup .graph-measurement', node => node.dataset.kind), 'scenario');
   assert.ok(await page.$eval('.graph-popup .graph-measurement-source', node => !!node.getAttribute('href')));
   assert.equal(await page.$eval('.graph-popup .graph-sketch-placeholder', node => node.textContent), 'Sketch forthcoming');
-  await expand('deployment-2032');
+  await expand('deployment-2030');
   assert.equal(await page.$$eval('.graph-panel .graph-sketch-placeholder', nodes => nodes.length), 1);
   assert.equal(await page.$$eval('.graph-panel img, .graph-panel iframe, .graph-panel .is-unavailable', nodes => nodes.length), 0);
   await close();
   await page.mouse.move(10, 10);
   await page.focus('.graph-plot');
-  await page.keyboard.press('ArrowLeft'); assert.equal((await state()).year, 2031);
+  await page.keyboard.press('ArrowLeft'); assert.equal((await state()).year, 2026);
+  await page.keyboard.press('ArrowLeft'); assert.equal((await state()).year, 2025);
+  for (const expected of [2026, 2030, 2035, 2040]) {
+    await page.keyboard.press('ArrowRight'); assert.equal((await state()).year, expected, 'Plot arrows traverse all future stops');
+  }
   await page.keyboard.press('Home'); assert.equal((await state()).year, 2015);
   await page.keyboard.press('End'); assert.equal((await state()).year, 2040);
   await page.keyboard.press('Enter'); await menu(1);
@@ -271,7 +340,7 @@ try {
     window.__researchGraph.setYear(2030);
     document.querySelector('.graph-plot').dispatchEvent(new WheelEvent('wheel', { deltaY: 100, bubbles: true, cancelable: true }));
   });
-  assert.equal((await state()).year, 2031);
+  assert.equal((await state()).year, 2035);
   await page.evaluate(async () => {
     await new Promise(resolve => setTimeout(resolve, 190));
     for (let i = 0; i < 6; i++) {
@@ -279,7 +348,13 @@ try {
       await new Promise(resolve => setTimeout(resolve, 20));
     }
   });
-  assert.equal((await state()).year, 2032);
+  assert.equal((await state()).year, 2040);
+  await page.evaluate(async () => {
+    await new Promise(resolve => setTimeout(resolve, 190));
+    window.__researchGraph.setYear(2030);
+    document.querySelector('.graph-plot').dispatchEvent(new WheelEvent('wheel', { deltaY: -100, bubbles: true, cancelable: true }));
+  });
+  assert.equal((await state()).year, 2026, 'Reverse wheel crosses directly back to the historical boundary');
   assert.equal(await page.evaluate(() => window.heroToggles), 0);
   report.checks.push('Menu-first blank/line hover and click, source CI, neutral Historical labels with unchanged internal kinds, Methodology links, preview/Back/panel, future placeholders, keyboard/wheel input, Escape and focus');
 
@@ -290,12 +365,13 @@ try {
   await verifyRail();
   await verifyForecastShapes(30);
   await page.$('#graph').then(element => element.screenshot({ path: resolve(outputDirectory, 'sourced-graph-mobile.png') }));
-  const blank = await point(2035, 800); await page.touchscreen.tap(blank.x, blank.y); await menu(6);
+  const blank = await point(2032, 800); await page.touchscreen.tap(blank.x, blank.y); await menu(6);
+  assert.equal((await state()).year, 2030, 'Touch inspection uses the same future snap policy');
   await choose('hardware');
   await verifyPopupBounds();
   await page.screenshot({ path: resolve(outputDirectory, 'sourced-graph-mobile-preview.png') });
   await page.click('.graph-popup .graph-media-open');
-  assert.equal((await state()).opened.id, 'hardware-2035');
+  assert.equal((await state()).opened.id, 'hardware-2030');
   await close();
   await page.evaluate(() => window.__researchGraph.selectView('series:hardware'));
   const solo = await point(2024, 800); await page.touchscreen.tap(solo.x, solo.y); await menu(1);
@@ -323,6 +399,7 @@ try {
   await page.$eval('#trajectories', node => node.scrollIntoView());
   await verifyRail();
   await hover(2031); await menu(6); await choose('data');
+  assert.equal((await state()).year, 2030);
   assert.equal(await page.$eval('.graph-popup .graph-measurement', node => node.dataset.kind), 'scenario');
   await page.keyboard.press('Escape'); await closedPopup();
   await page.evaluate(() => document.activeElement?.blur());
@@ -336,7 +413,7 @@ try {
   assert.deepEqual(errors, []);
   assert.deepEqual(futureArtworkRequests, [], 'Placeholders do not request missing sketches');
   report.passed = true;
-  console.log('Continuous graph browser checks passed: neutral history labels with unchanged data kinds, retained source methodology, visible forecast shapes, menu-first interactions, annual input, desktop/mobile layout, homepage integration.');
+  console.log('Continuous graph browser checks passed: neutral history labels with unchanged data kinds, retained source methodology, visible forecast shapes, menu-first interactions, annual history and five-year future input, desktop/mobile layout, homepage integration.');
 } catch (error) {
   report.passed = false;
   report.failure = error.stack || String(error);

@@ -1,5 +1,5 @@
 import { init, animate } from './vendor/graph-vendor.js?v=finish-1';
-import { graphDomain, graphSeries, graphViews, sampleSeries, readingAt, formatIndex, formatRaw, snapYear, placeEndpointLabels, displayValue, inverseDisplayValue } from './graph-data.js?v=continuous-indices-1';
+import { graphDomain, graphSeries, graphViews, sampleSeries, readingAt, formatIndex, formatRaw, snapYear, stepYear, placeEndpointLabels, displayValue, inverseDisplayValue } from './graph-data.js?v=deployment-paths-1';
 import { getStory } from './graph-stories.js?v=finish-1';
 
 const clamp = (value, low, high) => Math.max(low, Math.min(high, value));
@@ -14,6 +14,7 @@ const safeSource = source => {
   try { const url = new URL(source); return ['https:', 'http:'].includes(url.protocol) ? url.href : null; } catch { return null; }
 };
 const compactNumber = new Intl.NumberFormat('en-US', { notation: 'compact', maximumSignificantDigits: 3 });
+const percentage = new Intl.NumberFormat('en-US', { style: 'percent', maximumFractionDigits: 2 });
 const displayIndex = value => Number.isFinite(value) ? compactNumber.format(value) : '—';
 const displayMultiple = value => Number.isFinite(value) ? `${compactNumber.format(value / 100)}×` : '—';
 const positive = value => Number.isFinite(value) && value > 0;
@@ -177,12 +178,12 @@ export function mountGraph(element) {
       <span class="graph-status">2025 = 100 · compressed index scale</span>
     </div>
     <div class="graph-stage">
-      <div class="graph-plot" tabindex="0" role="group" aria-label="Six robotics indices from 2015 to 2040, with historical trajectories and projected scenarios. All lines use the same compressed index scale and their measured 2025 baseline of 100. Use arrow keys to choose a year and Enter to open its menu."></div>
+      <div class="graph-plot" tabindex="0" role="group" aria-label="Six robotics indices from 2015 to 2040, with historical trajectories and projected scenarios. All lines use the same compressed index scale and their measured 2025 baseline of 100. Use arrow keys to inspect annual history through 2026, then 2030, 2035 and 2040. Press Enter to open the year menu."></div>
       <div class="graph-labels" role="group" aria-label="2040 endpoints. Choose a trajectory to highlight it.">
         ${graphSeries.map((series, index) => `<button type="button" class="graph-label" data-graph-series="${series.id}" style="--series-color:${series.color}" aria-pressed="false"><span class="graph-label-name">${series.name}</span><span class="graph-label-definition">2040 projection · 2025 = 100</span><span class="graph-label-value">${displayIndex(endpoints[index]?.value)} <span>· ${displayMultiple(endpoints[index]?.value)}</span></span><span class="graph-label-metric">${series.definition}</span></button>`).join('')}
       </div>
     </div>
-    <div class="graph-scrubber"><label for="trajectory-year">Explore a year</label><input id="trajectory-year" type="range" min="2015" max="2040" step="1" value="2026" aria-label="Year to inspect"><output for="trajectory-year">2026</output><button type="button" class="graph-open-year">Open year <span aria-hidden="true">↗</span></button></div>
+    <div class="graph-scrubber"><label for="trajectory-year">Explore a year</label><input id="trajectory-year" type="range" min="2015" max="2040" step="1" value="2026" aria-label="Year to inspect: annual through 2026, then 2030, 2035 and 2040"><output for="trajectory-year">2026</output><button type="button" class="graph-open-year">Open year <span aria-hidden="true">↗</span></button></div>
     <section class="graph-panel" aria-labelledby="graph-panel-title" hidden></section>
     <p class="graph-live" aria-live="polite" aria-atomic="true"></p>`;
   const stage = element.querySelector('.graph-stage'), plot = element.querySelector('.graph-plot');
@@ -231,6 +232,9 @@ export function mountGraph(element) {
       const period = reading.coverage === 'year-to-date' ? `YTD through ${date}` : date;
       block.append(make('p', 'graph-measurement-status', `${kind} · ${period} · 2025 = 100`));
       if (expanded && reading.detail && reading.kind !== 'reconstructed') block.append(make('p', 'graph-measurement-detail', reading.detail));
+      if (expanded && reading.kind === 'scenario' && Number.isFinite(reading.modeledShare)) {
+        block.append(make('p', 'graph-measurement-detail', `${percentage.format(reading.modeledShare)} of modeled robot deployments.`));
+      }
       if (expanded && Number.isFinite(reading.ciLowRaw) && Number.isFinite(reading.ciHighRaw)) {
         block.append(make('p', 'graph-measurement-detail', `Reported interval: ${formatRaw(series, reading.ciLowRaw)}–${formatRaw(series, reading.ciHighRaw)}.`));
       }
@@ -298,7 +302,7 @@ export function mountGraph(element) {
       { id: 'year-pill', type: 'rect', silent: true, z: 7, shape: { x: clamp(currentX - 25, layout.gx, x(2040) - 50), y: layout.gy - 28, width: 50, height: 21 }, style: { fill: '#C7CDD0' } },
       { id: 'year-text', type: 'text', silent: true, z: 8, x: clamp(currentX, layout.gx + 25, x(2040) - 25), y: layout.gy - 17, style: { text: String(year), fill: '#080A0B', align: 'center', verticalAlign: 'middle', font: `11px ${font}` } },
     ];
-    const endpointPositions = placeEndpointLabels(graphSeries.map((series, index) => ({ id: series.id, index, y: y(endpoints[index]?.value) })), layout.gy - 5, layout.gy + layout.gh - 84, 78);
+    const endpointPositions = placeEndpointLabels(graphSeries.map((series, index) => ({ id: series.id, index, y: y(endpoints[index]?.value) })), layout.gy - 5, layout.gy + layout.gh - 84, 80);
     graphSeries.forEach((series, index) => {
       const active = activeSeries.has(series.id), reading = readingAt(index, year), hasReading = positive(reading?.value);
       const pointY = hasReading ? y(reading.value) : layout.gy;
@@ -344,9 +348,12 @@ export function mountGraph(element) {
 
   function updateYear(next) {
     const snapped = snapYear(next);
+    // Native range input can move inside the current stop's snap interval.
+    // Reset its coordinate even when the graph itself needs no rerender.
+    slider.value = String(snapped);
     if (snapped === year && element.dataset.inspectedYear === String(year)) return;
     if (snapped !== year) hidePreview();
-    year = snapped; slider.value = String(year);
+    year = snapped;
     slider.setAttribute('aria-valuetext', `${year}${year > 2026 ? ', possible future' : ', historical event'}`);
     output.value = String(year); output.textContent = String(year); element.dataset.inspectedYear = String(year);
     renderGraphics();
@@ -429,7 +436,7 @@ export function mountGraph(element) {
         });
       }
       // Hidden point symbols have no per-item display element. Use ECharts'
-      // supported manual-content action, anchored to the annual cursor instead.
+      // supported manual-content action, anchored to the inspection cursor.
       chart.dispatchAction({ type: 'showTip', x: anchor[0], y: anchor[1], tooltip: { formatter: () => popup } });
       const plotRect = plot.getBoundingClientRect();
       popupDistance = distanceToPopup(plotRect.left + anchor[0], plotRect.top + anchor[1]);
@@ -548,24 +555,31 @@ export function mountGraph(element) {
     showYearMenu([x(year), y(100)], { immediate: true, focus: true, opener });
   };
   listen(element.querySelector('.graph-open-year'), 'click', event => openYear(event.currentTarget));
+  const navigateYear = event => {
+    const steps = { ArrowLeft: -1, ArrowDown: -1, ArrowRight: 1, ArrowUp: 1, PageDown: -1, PageUp: 1 };
+    if (event.key in steps) { event.preventDefault(); updateYear(stepYear(year, steps[event.key])); return true; }
+    if (event.key === 'Home' || event.key === 'End') { event.preventDefault(); updateYear(event.key === 'Home' ? graphDomain.firstYear : graphDomain.lastYear); return true; }
+    return false;
+  };
   listen(plot, 'keydown', event => {
     if (popup.contains(event.target)) return;
-    const steps = { ArrowLeft: -1, ArrowDown: -1, ArrowRight: 1, ArrowUp: 1 };
-    if (event.key in steps) { event.preventDefault(); updateYear(year + steps[event.key]); }
-    else if (event.key === 'Home' || event.key === 'End') { event.preventDefault(); updateYear(event.key === 'Home' ? 2015 : 2040); }
-    else if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openYear(plot); }
+    if (navigateYear(event)) return;
+    if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openYear(plot); }
   });
   listen(slider, 'input', () => updateYear(slider.value));
-  listen(slider, 'keydown', event => { if (event.key === 'Enter') { event.preventDefault(); openYear(slider); } });
+  listen(slider, 'keydown', event => {
+    if (navigateYear(event)) return;
+    if (event.key === 'Enter') { event.preventDefault(); openYear(slider); }
+  });
   const wheel = event => {
     if (event.ctrlKey || popup.contains(event.target) || ![plot, slider].includes(document.activeElement)) return;
     const delta = event.deltaY || event.deltaX; if (!delta) return;
-    if ((year === 2040 && delta > 0) || (year === 2015 && delta < 0)) return;
+    if ((year === graphDomain.lastYear && delta > 0) || (year === graphDomain.firstYear && delta < 0)) return;
     event.preventDefault(); const now = performance.now();
     if (now - wheelEventTime > 180 || Math.sign(delta) !== Math.sign(wheelDelta)) wheelDelta = 0;
     wheelEventTime = now;
     wheelDelta += delta * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? layout.height : 1);
-    if (Math.abs(wheelDelta) >= 40 && now - wheelTime > 110) { updateYear(year + Math.sign(wheelDelta)); wheelDelta = 0; wheelTime = now; }
+    if (Math.abs(wheelDelta) >= 40 && now - wheelTime > 110) { updateYear(stepYear(year, wheelDelta)); wheelDelta = 0; wheelTime = now; }
   };
   listen(plot, 'wheel', wheel, { passive: false }); listen(slider, 'wheel', wheel, { passive: false });
   buttons.forEach(button => listen(button, 'click', () => selectView(button.dataset.graphView)));

@@ -89,6 +89,24 @@
       "originalBytes": 19254,
       "lastModified": null,
       "snapshot": "Selected numerical facts; the full source document is not redistributed."
+    },
+    "counterpoint2025": {
+      "url": "https://counterpointresearch.com/en/insights/Global-Humanoid-Robot-Installations-Reach-16,000-Units-in-2025-as-Mass-Production-Picks-Pace",
+      "retrievedOn": "2026-11-17",
+      "publishedOn": "2026-01-14",
+      "originalSha256": null,
+      "originalBytes": null,
+      "lastModified": null,
+      "snapshot": "Numerical facts verified from rendered primary article; direct HTML unavailable (403), no original-byte hash asserted."
+    },
+    "counterpoint2026": {
+      "url": "https://counterpointresearch.com/en/insights/global-humanoid-robot-shipments-soar-nearly-300-percent-yoy-in-h1-2026",
+      "retrievedOn": "2026-11-17",
+      "publishedOn": "2026-08-20",
+      "originalSha256": null,
+      "originalBytes": null,
+      "lastModified": null,
+      "snapshot": "Numerical facts verified from rendered primary article; direct HTML unavailable (403), no original-byte hash asserted."
     }
   },
   "metr": {
@@ -2801,5 +2819,25 @@
     47,
     38,
     34
-  ]
+  ],
+  "humanoidDeployments": {
+    "observations": [
+      {
+        "year": 2025,
+        "value": 16000,
+        "source": "counterpoint2025",
+        "approximate": true,
+        "precision": "Approximately 16,000 additional installations",
+        "detail": "Counterpoint reports approximately 16,000 additional humanoid installations worldwide during 2025. This is an annual flow estimate, not cumulative stock or a task-performance score. No annual counts before 2025 are asserted."
+      }
+    ],
+    "forecast2026Shipments": 50000,
+    "forecastQualifier": "more than 50,000; rounded conservative author-selected anchor",
+    "partial2026": {
+      "value": 22000,
+      "coverage": "H1 lower bound; not full-year",
+      "source": "counterpoint2026"
+    },
+    "scope": "Counterpoint worldwide humanoid installations in 2025 and shipments in 2026, including research, data collection, entertainment, service, logistics and industrial applications. Shipments are a deployment proxy, not proof of productive operation. The population differs from IFR industrial robot installations; their ratio is not an observed humanoid share of all robots. Any future total-deployment proxy and humanoid relative-count ratio are authored scenario assumptions, not a measured all-robot census."
+  }
 }

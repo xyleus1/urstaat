@@ -26,13 +26,52 @@ or deploy the committed website. ES modules require HTTP rather than file://.
 - `hero/renderer.js`: ASCII actuator integration source.
 - `hero/assets/`: compressed actuator model, font, attribution, and licenses.
 
-The graph uses illustrative synthetic trajectories, not measured observations.
-The sources page and media manifests retain the footage credits and rights notes.
+The graph combines audited publisher observations, labeled historical
+reconstructions, and authored future scenarios. Each series uses its own
+reported 2025 value as index 100, with one shared compressed display scale.
+The sources page documents the metrics and assumptions; media manifests retain
+the footage credits and rights notes.
 
-## Rebuild the annual graph
+## Graph data and scenarios
 
-The graph normalizes each existing curve to 2026 = 100. Its timeline contains
-72 historical video stories and 84 future scenario stories. Future stories use
+Humanoid deployment uses Counterpoint's approximate 16,000 additional
+installations in 2025. Earlier counts are unavailable. Its 50,000-unit 2026
+scenario anchor conservatively represents a published forecast of **more than**
+50,000 shipments; the separately recorded H1 figure of over 22,000 is not a
+full-year observation. Robot deployment uses IFR annual industrial installations:
+603,307 in 2025 and a 655,000 forecast for 2026. It shares its historical proxy
+with Specialist robots. IFR's industrial population and Counterpoint's broader
+humanoid population differ, so their observed ratio is not market share.
+
+The authored future robot-deployment trajectory follows the LLM curve's
+proportional growth and 2035 pause, reaching about 4.23 billion robots/year by
+2040. This is a scenario anchored to industrial installations, not an IFR
+forecast or an all-robot census. Humanoid counts initially follow that growth,
+then increase sublinearly: with `g = robot deployments / 655000`,
+`humanoids = 50000 * (1 + (10 / 0.6) * ((1 + (g - 1) / 10)^0.6 - 1))`.
+Counts do not decrease; their modeled fraction falls from about 7.63% in 2026
+to 0.94% in 2040. Raw readouts use robots/year and the projected humanoid panel
+shows this modeled fraction. Vertical gaps between separately normalized lines
+do not show count shares.
+
+Other scenario anchors remain: a ten-work-year LLM ceiling and 2035 pause;
+interaction data approaching 30 times its inventory, reaching 95% in 2031;
+specialist installations peaking at four times their 2025 value in 2031 and
+ending at one quarter in 2040; and hardware prices approaching a 3% floor with
+a 1.1-year half-life above it. Deterministic monotone PCHIP timing variations
+soften the pace between fixed 2026, 2030, 2031, 2035, and 2040 anchors. They add
+no observations. The plot remains continuous and densely sampled; inspection
+steps are annual from 2015 through 2026, then 2030, 2035, and 2040.
+
+`site/data/observed-inputs.json` retains the source facts and earlier
+HumanoidBench/IFR stock inputs. `site/tests/observed-baseline.json` independently
+pins observations and archives the retired benchmark and stock fixtures in
+`retiredSeries`; those older measures are not deployment counts.
+
+## Rebuild the graph
+
+The story manifests contain 72 historical video stories and 84 future scenario
+stories. Future stories use
 intentional "Sketch forthcoming" placeholders for this release. Their reserved
 asset paths and Recraft prompts are in `site/graph-future-stories.json`.
 No generation credentials are shipped.
@@ -41,19 +80,27 @@ After changing the story manifests, run `node site/build-stories.mjs`.
 It validates complete coverage and permits only explicitly declared artwork
 placeholders. For the later artwork release, install each sketch at its reserved
 path, change its media state to `ready`, and use `--require-art` to enforce all
-84 unique images. The committed frontend bundle is generated in `site/`:
+84 unique images. To rebuild numerical data offline from the audited inputs,
+install the pinned Python dependencies as well as the frontend dependencies:
 
 ```sh
 cd site
 npm ci
+python -m pip install -r scripts/requirements-graph.txt
+npm run build:data
+node build-stories.mjs
+npm run build
 npm test
 npm run test:browser
-npm run build
-node build-stories.mjs
 ```
 
+`npm run refresh:data` rechecks primary sources before rebuilding. If
+Counterpoint blocks direct HTML retrieval, it retains the previously verified
+snapshot and its verification date with an explicit refresh-status note; no original-byte hash is
+asserted for the rendered-article verification.
+
 The publication check rejects unplanned missing, invalid, or duplicate artwork.
-ECharts 6.1.0 and Motion 14.14.0 are bundled
+ECharts 6.1.0, D3 Scale 4.0.2, and Motion 14.14.0 are bundled
 locally; their licenses are included in `site/vendor/LICENSES.txt`.
 
 Development requires Node 22+ and npm. `npm ci` also installs Puppeteer's

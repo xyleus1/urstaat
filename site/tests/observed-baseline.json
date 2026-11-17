@@ -1,6 +1,6 @@
 {
   "baselineCommit": "a059d0e",
-  "description": "Audited observed annual knots before continuous historical reconstruction; estimates must never replace these readings.",
+  "description": "Audited observed annual knots; estimates must never replace these readings. The November 17, 2026 deployment-metric revision is recorded below; the previous benchmark and stock fixtures remain archived.",
   "series": [
     {
       "id": "llm",
@@ -68,19 +68,9 @@
       "points": [
         {
           "year": 2025,
-          "raw": 0.776,
+          "raw": 16000,
           "value": 100,
-          "date": "2025",
-          "ciLowRaw": 0.705,
-          "ciHighRaw": 0.849
-        },
-        {
-          "year": 2026,
-          "raw": 0.825,
-          "value": 106.31443298969072,
-          "date": "2026",
-          "ciLowRaw": 0.748,
-          "ciHighRaw": 0.902
+          "date": "2025-12-31"
         }
       ]
     },
@@ -160,67 +150,67 @@
       "points": [
         {
           "year": 2015,
-          "raw": 1632000,
-          "value": 32.131816050078385,
+          "raw": 254000,
+          "value": 42.1012850837136,
           "date": "2015-12-31"
         },
         {
           "year": 2016,
-          "raw": 1838000,
-          "value": 36.187670281889744,
+          "raw": 304000,
+          "value": 50.388939627751704,
           "date": "2016-12-31"
         },
         {
           "year": 2017,
-          "raw": 2125000,
-          "value": 41.838302148539555,
+          "raw": 400000,
+          "value": 66.30123635230488,
           "date": "2017-12-31"
         },
         {
           "year": 2018,
-          "raw": 2441000,
-          "value": 48.059903785687084,
+          "raw": 423000,
+          "value": 70.11355744256241,
           "date": "2018-12-31"
         },
         {
           "year": 2019,
-          "raw": 2737000,
-          "value": 53.88773316731895,
+          "raw": 387000,
+          "value": 64.14644617085497,
           "date": "2019-12-31"
         },
         {
           "year": 2020,
-          "raw": 3027000,
-          "value": 59.59743087229611,
+          "raw": 390000,
+          "value": 64.64370544349725,
           "date": "2020-12-31"
         },
         {
           "year": 2021,
-          "raw": 3479000,
-          "value": 68.49668384695018,
+          "raw": 526000,
+          "value": 87.18612580328092,
           "date": "2021-12-31"
         },
         {
           "year": 2022,
-          "raw": 3904000,
-          "value": 76.86434427665809,
+          "raw": 552946,
+          "value": 91.65250859015394,
           "date": "2022-12-31"
         },
         {
           "year": 2023,
-          "raw": 4282000,
-          "value": 84.30663990590418,
+          "raw": 541302,
+          "value": 89.72247959993834,
           "date": "2023-12-31"
         },
         {
           "year": 2024,
-          "raw": 4663698,
-          "value": 91.82174402519513,
+          "raw": 542076,
+          "value": 89.85077249228006,
           "date": "2024-12-31"
         },
         {
           "year": 2025,
-          "raw": 5079078,
+          "raw": 603307,
           "value": 100,
           "date": "2025-12-31"
         }
@@ -326,5 +316,112 @@
         }
       ]
     }
-  ]
+  ],
+  "retiredSeries": [
+    {
+      "id": "humanoid",
+      "points": [
+        {
+          "year": 2025,
+          "raw": 0.776,
+          "value": 100,
+          "date": "2025",
+          "ciLowRaw": 0.705,
+          "ciHighRaw": 0.849
+        },
+        {
+          "year": 2026,
+          "raw": 0.825,
+          "value": 106.31443298969072,
+          "date": "2026",
+          "ciLowRaw": 0.748,
+          "ciHighRaw": 0.902
+        }
+      ],
+      "metric": "HumanoidBench locomotion mean success-normalized return",
+      "retiredOn": "2026-11-17",
+      "reason": "Archived capability benchmark; these values are not humanoid deployment counts."
+    },
+    {
+      "id": "deployment",
+      "points": [
+        {
+          "year": 2015,
+          "raw": 1632000,
+          "value": 32.131816050078385,
+          "date": "2015-12-31"
+        },
+        {
+          "year": 2016,
+          "raw": 1838000,
+          "value": 36.187670281889744,
+          "date": "2016-12-31"
+        },
+        {
+          "year": 2017,
+          "raw": 2125000,
+          "value": 41.838302148539555,
+          "date": "2017-12-31"
+        },
+        {
+          "year": 2018,
+          "raw": 2441000,
+          "value": 48.059903785687084,
+          "date": "2018-12-31"
+        },
+        {
+          "year": 2019,
+          "raw": 2737000,
+          "value": 53.88773316731895,
+          "date": "2019-12-31"
+        },
+        {
+          "year": 2020,
+          "raw": 3027000,
+          "value": 59.59743087229611,
+          "date": "2020-12-31"
+        },
+        {
+          "year": 2021,
+          "raw": 3479000,
+          "value": 68.49668384695018,
+          "date": "2021-12-31"
+        },
+        {
+          "year": 2022,
+          "raw": 3904000,
+          "value": 76.86434427665809,
+          "date": "2022-12-31"
+        },
+        {
+          "year": 2023,
+          "raw": 4282000,
+          "value": 84.30663990590418,
+          "date": "2023-12-31"
+        },
+        {
+          "year": 2024,
+          "raw": 4663698,
+          "value": 91.82174402519513,
+          "date": "2024-12-31"
+        },
+        {
+          "year": 2025,
+          "raw": 5079078,
+          "value": 100,
+          "date": "2025-12-31"
+        }
+      ],
+      "metric": "IFR year-end operational industrial robot stock",
+      "retiredOn": "2026-11-17",
+      "reason": "Archived stock measure; active deployment now uses annual industrial installations for flow-unit comparison."
+    }
+  ],
+  "metricRevision": {
+    "reviewedOn": "2026-11-17",
+    "humanoid": "Annual 2025 installations, approximately 16,000, independently read from Counterpoint. No pre-2025 annual-count fixture or confidence interval is invented; 2026 remains a forecast outside observed fixture points.",
+    "humanoidSource": "https://counterpointresearch.com/en/insights/Global-Humanoid-Robot-Installations-Reach-16,000-Units-in-2025-as-Mass-Production-Picks-Pace",
+    "deployment": "Annual IFR industrial installations copied from the pre-existing independently audited specialist fixture, not from newly generated output. Both measures share this historical industrial proxy; it is not a census of all robots.",
+    "retained": "LLM, specialist, data and hardware fixture series are unchanged. Earlier humanoid benchmark and deployment stock points remain in retiredSeries."
+  }
 }
