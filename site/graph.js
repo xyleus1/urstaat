@@ -1,5 +1,5 @@
 import { init, animate } from './vendor/graph-vendor.js?v=finish-1';
-import { graphSeries, graphViews, sampleSeries, interpolateSample, snapYear, findLineHits, placeEndpointLabels } from './graph-data.js?v=finish-1';
+import { graphDomain, graphSeries, graphViews, sampleSeries, readingAt, formatIndex, formatRaw, snapYear, placeEndpointLabels } from './graph-data.js?v=sourced-indices-1';
 import { getStory } from './graph-stories.js?v=finish-1';
 
 const clamp = (value, low, high) => Math.max(low, Math.min(high, value));
@@ -13,6 +13,11 @@ const absolute = source => new URL(source, import.meta.url).href;
 const safeSource = source => {
   try { const url = new URL(source); return ['https:', 'http:'].includes(url.protocol) ? url.href : null; } catch { return null; }
 };
+const compactNumber = new Intl.NumberFormat('en-US', { notation: 'compact', maximumSignificantDigits: 3 });
+const displayIndex = value => Number.isFinite(value) ? compactNumber.format(value) : '—';
+const displayMultiple = value => Number.isFinite(value) ? `${compactNumber.format(value / 100)}×` : '—';
+const positive = value => Number.isFinite(value) && value > 0;
+const axisIndex = value => positive(value) && value < .01 ? value.toExponential(0).replace('e-', 'e−') : displayIndex(value);
 let youtubeReady;
 let mediaSequence = 0;
 
@@ -152,8 +157,8 @@ export function mountGraph(element) {
   const motionPreference = matchMedia('(prefers-reduced-motion: reduce)');
   let reducedMotion = motionPreference.matches;
   const samples = graphSeries.map((_, index) => sampleSeries(index));
-  const envelopes = graphSeries.map((_, index) => [sampleSeries(index, -1.2), sampleSeries(index, 1.2)]);
-  let year = 2026, selectedView = 'all', activeSeries = new Set(graphSeries.map(series => series.id));
+  const endpoints = graphSeries.map((_, index) => readingAt(index, graphDomain.lastYear));
+  let year = graphDomain.dividerYear, selectedView = 'all', activeSeries = new Set(graphSeries.map(series => series.id));
   let layout, disposed = false, resizeFrame = 0, hoverTimer, hideTimer, previewMedia, panelMedia, panelAnimation, popupAnimation;
   let previewKey = '', pendingPreviewKey = '', previewState = null, opened = null, lastOpener = null, panelRevision = 0;
   let tooltipAnchor = [0, 0], pointerStart = null, wheelDelta = 0, wheelTime = 0, wheelEventTime = 0, popupDistance = Infinity;
@@ -167,12 +172,12 @@ export function mountGraph(element) {
     <div class="graph-heading"><h2 id="trajectories-title">From intelligence to work.</h2></div>
     <div class="graph-toolbar" role="group" aria-label="Highlight trajectories">
       ${graphViews.map(view => `<button type="button" data-graph-view="${view.id}" aria-pressed="${view.id === 'all'}">${view.label}</button>`).join('')}
-      <span class="graph-status">Illustrative index · 2026 = 100</span>
+      <span class="graph-status">Index · 2025 = 100 · log scale</span>
     </div>
     <div class="graph-stage">
-      <div class="graph-plot" tabindex="0" role="group" aria-label="Six illustrative robotics trajectories from 2015 to 2040. Use arrow keys to choose a year and Enter to open its menu."></div>
+      <div class="graph-plot" tabindex="0" role="group" aria-label="Six sourced robotics indices and projected scenarios from 2015 to 2040, on a logarithmic scale. Each index uses its own measured 2025 baseline of 100. Use arrow keys to choose a year and Enter to open its menu."></div>
       <div class="graph-labels" role="group" aria-label="2040 endpoints. Choose a trajectory to highlight it.">
-        ${graphSeries.map((series, index) => `<button type="button" class="graph-label" data-graph-series="${series.id}" style="--series-color:${series.color}" aria-pressed="false"><span class="graph-label-name">${series.name}</span><span class="graph-label-definition">2040 · 2026 = 100</span><span class="graph-label-value">${samples[index][250].value.toFixed(1)} <span>· ${(samples[index][250].value / 100).toFixed(2)}×</span></span><span class="graph-label-metric">${series.definition}</span></button>`).join('')}
+        ${graphSeries.map((series, index) => `<button type="button" class="graph-label" data-graph-series="${series.id}" style="--series-color:${series.color}" aria-pressed="false"><span class="graph-label-name">${series.name}</span><span class="graph-label-definition">2040 projection · 2025 = 100</span><span class="graph-label-value">${displayIndex(endpoints[index]?.value)} <span>· ${displayMultiple(endpoints[index]?.value)}</span></span><span class="graph-label-metric">${series.definition}</span></button>`).join('')}
       </div>
     </div>
     <div class="graph-scrubber"><label for="trajectory-year">Explore a year</label><input id="trajectory-year" type="range" min="2015" max="2040" step="1" value="2026" aria-label="Year to inspect"><output for="trajectory-year">2026</output><button type="button" class="graph-open-year">Open year <span aria-hidden="true">↗</span></button></div>
@@ -185,17 +190,48 @@ export function mountGraph(element) {
   const popup = make('div', 'graph-popup');
   popup.setAttribute('role', 'dialog'); popup.setAttribute('aria-label', 'Event preview');
   const chart = init(plot, null, { renderer: 'svg' });
-  const x = value => layout.gx + (value - 2015) / 25 * layout.gw;
-  const y = value => layout.gy + layout.gh * (1 - value / 900);
+  const x = value => chart.convertToPixel({ xAxisIndex: 0 }, value);
+  const y = value => positive(value) ? chart.convertToPixel({ yAxisIndex: 0 }, value) : NaN;
+
+  function measurement(seriesIndex, selectedYear, expanded = false) {
+    const series = graphSeries[seriesIndex], reading = readingAt(seriesIndex, selectedYear);
+    const block = make('div', 'graph-measurement');
+    block.dataset.kind = reading?.kind || 'unreported';
+    block.append(make('p', 'graph-measurement-name', series.definition));
+    if (!reading || !positive(reading.value)) {
+      block.append(make('p', 'graph-measurement-status', `No comparable observation reported for ${selectedYear}.`));
+    } else {
+      block.append(make('p', 'graph-measurement-value', `${reading.approximate ? '≈ ' : ''}${formatRaw(series, reading.raw)} · index ${formatIndex(reading.value)}`));
+      const kind = reading.kind === 'scenario' ? 'Projected' : 'Observed';
+      const date = reading.date || String(selectedYear);
+      const period = reading.coverage === 'year-to-date' ? `YTD through ${date}` : date;
+      block.append(make('p', 'graph-measurement-status', `${kind} · ${period} · 2025 = 100`));
+      if (expanded && reading.detail) block.append(make('p', 'graph-measurement-detail', reading.detail));
+      if (expanded && Number.isFinite(reading.ciLowRaw) && Number.isFinite(reading.ciHighRaw)) {
+        block.append(make('p', 'graph-measurement-detail', `Reported interval: ${formatRaw(series, reading.ciLowRaw)}–${formatRaw(series, reading.ciHighRaw)}.`));
+      }
+    }
+    const source = reading?.kind === 'scenario' ? absolute('../sources/#trajectories') : safeSource(reading?.sourceUrl || series.sourceUrl);
+    if (source) {
+      const link = make('a', 'graph-measurement-source', reading?.kind === 'scenario' ? 'Scenario assumptions ↗' : 'Metric source ↗');
+      link.href = source; link.target = '_blank'; link.rel = 'noopener noreferrer'; block.append(link);
+    }
+    return block;
+  }
 
   function buildSeries() {
     return graphSeries.flatMap((series, index) => {
       const active = activeSeries.has(series.id), focused = activeSeries.size < 6;
-      const common = { type: 'line', smooth: false, showSymbol: false, symbol: 'none', animation: false, clip: true, emphasis: { disabled: true }, select: { disabled: true } };
+      const common = { type: 'line', smooth: false, showSymbol: false, symbol: 'none', connectNulls: false, animation: false, clip: true, emphasis: { disabled: true }, select: { disabled: true } };
+      const points = samples[index], firstScenario = points.findIndex(point => point.kind === 'scenario');
+      const history = points.map(point => [point.year, point.kind === 'observed' && positive(point.value) ? point.value : null]);
+      // Include the last measured anchor in the dashed projection, without
+      // changing that observation's own status or filling absent historical years.
+      const futureStart = firstScenario > 0 && positive(points[firstScenario - 1].value) ? firstScenario - 1 : firstScenario;
+      const future = firstScenario < 0 ? [] : points.slice(futureStart).map(point => [point.year, positive(point.value) ? point.value : null]);
       return [
-        ...envelopes[index].map((points, bound) => ({ ...common, id: `${series.id}-bound-${bound}`, silent: true, data: points.slice(110).map(point => [point.year, point.value]), lineStyle: { color: series.color, width: .8, type: [2, 4], opacity: active ? .2 : .035 }, tooltip: { show: false }, z: 1 })),
-        { ...common, id: `${series.id}-history`, name: series.name, data: samples[index].slice(0, 111).map(point => [point.year, point.value]), triggerEvent: true, lineStyle: { color: series.color, width: active && focused ? 2.4 : 1.7, opacity: active ? 1 : .13 }, z: active ? 3 : 2 },
-        { ...common, id: `${series.id}-future`, name: series.name, data: samples[index].slice(110).map(point => [point.year, point.value]), triggerEvent: true, lineStyle: { color: series.color, width: active && focused ? 2.4 : 1.7, type: [5, 4], opacity: active ? 1 : .13 }, z: active ? 3 : 2 },
+        { ...common, id: `${series.id}-history`, name: series.name, data: history, step: series.historyStep || false, showSymbol: true, symbol: 'circle', symbolSize: 3, itemStyle: { color: series.color, opacity: active ? .8 : .1 }, triggerEvent: true, lineStyle: { color: series.color, width: active && focused ? 2.4 : 1.7, opacity: active ? 1 : .13 }, z: active ? 3 : 2 },
+        { ...common, id: `${series.id}-future`, name: series.name, data: future, triggerEvent: true, lineStyle: { color: series.color, width: active && focused ? 2.4 : 1.7, type: [5, 4], opacity: active ? 1 : .13 }, z: active ? 3 : 2 },
       ];
     });
   }
@@ -203,8 +239,8 @@ export function mountGraph(element) {
     animation: !reducedMotion, animationDuration: 0, animationDurationUpdate: 160, backgroundColor: 'transparent',
     textStyle: { fontFamily: getComputedStyle(element).fontFamily },
     grid: { left: 44, right: 270, top: 57, bottom: 60 },
-    xAxis: { type: 'value', min: 2015, max: 2040, interval: 5, axisLine: { show: false }, axisTick: { show: false }, axisLabel: { color: '#929A9F', fontSize: 11, margin: 16, formatter: value => String(value) }, splitLine: { lineStyle: { color: '#343B40', width: .7 } }, minorTick: { splitNumber: 5 }, minorSplitLine: { show: true, lineStyle: { color: '#20272C', width: .5 } } },
-    yAxis: { type: 'value', min: 0, max: 900, interval: 100, axisLine: { show: false }, axisTick: { show: false }, axisLabel: { color: '#929A9F', fontSize: 11, margin: 12 }, splitLine: { lineStyle: { color: '#343B40', width: .7 } }, minorTick: { splitNumber: 2 }, minorSplitLine: { show: true, lineStyle: { color: '#20272C', width: .5 } } },
+    xAxis: { type: 'value', min: graphDomain.firstYear, max: graphDomain.lastYear, interval: 5, axisLine: { show: false }, axisTick: { show: false }, axisLabel: { color: '#929A9F', fontSize: 11, margin: 16, formatter: value => String(value) }, splitLine: { lineStyle: { color: '#343B40', width: .7 } }, minorTick: { splitNumber: 5 }, minorSplitLine: { show: true, lineStyle: { color: '#20272C', width: .5 } } },
+    yAxis: { type: 'log', logBase: 10, interval: 1, min: graphDomain.minimum, max: graphDomain.maximum, axisLine: { show: false }, axisTick: { show: false }, axisLabel: { color: '#929A9F', fontSize: 11, margin: 12, formatter: axisIndex }, splitLine: { lineStyle: { color: '#343B40', width: .7 } }, minorTick: { splitNumber: 5 }, minorSplitLine: { show: true, lineStyle: { color: '#20272C', width: .5 } } },
     tooltip: {
       trigger: 'item', triggerOn: 'none', renderMode: 'html', enterable: true, confine: true,
       // This menu owns its hide lifecycle; ECharts must not dismiss focused
@@ -231,23 +267,35 @@ export function mountGraph(element) {
       { id: 'future-field', type: 'rect', silent: true, z: -1, shape: { x: x(2026), y: layout.gy, width: x(2040) - x(2026), height: layout.gh }, style: { fill: 'rgba(199,205,208,.022)' } },
       { id: 'divider', type: 'line', silent: true, z: 4, shape: { x1: x(2026), x2: x(2026), y1: layout.gy, y2: layout.gy + layout.gh }, style: { stroke: '#C7CDD0', opacity: .4, lineWidth: 1 } },
       { id: 'divider-text', type: 'text', silent: true, z: 5, x: x(2026) + 5, y: layout.gy + 12, style: { text: '2026', fill: '#929A9F', font: `11px ${font}`, opacity: Math.abs(currentX - x(2026)) < 50 ? 0 : 1 } },
-      { id: 'axis-title', type: 'text', silent: true, x: layout.gx, y: 13, style: { text: 'Index · 2026 = 100', fill: '#929A9F', font: `10px ${font}` } },
-      { id: 'future-title', type: 'text', silent: true, x: x(2040), y: 13, style: { text: 'Possible paths', fill: '#929A9F', align: 'right', font: `10px ${font}` } },
+      { id: 'axis-title', type: 'text', silent: true, x: layout.gx, y: 13, style: { text: layout.width < 500 ? '2025 = 100 · log scale' : 'Index · 2025 = 100 · log scale', fill: '#929A9F', font: `10px ${font}` } },
+      { id: 'future-title', type: 'text', silent: true, x: x(2040), y: 13, style: { text: layout.width < 500 ? 'Scenarios' : 'Projected scenarios', fill: '#929A9F', align: 'right', font: `10px ${font}` } },
       { id: 'crosshair', type: 'line', silent: true, z: 6, shape: { x1: currentX, x2: currentX, y1: layout.gy, y2: layout.gy + layout.gh }, style: { stroke: '#C7CDD0', opacity: .6, lineWidth: 1, lineDash: [2, 4] } },
       { id: 'year-pill', type: 'rect', silent: true, z: 7, shape: { x: clamp(currentX - 25, layout.gx, x(2040) - 50), y: layout.gy - 28, width: 50, height: 21 }, style: { fill: '#C7CDD0' } },
       { id: 'year-text', type: 'text', silent: true, z: 8, x: clamp(currentX, layout.gx + 25, x(2040) - 25), y: layout.gy - 17, style: { text: String(year), fill: '#080A0B', align: 'center', verticalAlign: 'middle', font: `11px ${font}` } },
     ];
-    const endpoints = placeEndpointLabels(graphSeries.map((series, index) => ({ id: series.id, index, y: y(samples[index][250].value) })), layout.gy - 5, layout.gy + layout.gh - 66, 70);
+    const endpointPositions = placeEndpointLabels(graphSeries.map((series, index) => ({ id: series.id, index, y: y(endpoints[index]?.value) })), layout.gy - 5, layout.gy + layout.gh - 84, 78);
     graphSeries.forEach((series, index) => {
-      const active = activeSeries.has(series.id), pointY = y(interpolateSample(samples[index], year));
+      const active = activeSeries.has(series.id), reading = readingAt(index, year), hasReading = positive(reading?.value);
+      const pointY = hasReading ? y(reading.value) : layout.gy;
       elements.push(
-        { id: `halo-${series.id}`, type: 'circle', silent: true, z: 7, shape: { cx: currentX, cy: pointY, r: 8 }, style: { fill: series.color, opacity: active ? .12 : 0 } },
-        { id: `dot-${series.id}`, type: 'circle', silent: true, z: 8, shape: { cx: currentX, cy: pointY, r: active && activeSeries.size < 6 ? 4.6 : 3.8 }, style: { fill: series.color, stroke: '#080A0B', lineWidth: 2, opacity: active ? 1 : .13 } },
+        { id: `halo-${series.id}`, type: 'circle', silent: true, ignore: !hasReading, z: 7, shape: { cx: currentX, cy: pointY, r: 8 }, style: { fill: series.color, opacity: active ? .12 : 0 } },
+        { id: `dot-${series.id}`, type: 'circle', silent: true, ignore: !hasReading, z: 8, shape: { cx: currentX, cy: pointY, r: active && activeSeries.size < 6 ? 4.6 : 3.8 }, style: { fill: series.color, stroke: '#080A0B', lineWidth: 2, opacity: active ? 1 : .13 } },
       );
-      const endpoint = endpoints.find(item => item.id === series.id), labelX = x(2040) + 46;
+      // Whiskers are only the intervals reported with measured observations.
+      // They do not imply a confidence band for the author-defined scenarios.
+      for (const observation of series.observations || []) {
+        if (!positive(observation.ciLow) || !positive(observation.ciHigh)) continue;
+        const intervalX = x(observation.year), lowY = y(observation.ciLow), highY = y(observation.ciHigh);
+        const intervalId = `interval-${series.id}-${observation.year}`;
+        elements.push(
+          { id: intervalId, type: 'line', silent: true, z: 1, shape: { x1: intervalX, x2: intervalX, y1: lowY, y2: highY }, style: { stroke: series.color, opacity: active ? .27 : .035, lineWidth: .8 } },
+          ...[[lowY, 'low'], [highY, 'high']].map(([intervalY, edge]) => ({ id: `${intervalId}-${edge}`, type: 'line', silent: true, z: 1, shape: { x1: intervalX - 3, x2: intervalX + 3, y1: intervalY, y2: intervalY }, style: { stroke: series.color, opacity: active ? .27 : .035, lineWidth: .8 } })),
+        );
+      }
+      const endpoint = endpointPositions.find(item => item.id === series.id), labelX = x(2040) + 46;
       labels[index].style.left = `${labelX}px`; labels[index].style.top = `${endpoint.labelY}px`;
       labels[index].style.width = `${Math.max(0, layout.width - labelX)}px`;
-      labels[index].setAttribute('aria-label', `Highlight ${series.name}. Illustrative ${series.definition.toLowerCase()}. 2040 index ${samples[index][250].value.toFixed(1)}, ${(samples[index][250].value / 100).toFixed(2)} times its 2026 baseline.`);
+      labels[index].setAttribute('aria-label', `Highlight ${series.name}. ${series.definition}. 2040 projected index ${formatIndex(endpoints[index]?.value)}, ${displayMultiple(endpoints[index]?.value)} its measured 2025 baseline.`);
       elements.push({ id: `leader-${series.id}`, type: 'polyline', silent: true, ignore: layout.compact, z: 2, shape: { points: [[x(2040), endpoint.y], [x(2040) + 14, endpoint.y], [labelX - 14, endpoint.labelY + 8], [labelX - 5, endpoint.labelY + 8]] }, style: { stroke: series.color, lineWidth: .8, fill: null, opacity: active ? .85 : .13 } });
     });
     chart.setOption({ graphic: { elements } });
@@ -256,11 +304,12 @@ export function mountGraph(element) {
   function resize() {
     if (disposed) return;
     const width = Math.max(250, Math.round(stage.getBoundingClientRect().width)), compact = width < 980;
-    const plotHeight = width < 500 ? 330 : compact ? 390 : 440;
-    const next = { width, compact, gx: width < 500 ? 38 : 44, gy: 57, gh: plotHeight, gw: width - (compact ? 54 : 304), height: plotHeight + 118 };
+    const plotHeight = width < 500 ? 360 : compact ? 420 : 480;
+    const next = { width, compact, gx: width < 500 ? 42 : 48, gy: 57, gh: plotHeight, gw: width - (compact ? 62 : 308), height: plotHeight + 118 };
     if (layout && layout.width === next.width && layout.height === next.height) return;
     layout = next; element.classList.toggle('is-compact', compact);
     plot.style.height = `${layout.height}px`; popup.style.width = `${Math.min(350, width - 12)}px`;
+    popup.style.maxHeight = `${Math.min(520, layout.height - 12, innerHeight - 24)}px`;
     chart.resize({ width, height: layout.height, silent: true });
     chart.setOption({ grid: { left: layout.gx, right: layout.width - layout.gx - layout.gw, top: layout.gy, bottom: layout.height - layout.gy - layout.gh } });
     renderGraphics(); hidePreview();
@@ -326,9 +375,12 @@ export function mountGraph(element) {
         const choices = make('div', 'graph-popup-choices');
         hits.forEach(hit => {
           const series = graphSeries[hit.seriesIndex], button = make('button', 'graph-popup-choice'); button.type = 'button';
+          const reading = readingAt(hit.seriesIndex, previewYear);
           button.dataset.series = series.id;
           button.style.setProperty('--series-color', series.color);
-          button.append(make('span', '', series.name), make('span', '', interpolateSample(samples[hit.seriesIndex], previewYear).toFixed(1)));
+          const value = make('span', 'graph-popup-choice-value', displayIndex(reading?.value));
+          value.append(make('small', '', reading ? reading.kind === 'scenario' ? 'projected' : 'observed' : 'not reported'));
+          button.append(make('span', '', series.name), value);
           button.addEventListener('click', () => showPreview([hit], anchor, { immediate: true, focus: true, opener })); choices.append(button);
         });
         popup.append(choices);
@@ -339,9 +391,9 @@ export function mountGraph(element) {
         const back = make('button', 'graph-expand graph-preview-back', `← Back to ${previewYear} menu`); back.type = 'button';
         back.addEventListener('click', () => showYearMenu(anchor, { immediate: true, focus: true, opener })); popup.append(back);
         const header = make('div', 'graph-popup-header');
-        header.append(make('p', 'graph-popup-eyebrow', `${previewYear} · ${series.name}`), make('span', 'graph-popup-index', interpolateSample(samples[hit.seriesIndex], previewYear).toFixed(1)));
+        header.append(make('p', 'graph-popup-eyebrow', `${previewYear} · ${series.name}`), make('span', 'graph-popup-index', displayIndex(readingAt(hit.seriesIndex, previewYear)?.value)));
         const mediaHost = make('div', 'graph-preview-media');
-        popup.append(header, mediaHost, make('h3', 'graph-popup-title', story.title));
+        popup.append(header, measurement(hit.seriesIndex, previewYear), mediaHost, make('h3', 'graph-popup-title', story.title));
         const expand = make('button', 'graph-expand', 'Expand event ↗'); expand.type = 'button';
         expand.addEventListener('click', () => openStory(series.id, previewYear, opener)); popup.append(expand);
         requestAnimationFrame(() => {
@@ -376,12 +428,12 @@ export function mountGraph(element) {
     close.addEventListener('click', () => closePanel()); top.append(close);
     const inner = make('div', 'graph-panel-inner'), mediaHost = make('div', 'graph-panel-media'), copy = make('div', 'graph-panel-copy');
     const heading = make('h3', '', story.title); heading.id = 'graph-panel-title'; heading.tabIndex = -1;
-    copy.append(heading, make('p', 'graph-panel-blurb', story.blurb));
+    copy.append(heading, measurement(graphSeries.indexOf(series), story.year, true), make('p', 'graph-panel-blurb', story.blurb));
     const evidenceLabels = { 'lab-demo': 'Research demonstration', launch: 'Product launch', 'operational-report': 'Operational report', pilot: 'Deployment pilot' };
     if (story.evidenceType) copy.append(make('p', 'graph-evidence', evidenceLabels[story.evidenceType] || story.evidenceType));
     const source = safeSource(story.sourceUrl);
     if (source) {
-      const link = make('a', 'graph-source', story.kind === 'scenario' ? 'Research context ↗' : 'Original source ↗');
+      const link = make('a', 'graph-source', story.kind === 'scenario' ? 'Research context ↗' : 'Event source ↗');
       link.href = source; link.target = '_blank'; link.rel = 'noopener noreferrer'; copy.append(link);
     }
     inner.append(mediaHost, copy); panel.append(top, inner);
@@ -420,10 +472,12 @@ export function mountGraph(element) {
     const rect = popup.getBoundingClientRect();
     return Math.hypot(Math.max(rect.left - clientX, 0, clientX - rect.right), Math.max(rect.top - clientY, 0, clientY - rect.bottom));
   }
-  const inGrid = point => point.x >= layout.gx && point.x <= x(2040) && point.y >= layout.gy && point.y <= layout.gy + layout.gh;
-  const inspectPoint = (point, tolerance) => {
-    const hits = findLineHits(samples, activeSeries, point, layout, tolerance);
-    updateYear(2015 + (point.x - layout.gx) / layout.gw * 25); return hits;
+  const inGrid = point => chart.containPixel({ gridIndex: 0 }, [point.x, point.y]);
+  const inspectPoint = point => {
+    // Every plot position opens the year menu. No per-line hit test competes
+    // with that menu, and ECharts handles the fixed logarithmic coordinates.
+    const inspected = chart.convertFromPixel({ xAxisIndex: 0 }, point.x);
+    if (Number.isFinite(inspected)) updateYear(inspected);
   };
   listen(plot, 'pointermove', event => {
     if (popup.contains(event.target) || (event.pointerType !== 'mouse' && !pointerStart)) return;
@@ -502,8 +556,15 @@ export function mountGraph(element) {
   observer.observe(plot); resize(); updateYear(year);
   const controller = {
     selectView, setYear: updateYear, openStory, closePanel,
+    pointFor(seriesId, selectedYear = year) {
+      const index = graphSeries.findIndex(series => series.id === seriesId);
+      if (index < 0) return null;
+      const chosenYear = snapYear(selectedYear), reading = readingAt(index, chosenYear);
+      return positive(reading?.value) ? { x: x(chosenYear), y: y(reading.value) } : null;
+    },
     get status() {
-      return { year, view: selectedView, activeSeries: [...activeSeries], values: Object.fromEntries(graphSeries.map((series, index) => [series.id, interpolateSample(samples[index], year)])), endpoints: Object.fromEntries(graphSeries.map((series, index) => [series.id, samples[index][250].value])), layout: { ...layout }, preview: previewState, opened: opened ? { ...opened } : null, synthetic: true, baselineYear: 2026, renderer: 'echarts-svg' };
+      const readings = Object.fromEntries(graphSeries.map((series, index) => [series.id, readingAt(index, year)]));
+      return { year, view: selectedView, activeSeries: [...activeSeries], values: Object.fromEntries(graphSeries.map(series => [series.id, readings[series.id]?.value ?? null])), readings, endpoints: Object.fromEntries(graphSeries.map((series, index) => [series.id, endpoints[index]?.value ?? null])), layout: { ...layout }, preview: previewState, opened: opened ? { ...opened } : null, synthetic: false, sourcedHistory: true, baselineYear: graphDomain.baselineYear, scale: 'log', domain: { ...graphDomain }, renderer: 'echarts-svg' };
     },
     destroy() {
       if (disposed) return;

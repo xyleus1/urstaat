@@ -1,35 +1,48 @@
-// Values and sampling are transcribed from the existing figma-chart.js.
-// They are illustrative design-study curves, not observations or forecasts.
-export const graphDomain = Object.freeze({ firstYear: 2015, lastYear: 2040, dividerYear: 2026, minimum: 0, maximum: 900 });
+import { observedGraph } from './graph-observations.js?v=sourced-indices-1';
+
+// Numeric observations and scenario samples are generated offline from the
+// audited source snapshot. The browser selects, formats and projects them.
+export const graphDomain = Object.freeze(observedGraph.domain);
+export const scenarioParameters = Object.freeze(observedGraph.scenarioParameters);
 export const graphSeries = Object.freeze([
-  { id: 'llm', name: 'LLM performance', color: '#8EAAF0', midpoint: 9, slope: .47, ceiling: 90, definition: 'Language capability index', rail: 75 },
-  { id: 'humanoid', name: 'Humanoid development', color: '#D98B6A', midpoint: 16, slope: .33, ceiling: 82, definition: 'Embodied capability index', rail: 198 },
-  { id: 'specialist', name: 'Specialist robots', color: '#A4BB8E', midpoint: 10, slope: .22, ceiling: 78, definition: 'Task-specific capability index', rail: 265 },
-  { id: 'deployment', name: 'Robot deployment', color: '#F07855', midpoint: 17, slope: .34, ceiling: 95, definition: 'Fleet scale index', rail: 137 },
-  { id: 'data', name: 'Interaction data', color: '#C8B57A', midpoint: 14, slope: .32, ceiling: 97, definition: 'Collected experience index', rail: 23 },
-  { id: 'hardware', name: 'Hardware affordability', color: '#B6A3CE', midpoint: 10, slope: .17, ceiling: 62, definition: 'Cost-efficiency index', rail: 340 },
-]);
+  { id: 'llm', name: 'LLM performance', color: '#8EAAF0' },
+  { id: 'humanoid', name: 'Humanoid development', color: '#D98B6A' },
+  { id: 'specialist', name: 'Specialist robots', color: '#A4BB8E' },
+  { id: 'deployment', name: 'Robot deployment', color: '#F07855' },
+  { id: 'data', name: 'Interaction data', color: '#C8B57A' },
+  { id: 'hardware', name: 'Hardware cost', color: '#B6A3CE' },
+].map(item => Object.freeze({ ...item, ...observedGraph.series[item.id] })));
+
 export const graphViews = Object.freeze([
-  { id: 'all', label: 'All systems', series: graphSeries.map(s => s.id), title: 'The embodiment gap', description: 'Knowing what to do is only the beginning of doing it. Explore how capability, data, hardware, and deployment move together.' },
-  { id: 'intelligence', label: 'Intelligence → action', series: ['llm', 'humanoid'], title: 'Intelligence needs a body', description: 'Language capability can advance ahead of reliable physical action. Compare general intelligence with humanoid development.' },
-  { id: 'data', label: 'The data bottleneck', series: ['data', 'llm'], title: 'Experience is the input', description: 'Interaction data connects learning to the physical world. More demonstrations, richer contact, and wider task coverage may change the trajectory.' },
-  { id: 'deployment', label: 'Deployment', series: ['deployment', 'hardware'], title: 'From demonstration to work', description: 'Deployment depends on the whole system: useful capability, affordable hardware, maintenance, and reliability over repeated shifts.' },
-  { id: 'specialist', label: 'Specialist robots', series: ['specialist'], title: 'Task-specific capability', description: 'Follow the specialist robot trajectory within the same illustrative system.' },
+  { id: 'all', label: 'All systems', series: graphSeries.map(series => series.id) },
+  { id: 'intelligence', label: 'Intelligence → action', series: ['llm', 'humanoid'] },
+  { id: 'data', label: 'The data bottleneck', series: ['data', 'llm'] },
+  { id: 'deployment', label: 'Deployment', series: ['deployment', 'hardware'] },
+  { id: 'specialist', label: 'Specialist robots', series: ['specialist'] },
 ]);
 
-export function rawValue(seriesIndex, time, offset = 0) {
-  const series = graphSeries[seriesIndex];
-  return Math.max(0, series.ceiling / (1 + Math.exp(-series.slope * (time - series.midpoint - offset))) + .8 * Math.sin(time * 1.4 + seriesIndex));
-}
+const observations = graphSeries.map(series => new Map(series.observations.map(point => [point.year, Object.freeze(point)])));
+const projections = graphSeries.map(series => new Map(series.projections.map(point => [point.year, Object.freeze({
+  ...point, ...series.scenario, kind: 'scenario', date: String(point.year), approximate: true,
+  precision: 'Modeled value; no observation is implied',
+})])));
 
-// Keep every original 0.1-year vertex, including the small late LLM oscillations.
-// Both scenario bounds use the CENTRAL 2026 denominator, never their own baseline.
-export function sampleSeries(seriesIndex, offset = 0) {
-  const baseline = rawValue(seriesIndex, graphDomain.dividerYear - graphDomain.firstYear);
-  return Array.from({ length: 251 }, (_, i) => {
-    const time = i / 10;
-    return { year: 2015 + time, value: rawValue(seriesIndex, time, offset) / baseline * 100 };
-  });
+const samples = graphSeries.map((series, index) => {
+  const points = [];
+  for (let year = graphDomain.firstYear; year <= series.scenario.startYear; year++) {
+    points.push(observations[index].get(year) || Object.freeze({ year, raw: null, value: null, kind: 'observed' }));
+  }
+  // A shared anchor belongs to both paths. Annual readings prefer observations.
+  points.push(...projections[index].values());
+  return Object.freeze(points);
+});
+
+export function sampleSeries(index) { return samples[index] || []; }
+
+export function readingAt(index, year) {
+  const target = Number(year);
+  if (!Number.isInteger(target) || target < graphDomain.firstYear || target > graphDomain.lastYear) return null;
+  return observations[index]?.get(target) || projections[index]?.get(target) || null;
 }
 
 export function snapYear(value) {
@@ -38,28 +51,70 @@ export function snapYear(value) {
 }
 
 export function interpolateSample(points, year) {
-  const position = Math.max(0, Math.min(250, (year - 2015) * 10));
-  const start = Math.min(249, Math.floor(position));
-  const fraction = position - start;
-  return points[start].value + (points[start + 1].value - points[start].value) * fraction;
+  if (!Number.isFinite(year) || !points.length) return null;
+  const exact = points.find(point => Math.abs(point.year - year) < 1e-8);
+  if (exact) return Number.isFinite(exact.value) ? exact.value : null;
+  const right = points.findIndex(point => point.year > year);
+  if (right <= 0) return null;
+  const before = points[right - 1], after = points[right];
+  if (!(before.value > 0) || !(after.value > 0)) return null;
+  if (before.coverage === 'release-inventory' && after.kind === 'observed') return before.value;
+  const fraction = (year - before.year) / (after.year - before.year);
+  // Visual interpolation in the chart's log coordinates; never an observation.
+  return Math.exp(Math.log(before.value) + (Math.log(after.value) - Math.log(before.value)) * fraction);
 }
 
-// Hit-test the continuous central polyline before rounding the inspection year.
-export function findLineHits(samples, activeIds, point, layout, tolerance = 8) {
-  const px = year => layout.gx + (year - 2015) / 25 * layout.gw;
-  const py = value => layout.gy + layout.gh * (1 - value / 900);
+const compact = new Intl.NumberFormat('en-US', { notation: 'compact', maximumSignificantDigits: 3 });
+const integer = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 });
+const significant = (value, digits = 3) => Number(value.toPrecision(digits)).toString();
+
+export function formatIndex(value) {
+  if (!Number.isFinite(value)) return '—';
+  if (Math.abs(value) >= 1000) return compact.format(value);
+  if (Math.abs(value) >= 10) return value.toFixed(1);
+  return significant(value, 3);
+}
+
+export function formatRaw(series, value) {
+  if (!Number.isFinite(value)) return '—';
+  if (series.unit === 'minutes') {
+    if (value < 1) return `${significant(value * 60)} human-seconds`;
+    if (value < 60) return `${significant(value)} human-minutes`;
+    if (value < 120000) return `${significant(value / 60)} human-hours`;
+    return `${significant(value / 120000)} work-years (2,000 h/year)`;
+  }
+  if (series.unit === 'success-normalized return') return `${value.toFixed(3)} success-normalized return`;
+  if (series.unit === 'source index') return `${value.toFixed(2)} BOJ source index`;
+  return `${integer.format(value)} ${series.unit}`;
+}
+
+// Optional projector permits ECharts convertToPixel. The fallback follows the
+// same log domain. Null gaps and release-inventory steps are never bridged.
+export function findLineHits(allSamples, activeIds, point, layout, tolerance = 8, project) {
+  const map = project || ((year, value) => [
+    layout.gx + (year - graphDomain.firstYear) / (graphDomain.lastYear - graphDomain.firstYear) * layout.gw,
+    layout.gy + layout.gh * (1 - Math.log(value / graphDomain.minimum) / Math.log(graphDomain.maximum / graphDomain.minimum)),
+  ]);
+  const distanceToSegment = (ax, ay, bx, by) => {
+    const dx = bx - ax, dy = by - ay;
+    const fraction = Math.max(0, Math.min(1, ((point.x - ax) * dx + (point.y - ay) * dy) / (dx * dx + dy * dy || 1)));
+    return Math.hypot(point.x - ax - fraction * dx, point.y - ay - fraction * dy);
+  };
   const hits = [];
   graphSeries.forEach((series, seriesIndex) => {
     if (!activeIds.has(series.id)) return;
     let distance = Infinity;
-    const points = samples[seriesIndex];
-    for (let i = 1; i < points.length; i++) {
-      const ax = px(points[i - 1].year), bx = px(points[i].year);
-      if (point.x < ax - tolerance || point.x > bx + tolerance) continue;
-      const ay = py(points[i - 1].value), by = py(points[i].value);
-      const dx = bx - ax, dy = by - ay;
-      const t = Math.max(0, Math.min(1, ((point.x - ax) * dx + (point.y - ay) * dy) / (dx * dx + dy * dy)));
-      distance = Math.min(distance, Math.hypot(point.x - ax - t * dx, point.y - ay - t * dy));
+    const points = allSamples[seriesIndex];
+    for (let index = 0; index < points.length; index++) {
+      const current = points[index], previous = points[index - 1];
+      if (!(current.value > 0)) continue;
+      const [bx, by] = map(current.year, current.value);
+      distance = Math.min(distance, Math.hypot(point.x - bx, point.y - by));
+      if (!(previous?.value > 0)) continue;
+      const [ax, ay] = map(previous.year, previous.value);
+      if (previous.coverage === 'release-inventory' && current.kind === 'observed') {
+        distance = Math.min(distance, distanceToSegment(ax, ay, bx, ay), distanceToSegment(bx, ay, bx, by));
+      } else distance = Math.min(distance, distanceToSegment(ax, ay, bx, by));
     }
     if (distance <= tolerance) hits.push({ id: series.id, seriesIndex, distance });
   });
@@ -68,10 +123,10 @@ export function findLineHits(samples, activeIds, point, layout, tolerance = 8) {
 
 export function placeEndpointLabels(endpoints, top, bottom, gap = 57) {
   const sorted = endpoints.map(endpoint => ({ ...endpoint })).sort((a, b) => a.y - b.y);
-  sorted.forEach((endpoint, i) => { endpoint.labelY = Math.max(endpoint.y - 8, i ? sorted[i - 1].labelY + gap : top); });
+  sorted.forEach((endpoint, index) => { endpoint.labelY = Math.max(endpoint.y - 8, index ? sorted[index - 1].labelY + gap : top); });
   if (sorted.length && sorted.at(-1).labelY > bottom) {
     sorted.at(-1).labelY = bottom;
-    for (let i = sorted.length - 2; i >= 0; i--) sorted[i].labelY = Math.min(sorted[i].labelY, sorted[i + 1].labelY - gap);
+    for (let index = sorted.length - 2; index >= 0; index--) sorted[index].labelY = Math.min(sorted[index].labelY, sorted[index + 1].labelY - gap);
   }
   return sorted;
 }
