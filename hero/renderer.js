@@ -10,13 +10,14 @@ import { background, swell } from 'asciify-engine/kit';
 const INK = '#C7CDD0', PAPER = '#080A0B';
 const TAU = Math.PI * 2;
 
-export function mountHero({ motorElement, waveElement, pauseButton, posterElement, modelData, assetBase = new URL('./assets/', import.meta.url).href }) {
+export function mountHero({ motorElement, waveElement, pauseButton, posterElement, modelData, startPaused = false, assetBase = new URL('./assets/', import.meta.url).href }) {
   if (!motorElement) throw new Error('The motor viewport is required.');
   const asset = (name) => new URL(name, assetBase.endsWith('/') ? assetBase : `${assetBase}/`).href;
   const canvas = document.createElement('canvas');
   canvas.className = 'hero-motor-canvas';
   canvas.setAttribute('aria-hidden', 'true');
   Object.assign(canvas.style, { position: 'absolute', inset: '0', width: '100%', height: '100%', pointerEvents: 'none' });
+  if (startPaused) canvas.style.opacity = '0';
   motorElement.append(canvas);
   const media = matchMedia('(prefers-reduced-motion: reduce)');
   const finePointer = matchMedia('(hover: hover) and (pointer: fine)');
@@ -28,7 +29,7 @@ export function mountHero({ motorElement, waveElement, pauseButton, posterElemen
   let tier = 'unknown', wavePlaying = false, renderedTriangles = 0, renderedMeshes = 0;
   let appliedWidth = 0, appliedHeight = 0, appliedDpr = 0, pointerRect = null;
   const timings = { started: performance.now() };
-  let manualPaused = false, reduced = media.matches, onscreen = true, error = null;
+  let manualPaused = startPaused, reduced = media.matches, onscreen = true, error = null;
   let width = 640, height = 340, drawCount = 0, lastFrameMs = 0, clipName = null;
   let worldBounds = null, orthoHeight = 100, compactComposition = null, pointer = { x: 0, y: 0 }, smoothPointer = { x: 0, y: 0 };
   const viewBounds = new THREE.Box3();
@@ -296,7 +297,8 @@ export function mountHero({ motorElement, waveElement, pauseButton, posterElemen
     if (disposed) return controller;
     ready = true; draw(0, true); timings.motorReady = performance.now();
     if (pauseButton) pauseButton.hidden = false;
-    motorElement.dataset.ready = 'true'; canvas.style.opacity = '1';
+    motorElement.dataset.ready = 'true';
+    if (!startPaused) canvas.style.opacity = '1';
     if (posterElement) posterElement.hidden = true;
     sync();
     return controller;

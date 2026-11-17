@@ -17,14 +17,13 @@
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" href="site/media/cog.svg" type="image/svg+xml">
   <link rel="preload" href="revision-assets/geist.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="hero/assets/IBMPlexMono-Regular.woff2" as="font" type="font/woff2" crossorigin media="(prefers-reduced-motion: no-preference)">
   <link rel="stylesheet" href="revision/styles.css?v=menu-perf-1">
-  <link rel="stylesheet" href="hero/hero.css?v=menu-perf-1">
+  <link rel="stylesheet" href="hero/hero.css?v=instant-motion-3">
   <link rel="stylesheet" href="site/site.css?v=graph-restored-2">
   <link rel="stylesheet" href="site/videos.css?v=finish-1">
   <link rel="stylesheet" href="site/graph.css?v=menu-first-1">
   <link rel="stylesheet" href="site/footer.css?v=finish-1">
-  <script type="module" src="hero/mount.js?v=full-quality-cache-1"></script>
+  <script type="module" src="hero/mount.js?v=instant-motion-3"></script>
 </head>
 <body id="top">
   <a class="skip" href="#main">Skip to research</a>
@@ -44,6 +43,10 @@
           <div class="hero-waves" id="hero-waves"></div>
           <div class="hero-motor" id="hero-motor">
             <img class="hero-poster" id="hero-poster" src="hero/exports/motor-poster@2x.png" alt="" width="1000" height="370" fetchpriority="high">
+            <video class="hero-startup" id="hero-startup" autoplay muted playsinline loop preload="auto" poster="hero/exports/motor-poster@2x.png" disablepictureinpicture aria-hidden="true" tabindex="-1">
+              <source src="hero/exports/actuator-startup-mobile.webm?v=079df7075d2a" type="video/webm" media="(width < 640px) and (prefers-reduced-motion: no-preference)">
+              <source src="hero/exports/actuator-startup-desktop.webm?v=a9920e0af3fd" type="video/webm" media="(min-width: 640px) and (prefers-reduced-motion: no-preference)">
+            </video>
           </div>
         </div>
         <h1 class="hero-title" id="research-title" data-hero-copy><span>Run before</span> <span>you walk</span></h1>
@@ -124,6 +127,6 @@
   </nav>
 </footer>
   </div>
-  <script type="module" src="site/app.js?v=menu-first-1"></script>
+  <script type="module" src="site/app.js?v=hero-priority-1"></script>
 </body>
 </html>

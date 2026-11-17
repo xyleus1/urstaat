@@ -186,6 +186,12 @@
     "renderedTriangles": 973838,
     "compression": "Lossless meshopt compression without quantization or simplification; original attribute values and oriented triangles preserved.",
     "cacheVersion": "8f5c44694c2c",
-    "delivery": "One early native fetch with cache: force-cache, shared with GLTFLoader.parseAsync. Content-versioned URL permits reuse of the unchanged model across visits; browser eviction still applies. The host supplies HTTP compression."
+    "delivery": "One native fetch with cache: force-cache, shared with GLTFLoader.parseAsync, after the startup recording begins moving. Content-versioned URL permits reuse of the unchanged model across visits; browser eviction still applies. The host supplies HTTP compression."
+  },
+  "startupRecording": {
+    "manifest": "../exports/actuator-startup-manifest.json",
+    "source": "Frames exported from the same full-detail renderer and original mesh, at 2x source resolution and 30 FPS.",
+    "encoding": "Near-lossless VP9 YUV444 with no chroma subsampling; encoded pixels are not identical to the source. See the export manifest for measured differences.",
+    "playback": "Native HTML video plays while the full-quality interactive renderer initializes, then hands off at the last presented frame's animation time. Desktop and mobile exports have separate content-versioned URLs."
   }
 }

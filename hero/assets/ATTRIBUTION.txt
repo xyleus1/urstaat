@@ -40,6 +40,13 @@ passed unchanged to the standard Three.js GLTFLoader.
 The older actuator.web.glb remains available for previously cached pages;
 the current animation does not request or render that simplified asset.
 
+Startup recordings: actuator-startup-desktop.webm and actuator-startup-mobile.webm,
+exported from this same full-detail animation at 2x resolution and 30 FPS.
+Encoded using FFmpeg/libvpx VP9 YUV444, with no chroma subsampling. Compression
+is near-lossless, not pixel-identical; the original live renderer is unchanged.
+Native video starts before live rendering and hands off at a matching pose.
+See ../exports/actuator-startup-manifest.json for hashes, settings and quality checks.
+
 ASCII renderer and Swell background: Asciify 4.33.0 by ayangabryl, MIT.
 https://github.com/ayangabryl/asciify-engine
 Unmodified engine and preset, with its stock fluid pointer response at reduced

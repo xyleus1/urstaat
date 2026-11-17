@@ -30,6 +30,26 @@
 .hero-study .hero-motor canvas { display: block; width: 100%; height: 100%; }
 .hero-study .hero-poster { position: absolute; display: block; inset: 0; width: 100%; height: 100%; object-fit: contain; opacity: 1; }
 .hero-study .hero-poster[hidden] { display: none; }
+.hero-study .hero-motor { overflow: hidden; }
+.hero-study .hero-startup { position: absolute; inset: 0; z-index: 2; width: 100%; height: 100%; object-fit: contain; background: #080A0B; pointer-events: none; opacity: 1; }
+.hero-study .hero-startup[hidden] { display: none; }
+/* Match the live orthographic camera before JavaScript is available. */
+@supports (width: 1cqw) {
+  .hero-study .hero-motor { container-type: size; }
+  .hero-study .hero-startup {
+    --startup-fit: min(100cqh, calc(100cqw / 2.4746918236898354));
+    inset: auto; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    width: calc(var(--startup-fit) * 1000 / 370); height: var(--startup-fit);
+  }
+  @media (width < 640px) {
+    .hero-study .hero-startup {
+      --startup-fit: min(100cqh, calc(100cqw / 1.2767244241265916));
+      width: calc(var(--startup-fit) * 1.2767244241265916);
+      height: calc(var(--startup-fit) * 1.2767244241265916 * 300 / 350);
+    }
+  }
+}
+@media (prefers-reduced-motion: reduce) { .hero-study .hero-startup { opacity: 0; } }
 .hero-study .hero-waves {
   mask-image: linear-gradient(to bottom, transparent 18%, black 34%, black 66%, transparent 82%);
 }
