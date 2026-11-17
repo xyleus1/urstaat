@@ -1,9 +1,20 @@
-import { observedGraph } from './graph-observations.js?v=sourced-indices-1';
+import { observedGraph } from './graph-observations.js?v=continuous-indices-1';
+import { scaleSymlog } from './vendor/scale-vendor.js?v=continuous-indices-1';
 
 // Numeric observations and scenario samples are generated offline from the
 // audited source snapshot. The browser selects, formats and projects them.
 export const graphDomain = Object.freeze(observedGraph.domain);
 export const scenarioParameters = Object.freeze(observedGraph.scenarioParameters);
+// The same compression is used for every line. It changes display coordinates,
+// never the fixed 2025 normalization or the values shown to a reader.
+const commonDisplayScale = scaleSymlog().constant(1)
+  .domain([-1, 1]).range([-Math.LN2, Math.LN2]);
+export function displayValue(index) {
+  return index > 0 && Number.isFinite(index) ? commonDisplayScale(Math.log(index / 100)) : NaN;
+}
+export function inverseDisplayValue(value) {
+  return Number.isFinite(value) ? 100 * Math.exp(commonDisplayScale.invert(value)) : NaN;
+}
 export const graphSeries = Object.freeze([
   { id: 'llm', name: 'LLM performance', color: '#8EAAF0' },
   { id: 'humanoid', name: 'Humanoid development', color: '#D98B6A' },
@@ -22,19 +33,25 @@ export const graphViews = Object.freeze([
 ]);
 
 const observations = graphSeries.map(series => new Map(series.observations.map(point => [point.year, Object.freeze(point)])));
+const reconstructions = graphSeries.map(series => new Map(series.reconstructed.map(point => [point.year, Object.freeze(point)])));
 const projections = graphSeries.map(series => new Map(series.projections.map(point => [point.year, Object.freeze({
   ...point, ...series.scenario, kind: 'scenario', date: String(point.year), approximate: true,
   precision: 'Modeled value; no observation is implied',
 })])));
 
 const samples = graphSeries.map((series, index) => {
-  const points = [];
-  for (let year = graphDomain.firstYear; year <= series.scenario.startYear; year++) {
-    points.push(observations[index].get(year) || Object.freeze({ year, raw: null, value: null, kind: 'observed' }));
-  }
-  // A shared anchor belongs to both paths. Annual readings prefer observations.
-  points.push(...projections[index].values());
-  return Object.freeze(points);
+  return Object.freeze(series.samples.map(point => {
+    if (Number.isInteger(point.year)) return readingAt(index, point.year);
+    const future = point.year > series.scenario.startYear;
+    return Object.freeze({
+      ...point, kind: future ? 'scenario' : 'reconstructed',
+      visualInterpolation: true, approximate: true, coverage: 'visual-interpolation',
+      reconstructionMethod: 'pchip-visual-interpolation',
+      sourceName: future ? series.scenario.sourceName : 'Historical reconstruction',
+      sourceUrl: future ? series.scenario.sourceUrl : 'sources/#trajectories',
+      detail: series.interpolation.detail,
+    });
+  }));
 });
 
 export function sampleSeries(index) { return samples[index] || []; }
@@ -42,7 +59,7 @@ export function sampleSeries(index) { return samples[index] || []; }
 export function readingAt(index, year) {
   const target = Number(year);
   if (!Number.isInteger(target) || target < graphDomain.firstYear || target > graphDomain.lastYear) return null;
-  return observations[index]?.get(target) || projections[index]?.get(target) || null;
+  return observations[index]?.get(target) || reconstructions[index]?.get(target) || projections[index]?.get(target) || null;
 }
 
 export function snapYear(value) {
@@ -58,10 +75,10 @@ export function interpolateSample(points, year) {
   if (right <= 0) return null;
   const before = points[right - 1], after = points[right];
   if (!(before.value > 0) || !(after.value > 0)) return null;
-  if (before.coverage === 'release-inventory' && after.kind === 'observed') return before.value;
   const fraction = (year - before.year) / (after.year - before.year);
-  // Visual interpolation in the chart's log coordinates; never an observation.
-  return Math.exp(Math.log(before.value) + (Math.log(after.value) - Math.log(before.value)) * fraction);
+  // Dense PCHIP samples are interpolated in the same common display coordinate.
+  // This helper supplies visual positions; annual readouts use readingAt().
+  return inverseDisplayValue(displayValue(before.value) + (displayValue(after.value) - displayValue(before.value)) * fraction);
 }
 
 const compact = new Intl.NumberFormat('en-US', { notation: 'compact', maximumSignificantDigits: 3 });
@@ -89,11 +106,11 @@ export function formatRaw(series, value) {
 }
 
 // Optional projector permits ECharts convertToPixel. The fallback follows the
-// same log domain. Null gaps and release-inventory steps are never bridged.
+// same common compressed domain as the chart.
 export function findLineHits(allSamples, activeIds, point, layout, tolerance = 8, project) {
   const map = project || ((year, value) => [
     layout.gx + (year - graphDomain.firstYear) / (graphDomain.lastYear - graphDomain.firstYear) * layout.gw,
-    layout.gy + layout.gh * (1 - Math.log(value / graphDomain.minimum) / Math.log(graphDomain.maximum / graphDomain.minimum)),
+    layout.gy + layout.gh * (1 - (displayValue(value) - graphDomain.displayMinimum) / (graphDomain.displayMaximum - graphDomain.displayMinimum)),
   ]);
   const distanceToSegment = (ax, ay, bx, by) => {
     const dx = bx - ax, dy = by - ay;
@@ -112,9 +129,7 @@ export function findLineHits(allSamples, activeIds, point, layout, tolerance = 8
       distance = Math.min(distance, Math.hypot(point.x - bx, point.y - by));
       if (!(previous?.value > 0)) continue;
       const [ax, ay] = map(previous.year, previous.value);
-      if (previous.coverage === 'release-inventory' && current.kind === 'observed') {
-        distance = Math.min(distance, distanceToSegment(ax, ay, bx, ay), distanceToSegment(bx, ay, bx, by));
-      } else distance = Math.min(distance, distanceToSegment(ax, ay, bx, by));
+      distance = Math.min(distance, distanceToSegment(ax, ay, bx, by));
     }
     if (distance <= tolerance) hits.push({ id: series.id, seriesIndex, distance });
   });

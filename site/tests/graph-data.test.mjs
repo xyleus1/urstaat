@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import {
   graphSeries, graphDomain, sampleSeries, readingAt, scenarioParameters,
   snapYear, interpolateSample, formatIndex, formatRaw, placeEndpointLabels,
@@ -14,6 +15,11 @@ const close = (actual, expected, tolerance = 1e-8) => {
 const baselines = {
   llm: 66.002649, humanoid: .776, specialist: 603307,
   deployment: 5079078, data: 1258322, hardware: 105.70833333333334,
+};
+const audited = JSON.parse(readFileSync(new URL('./observed-baseline.json', import.meta.url), 'utf8'));
+const displayCoordinate = value => {
+  const logRatio = Math.log(value / 100);
+  return Math.sign(logRatio) * Math.log1p(Math.abs(logRatio));
 };
 
 test('all six indices use sourced 2025 denominators and retain raw units', () => {
@@ -35,23 +41,74 @@ test('all six indices use sourced 2025 denominators and retain raw units', () =>
   assert.equal(graphSeries[byId('hardware')].name, 'Hardware cost');
 });
 
-test('unavailable historical years cannot acquire manufactured values', () => {
-  for (const year of [2015, 2018, 2021]) assert.equal(at('llm', year), null);
-  for (let year = 2015; year < 2025; year++) assert.equal(at('humanoid', year), null);
-  assert.equal(at('data', 2018), null);
-  assert.equal(at('hardware', 2019), null);
-  close(at('humanoid', 2026).raw, .825);
-  close(at('llm', 2026).raw, 185.911829);
-  close(at('specialist', 2015).raw, 254000);
-  close(at('deployment', 2015).raw, 1632000);
+test('all 46 audited observations survive reconstruction without changing values, dates, or intervals', () => {
+  for (const baseline of audited.series) {
+    const series = graphSeries[byId(baseline.id)];
+    assert.equal(series.observations.length, baseline.points.length, `${baseline.id} has no invented observations`);
+    for (const expected of baseline.points) {
+      const point = at(baseline.id, expected.year);
+      assert.equal(point.kind, 'observed');
+      close(point.raw, expected.raw);
+      close(point.value, expected.value);
+      assert.equal(point.date, expected.date);
+      for (const key of ['ciLowRaw', 'ciHighRaw']) assert.equal(point[key], expected[key]);
+      assert.match(point.sourceUrl, /^https:\/\//);
+      assert.ok(point.coverage && point.detail, `${baseline.id}/${expected.year} retains provenance`);
+    }
+  }
+});
+
+test('every missing historical year is explicitly reconstructed and every curve starts in 2015', () => {
   for (const series of graphSeries) for (let year = 2015; year <= 2025; year++) {
     const point = at(series.id, year);
-    if (!point) continue;
-    assert.equal(point.kind, 'observed', `${series.id}/${year} is not a backfilled scenario`);
-    assert.match(point.sourceUrl, /^https:\/\//);
-    assert.ok(point.date && point.coverage && point.detail, `${series.id}/${year} retains provenance`);
+    assert.ok(point && point.raw > 0 && point.value > 0, `${series.id}/${year} is represented`);
+    const observed = audited.series.find(item => item.id === series.id).points.some(item => item.year === year);
+    assert.equal(point.kind, observed ? 'observed' : 'reconstructed');
+    if (!observed) {
+      assert.equal(point.approximate, true);
+      assert.ok(point.reconstructionMethod && point.anchorYears?.length, `${series.id}/${year} explains its estimate`);
+      assert.equal(point.ciLowRaw, undefined);
+      assert.equal(point.ciHighRaw, undefined);
+    }
   }
-  assert.equal(interpolateSample(sampleSeries(byId('llm')), 2021), null);
+  assert.ok(interpolateSample(sampleSeries(byId('llm')), 2021) > 0);
+  for (const id of ['specialist', 'deployment']) assert.equal(at(id, 2015).kind, 'observed');
+  for (const id of ['llm', 'humanoid', 'data', 'hardware']) assert.equal(at(id, 2015).kind, 'reconstructed');
+});
+
+test('dense continuous curves preserve annual knots and never overshoot adjacent readings', () => {
+  for (const series of graphSeries) {
+    const samples = sampleSeries(byId(series.id));
+    assert.equal(samples.length, 501, `${series.id} has twenty samples per year`);
+    assert.equal(samples[0].year, 2015);
+    assert.equal(samples.at(-1).year, 2040);
+    samples.forEach((point, index) => {
+      close(point.year, 2015 + index * .05);
+      assert.ok(Number.isFinite(point.value) && point.value > 0);
+      if (Number.isInteger(point.year)) {
+        const annual = at(series.id, point.year);
+        close(point.value, annual.value);
+        assert.equal(point.kind, annual.kind);
+      } else {
+        assert.equal(point.visualInterpolation, true);
+        assert.notEqual(point.kind, 'observed', 'Drawing between samples cannot invent an observation');
+        const before = at(series.id, Math.floor(point.year)).value;
+        const after = at(series.id, Math.ceil(point.year)).value;
+        const slack = 1e-8 * Math.max(before, after);
+        assert.ok(point.value >= Math.min(before, after) - slack && point.value <= Math.max(before, after) + slack, `${series.id}/${point.year} stays inside its annual bracket`);
+      }
+    });
+    // In the shared display transform, finite differences on either side of
+    // each knot converge. This catches visible corners and release-inventory
+    // jumps without requiring a particular interpolation implementation.
+    for (let index = 20; index < samples.length - 20; index += 20) {
+      const left = displayCoordinate(samples[index - 1].value);
+      const knot = displayCoordinate(samples[index].value);
+      const right = displayCoordinate(samples[index + 1].value);
+      const localRange = Math.abs(displayCoordinate(samples[index + 20].value) - knot) + Math.abs(knot - displayCoordinate(samples[index - 20].value));
+      assert.ok(Math.abs(right - 2 * knot + left) <= .025 * localRange + 1e-10, `${series.id}/${samples[index].year} has no visible derivative break`);
+    }
+  }
 });
 
 test('episode inventory counts Alpha/Beta once and preserves release accounting', () => {
@@ -95,7 +152,7 @@ test('2026 prices are explicit YTD observations and IFR entries remain forecasts
   assert.equal(at('deployment', 2026).kind, 'scenario');
 });
 
-test('every projected year is finite and fits one positive logarithmic domain', () => {
+test('every projected year is finite and fits the common positive index domain', () => {
   assert.ok(graphDomain.minimum > 0 && graphDomain.maximum > graphDomain.minimum);
   for (const series of graphSeries) {
     for (let year = 2027; year <= 2040; year++) {
@@ -124,9 +181,9 @@ test('LLM scenario rises toward its declared ceiling and pauses during 2035–20
   for (let year = 2036; year <= 2040; year++) close(at('llm', year).raw, at('llm', 2035).raw);
 });
 
-test('interaction data reaches 95% of its declared plateau in 2031', () => {
+test('interaction data reaches 95% of its pronounced plateau in 2031', () => {
   const p = scenarioParameters.data;
-  close(p.ceilingFactor, 5.507657446377103);
+  close(p.ceilingFactor, 30);
   close(at('data', 2031).raw, .95 * p.ceilingEpisodes);
   for (let year = 2027; year <= 2040; year++) {
     assert.ok(at('data', year).raw > at('data', year - 1).raw);
@@ -140,10 +197,13 @@ test('humanoid returns, installation decline, and cost decline meet their explic
     assert.ok(at('humanoid', year).raw > at('humanoid', year - 1).raw);
     assert.ok(at('hardware', year).raw < at('hardware', year - 1).raw);
   }
-  close(at('hardware', 2031).raw / at('hardware', 2026).raw, .4);
-  assert.ok(at('hardware', 2040).raw > .2 * at('hardware', 2026).raw);
-  close(at('specialist', 2031).raw, 2 * 603307);
-  close(at('specialist', 2040).raw, .5 * 603307);
+  close(scenarioParameters.hardware.floorFraction, .03);
+  close(scenarioParameters.hardware.halfLifeYears, 1.1);
+  assert.ok(at('hardware', 2031).raw < .1 * at('hardware', 2026).raw);
+  assert.ok(at('hardware', 2040).raw > .03 * at('hardware', 2026).raw);
+  assert.ok(at('hardware', 2040).raw < .031 * at('hardware', 2026).raw);
+  close(at('specialist', 2031).raw, 4 * 603307);
+  close(at('specialist', 2040).raw, .25 * 603307);
   for (let year = 2027; year <= 2031; year++) assert.ok(at('specialist', year).raw > at('specialist', year - 1).raw);
   for (let year = 2032; year <= 2040; year++) assert.ok(at('specialist', year).raw < at('specialist', year - 1).raw);
 });
@@ -161,7 +221,7 @@ test('deployment stock reconciles installations and historically implied attriti
   assert.ok(at('deployment', 2026).raw > at('deployment', 2025).raw);
 });
 
-test('annual input and formatting handle missing observations and large projections', () => {
+test('annual input and formatting retain very small estimates and large projections', () => {
   for (let year = 2014; year <= 2041; year += .17) assert.ok(Number.isInteger(snapYear(year)));
   assert.equal(snapYear(2015.49), 2015);
   assert.equal(snapYear(2015.5), 2016);
@@ -178,8 +238,8 @@ test('annual input and formatting handle missing observations and large projecti
 });
 
 test('endpoint labels separate the very different projected magnitudes', () => {
-  const logMin = Math.log10(graphDomain.minimum), logMax = Math.log10(graphDomain.maximum);
-  const endpoints = graphSeries.map(series => ({ id: series.id, y: 57 + 440 * (1 - (Math.log10(at(series.id, 2040).value) - logMin) / (logMax - logMin)) }));
+  const displayMin = displayCoordinate(graphDomain.minimum), displayMax = displayCoordinate(graphDomain.maximum);
+  const endpoints = graphSeries.map(series => ({ id: series.id, y: 57 + 440 * (1 - (displayCoordinate(at(series.id, 2040).value) - displayMin) / (displayMax - displayMin)) }));
   const placed = placeEndpointLabels(endpoints, 52, 452, 57);
   assert.equal(placed[0].id, 'llm');
   assert.ok(placed[0].labelY >= 52 && placed.at(-1).labelY <= 452);

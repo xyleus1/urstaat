@@ -42,9 +42,13 @@ try {
   const ready = () => page.waitForFunction(() => window.__researchGraph?.status.layout.gw > 0);
   const state = () => page.evaluate(() => window.__researchGraph.status);
   const point = (year, value = 800) => page.evaluate(({ year, value }) => {
-    const { layout, domain } = window.__researchGraph.status, rect = document.querySelector('.graph-plot').getBoundingClientRect();
-    const fraction = (Math.log10(value) - Math.log10(domain.minimum)) / (Math.log10(domain.maximum) - Math.log10(domain.minimum));
-    return { x: rect.left + layout.gx + (year - domain.firstYear) / (domain.lastYear - domain.firstYear) * layout.gw, y: rect.top + layout.gy + layout.gh * (1 - fraction) };
+    const { layout, domain, transform, xDomain } = window.__researchGraph.status, rect = document.querySelector('.graph-plot').getBoundingClientRect();
+    const display = value => {
+      const logRatio = Math.log(value / transform.reference);
+      return Math.sign(logRatio) * Math.log1p(Math.abs(logRatio) / transform.constant);
+    };
+    const fraction = (display(value) - display(domain.minimum)) / (display(domain.maximum) - display(domain.minimum));
+    return { x: rect.left + layout.gx + (year - xDomain.minimum) / (xDomain.maximum - xDomain.minimum) * layout.gw, y: rect.top + layout.gy + layout.gh * (1 - fraction) };
   }, { year, value });
   const menu = async count => {
     await page.waitForSelector('.graph-popup[data-mode="menu"] .graph-popup-choice', { visible: true, timeout: 5000 });
@@ -103,15 +107,28 @@ try {
       return rect.left >= popup.left && rect.right <= popup.right && rect.top >= popup.top && rect.bottom <= popup.bottom;
     }), 'The numeric source link is not clipped by the preview');
   };
+  const verifyForecastShapes = async minimum => {
+    const projected = await page.evaluate(() => {
+      const graph = window.__researchGraph;
+      return {
+        specialist: graph.pointFor('specialist', 2040).y - graph.pointFor('specialist', 2031).y,
+        hardware: graph.pointFor('hardware', 2031).y - graph.pointFor('hardware', 2026).y,
+        data: graph.pointFor('data', 2026).y - graph.pointFor('data', 2031).y,
+      };
+    });
+    for (const [id, distance] of Object.entries(projected)) assert.ok(distance >= minimum, `${id} forecast has a visible ${distance.toFixed(1)}px change`);
+    report.checks.push(`Forecast shape distances: ${JSON.stringify(projected)}`);
+  };
   await page.goto(base, { waitUntil: 'networkidle0' }); await ready();
   await page.evaluate(() => window.__researchGraph.setYear(2025));
   assert.deepEqual(Object.values((await state()).values), [100,100,100,100,100,100]);
   assert.equal((await state()).synthetic, false);
   assert.equal((await state()).baselineYear, 2025);
-  assert.equal((await state()).scale, 'log');
+  assert.equal((await state()).scale, 'compressed-index');
+  assert.deepEqual((await state()).transform, { reference: 100, constant: 1, logBase: Math.E });
   assert.ok((await state()).domain.minimum > 0);
   assert.equal(await page.$$eval('.graph-plot svg text', nodes => nodes.some(node => /^0(?:\.0+)?$/.test(node.textContent))), false, 'Positive logarithmic ticks are never rounded to zero');
-  assert.ok(await page.$$eval('.graph-plot svg text', nodes => nodes.some(node => node.textContent === '100')), 'The normalized baseline is readable on the logarithmic axis');
+  assert.ok(await page.$$eval('.graph-plot svg text', nodes => nodes.some(node => node.textContent === '100')), 'The normalized baseline is readable on the common index axis');
   assert.equal(await page.$$eval('button', nodes => nodes.some(node => /linear|logarithmic|log scale/i.test(node.textContent))), false, 'The scale has no user-facing toggle');
   assert.equal(await page.$('.graph-key'), null);
   const initialRail = await page.$$eval('.graph-label-value', nodes => nodes.map(node => node.textContent));
@@ -126,22 +143,29 @@ try {
   await verifyRail();
   await page.evaluate(() => window.__researchGraph.setYear(2025));
   for (const id of ['llm', 'humanoid', 'specialist', 'deployment', 'data', 'hardware']) {
-    for (const year of [2025, 2031, 2040]) {
+    for (const year of [2015, 2025, 2031, 2040]) {
       const measured = await page.evaluate(({ id, year }) => window.__researchGraph.pointFor(id, year), { id, year });
       const reading = await page.evaluate(({ id, year }) => { window.__researchGraph.setYear(year); return window.__researchGraph.status.readings[id]; }, { id, year });
       const expected = await point(year, reading.value);
       const bounds = await page.$eval('.graph-plot', node => { const rect = node.getBoundingClientRect(); return { x: rect.left, y: rect.top }; });
       assert.ok(Math.abs(measured.x + bounds.x - expected.x) < 1.5, `${id}/${year} x conversion`);
-      assert.ok(Math.abs(measured.y + bounds.y - expected.y) < 1.5, `${id}/${year} logarithmic y conversion`);
+      assert.ok(Math.abs(measured.y + bounds.y - expected.y) < 1.5, `${id}/${year} common transformed y conversion`);
+      if (year === 2015 || year === 2040) {
+        const { layout } = await state();
+        assert.ok(measured.x > layout.gx && measured.x < layout.gx + layout.gw, `${id}/${year} endpoint is inset from the clipping edge`);
+      }
     }
   }
   await page.evaluate(() => window.__researchGraph.setYear(2021));
-  assert.equal((await state()).values.llm, null);
-  assert.equal((await state()).values.humanoid, null);
-  assert.equal(await page.evaluate(() => window.__researchGraph.pointFor('humanoid', 2021)), null);
+  assert.ok((await state()).values.llm > 0);
+  assert.ok((await state()).values.humanoid > 0);
+  assert.equal((await state()).readings.llm.kind, 'reconstructed');
+  assert.equal((await state()).readings.humanoid.kind, 'reconstructed');
+  assert.ok(await page.evaluate(() => window.__researchGraph.pointFor('humanoid', 2021)));
   assert.doesNotMatch(await page.$eval('#graph', node => node.textContent), /NaN|Infinity|undefined/);
+  await verifyForecastShapes(40);
   await page.$('#graph').then(element => element.screenshot({ path: resolve(outputDirectory, 'sourced-graph-desktop.png') }));
-  report.checks.push('Desktop: real metric rail, 2025 normalization, fixed logarithmic domain, converted coordinates, and missing historical measurements');
+  report.checks.push('Desktop: real metric rail, 2025 normalization, one compressed-index mapping, full 2015 start, and classified historical reconstructions');
 
   // Even empty space in a historical year starts at the full menu, with no video request.
   await hover(2017); await menu(6);
@@ -167,7 +191,8 @@ try {
   await page.evaluate(() => window.__researchGraph.selectView('series:llm'));
   await hover(2017); await menu(1); assert.deepEqual(providerRequests, []);
   await choose('llm');
-  assert.equal(await page.$eval('.graph-popup .graph-measurement', node => node.dataset.kind), 'unreported');
+  assert.equal(await page.$eval('.graph-popup .graph-measurement', node => node.dataset.kind), 'reconstructed');
+  assert.match(await page.$eval('.graph-popup .graph-measurement-status', node => node.textContent), /Estimated/i);
   await page.waitForSelector('.graph-popup iframe', { visible: true });
   assert.equal((await state()).opened, null, 'Choosing a line opens its preview before its panel');
   assert.ok(await page.$eval('.graph-popup iframe', frame => frame.getBoundingClientRect().height >= 200));
@@ -175,7 +200,9 @@ try {
   await choose('llm'); await page.mouse.click(10, 10); await closedPopup();
   assert.equal(await page.$('.graph-popup iframe'), null, 'Closing an event preview removes its player');
   await hover(2017); await menu(1); await choose('llm'); await expand('llm-2017');
-  assert.equal(await page.$eval('.graph-panel .graph-measurement', node => node.dataset.kind), 'unreported');
+  assert.equal(await page.$eval('.graph-panel .graph-measurement', node => node.dataset.kind), 'reconstructed');
+  assert.match(await page.$eval('.graph-panel .graph-measurement-status', node => node.textContent), /Estimated/i);
+  await page.$('.graph-panel').then(element => element.screenshot({ path: resolve(outputDirectory, 'continuous-graph-reconstruction.png') }));
   await page.evaluate(() => window.__researchGraph.setYear(2036));
   assert.equal((await state()).opened.year, 2017, 'Scrubbing does not replace pinned media');
   await close();
@@ -245,13 +272,14 @@ try {
   });
   assert.equal((await state()).year, 2032);
   assert.equal(await page.evaluate(() => window.heroToggles), 0);
-  report.checks.push('Menu-first blank/line hover and click, source evidence, historical missing values, preview/Back/panel, future placeholders, keyboard/wheel input, Escape and focus');
+  report.checks.push('Menu-first blank/line hover and click, observed/source CI and historical reconstruction evidence, preview/Back/panel, future placeholders, keyboard/wheel input, Escape and focus');
 
   // Touch starts at the menu too, including empty grid space and a single series.
   await page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
   await page.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });
   await page.goto(base, { waitUntil: 'networkidle0' }); await ready();
   await verifyRail();
+  await verifyForecastShapes(30);
   await page.$('#graph').then(element => element.screenshot({ path: resolve(outputDirectory, 'sourced-graph-mobile.png') }));
   const blank = await point(2035, 800); await page.touchscreen.tap(blank.x, blank.y); await menu(6);
   await choose('hardware');
@@ -288,12 +316,13 @@ try {
   await hover(2031); await menu(6); await choose('data');
   assert.equal(await page.$eval('.graph-popup .graph-measurement', node => node.dataset.kind), 'scenario');
   await page.keyboard.press('Escape'); await closedPopup();
+  await page.evaluate(() => document.activeElement?.blur());
   await page.$('#trajectories').then(element => element.screenshot({ path: resolve(outputDirectory, 'sourced-graph-homepage.png') }));
   report.checks.push('Actual homepage loader, Geist styling, six metric rail labels, and forecast menu');
   assert.deepEqual(errors, []);
   assert.deepEqual(futureArtworkRequests, [], 'Placeholders do not request missing sketches');
   report.passed = true;
-  console.log('Sourced graph browser checks passed: fixed log scale, real index labels, source evidence, missing history, numeric future scenarios, menu-first interactions, annual input, desktop/mobile layout, homepage integration.');
+  console.log('Continuous graph browser checks passed: common compressed index scale, preserved observations, explicit reconstructed history, visible forecast shapes, menu-first interactions, annual input, desktop/mobile layout, homepage integration.');
 } catch (error) {
   report.passed = false;
   report.failure = error.stack || String(error);

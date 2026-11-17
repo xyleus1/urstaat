@@ -1,0 +1,7 @@
+# Reproducible offline interpolation. Install with:
+# python -m pip install -r site/scripts/requirements-graph.txt
+numpy==2.3.4
+scipy==1.18.1
+
+# Optional --refresh source-download dependencies are deliberately separate:
+# python -m pip install PyYAML PyMuPDF

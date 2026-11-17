@@ -3,8 +3,9 @@
 Offline: python site/scripts/build-graph-observations.py
 Refresh and re-verify primary sources: python site/scripts/build-graph-observations.py --refresh
 
-The optional refresh requires PyYAML and PyMuPDF. The offline build uses only
-Python's standard library. It never fits historical values to a desired shape.
+Install the pinned interpolation dependencies from requirements-graph.txt.
+The optional refresh also requires PyYAML and PyMuPDF. Observations remain
+unchanged; missing history is explicitly reconstructed, never called measured.
 """
 from __future__ import annotations
 
@@ -20,10 +21,26 @@ import statistics
 import urllib.request
 import zipfile
 
+import scipy
+from scipy.interpolate import PchipInterpolator
+
 SITE = Path(__file__).resolve().parents[1]
 INPUT = SITE / 'data' / 'observed-inputs.json'
 REVIEWED = '2026-11-17'
 BASELINE_YEAR = 2025
+FIRST_YEAR = 2015
+LAST_YEAR = 2040
+SAMPLE_STEP = .05
+
+
+def display_value(index):
+    """One common coordinate transform, matching D3 scaleSymlog(constant=1)."""
+    z = math.log(index / 100)
+    return math.copysign(math.log1p(abs(z)), z)
+
+
+def inverse_display_value(value):
+    return 100 * math.exp(math.copysign(math.expm1(abs(value)), value))
 
 URLS = {
     'metr': 'https://metr.org/assets/benchmark_results_1_1.yaml',
@@ -175,7 +192,7 @@ def build():
         'metric': 'METR task-completion horizon at 80% success', 'definition': 'METR · 80% task horizon',
         'unit': 'minutes', 'sourceName': 'METR', 'sourceUrl': 'https://metr.org/time-horizons/',
         'scope': 'Task difficulty measured by human completion time, primarily software, ML and cybersecurity work. This is neither general intelligence nor AI running time.',
-        'methodology': 'Annual record-setting results by model release year. METR stitches Horizon 1.0 results before 2023 to Horizon 1.1 afterward. Earlier results are retrospective evaluations. Source intervals are divided by the fixed 2025 point estimate; they are not jointly estimated ratio intervals. No new values are invented for unmeasured years.',
+        'methodology': 'Annual record-setting results by model release year. METR stitches Horizon 1.0 results before 2023 to Horizon 1.1 afterward. Earlier results are retrospective evaluations. Source intervals are divided by the fixed 2025 point estimate; they are not jointly estimated ratio intervals. Missing annual history is separately identified as reconstructed; it is not a METR measurement.',
         'baselineValue': annual[2025]['estimate'], 'observations': llm_observations,
     }
     h = inputs['humanoid']
@@ -229,9 +246,9 @@ def build():
     series['data'] = {'metric': 'Published real-robot training episodes, selected corpora', 'definition': 'Public robot episodes · 3 source families',
         'unit': 'episodes', 'sourceName': 'RoboNet / DROID / AgiBot World', 'sourceUrl': 'https://github.com/OpenDriveLab/AgiBot-World',
         'scope': 'A closed inventory of reported training episodes, not all private robot interaction data, equal-duration physical experience, or a global census.',
-        'methodology': inputs['corpusAudit'] + ' Alpha is replaced by Beta, adding only the difference. Initial DROID 1.0.0 is pinned; later repackaging is not new collection. RoboNet uses a later pinned TFDS representation of the 2019 corpus. The history is release accounting and remains flat between included releases.',
+        'methodology': inputs['corpusAudit'] + ' Alpha is replaced by Beta, adding only the difference. Initial DROID 1.0.0 is pinned; later repackaging is not new collection. RoboNet uses a later pinned TFDS representation of the 2019 corpus. Exact annual release-inventory totals are retained. Curves between annual snapshots are visual interpolation, not the actual timing of collection or release. Before 2019, the curve is an explicitly hypothetical historical reconstruction, not an inventory of these not-yet-released datasets.',
         'baselineValue': next(point['raw'] for point in inventory if point['year'] == 2025),
-        'historyStep': 'end', 'observations': inventory}
+        'observations': inventory}
 
     monthly = inputs['boj']['months']
     prices = []
@@ -264,7 +281,8 @@ def build():
     installed = {row['year']: row['raw'] for row in series['specialist']['observations']}
     attrition = sum(installed[year] - (stock[year] - stock[year-1]) for year in [2023, 2024, 2025]) / sum(stock[year-1] for year in [2023, 2024, 2025])
     data_anchor = series['data']['baselineValue']
-    data_factor = (data_anchor / inventory[0]['raw']) ** (5 / 6)
+    # User-directed scenario targets, not inferred publisher forecasts.
+    data_factor = 30
     parameters = {
         'llm': {'growthRate': growth, 'fitRecordCount': len(fit), 'fitRecords': [{'model': row['model'], 'date': row['date'], 'minutes': row['estimate']} for row in fit],
                 'ceilingMinutes': 10 * 2000 * 60, 'anchorYear': 2026, 'anchorMinutes': annual[2026]['estimate'], 'pauseYear': 2035, 'workHoursPerYear': 2000},
@@ -272,9 +290,9 @@ def build():
         'data': {'anchorYear': 2026, 'anchorEpisodes': data_anchor, 'ceilingFactor': data_factor, 'ceilingEpisodes': data_anchor * data_factor,
                  'growthRate': math.log(19 * (data_factor - 1)) / 5, 'plateauYear': 2031, 'plateauFraction': .95},
         'specialist': {'anchorYear': 2026, 'anchorInstallations': ifr['forecast2026Installations'], 'peakYear': 2031,
-                       'peakInstallations': 2 * installed[2025], 'endYear': 2040, 'endInstallations': .5 * installed[2025]},
+                       'peakInstallations': 4 * installed[2025], 'endYear': 2040, 'endInstallations': .25 * installed[2025]},
         'deployment': {'attritionRate': attrition, 'calibrationYears': [2023, 2024, 2025], 'anchorYear': 2025, 'anchorStock': stock[2025]},
-        'hardware': {'anchorYear': 2026, 'anchorPrice': prices[-1]['raw'], 'floorFraction': .2, 'halfLifeYears': 2.5},
+        'hardware': {'anchorYear': 2026, 'anchorPrice': prices[-1]['raw'], 'floorFraction': .03, 'halfLifeYears': 1.1},
     }
 
     def specialists(year):
@@ -314,14 +332,23 @@ def build():
         'humanoid': ('https://proceedings.mlr.press/v306/lyu26f.html', 'HumanoidBench-anchored scenario',
                      'The retained rising sigmoid timing is rescaled from the measured 2026 score of 0.825 to the task-success reference of 1.0 in 2040. This target is a scenario assumption, not universal humanoid competence or a benchmark ceiling.'),
         'data': ('https://github.com/OpenDriveLab/AgiBot-World', 'Public-corpus growth scenario',
-                 'Logistic growth from the fixed inventory. The ceiling equals five years of its 2019–2025 compound growth (5.507657×); the curve reaches 95% of that ceiling in 2031. Timing and saturation are author-selected scenario assumptions, not a prediction by the dataset publishers.'),
+                 'Logistic growth from the fixed inventory to an author-selected ceiling of 30 times its 2025 episode count; the curve reaches 95% of that ceiling in 2031. The ceiling, timing and saturation are scenario assumptions, not a prediction by the dataset publishers or an extrapolated historical CAGR.'),
         'specialist': (source('ifr2026'), 'IFR forecast / specialist-adoption scenario',
-                       '2026 uses IFR’s 655,000-installation forecast. The site-authored scenario then grows geometrically to twice the 2025 count in 2031 and declines to half that 2025 count in 2040. These later targets are assumptions, not historical observations or IFR forecasts.'),
+                       '2026 uses IFR’s 655,000-installation forecast. The site-authored annual scenario then grows geometrically to four times the 2025 count in 2031 and declines to one quarter of that 2025 count in 2040. A shape-preserving cubic rounds the peak between annual values without overshoot. These later targets are assumptions, not historical observations or IFR forecasts.'),
         'deployment': (source('ifr2026'), 'Industrial-stock accounting scenario',
-                       'Previous stock plus projected installations minus an annual attrition residual calibrated from the 2023–2025 IFR balance. The residual includes retirements and statistical revisions; it is not a directly measured retirement rate. Fractional-year connectors interpolate the annual accounting results.'),
+                       'Previous stock plus projected installations minus an annual attrition residual calibrated from the 2023–2025 IFR balance. The residual includes retirements and statistical revisions; it is not a directly measured retirement rate. The stock is recalculated from the same installation scenario. Fractional-year connectors interpolate the annual accounting results.'),
         'hardware': ('https://www.boj.or.jp/en/statistics/outline/exp/pi/cgpi_2020/outline.htm', 'Robot-cost scenario',
-                     'Author-selected cost decline from the January–October 2026 observed average: 20% floor and a 2.5-year halving time for the distance above that floor. This reaches 40% of the 2026 anchor in 2031; it is not a Bank of Japan price forecast.'),
+                     'Author-selected cost decline from the January–October 2026 observed average: a 3% floor and a 1.1-year halving time for the distance above that floor. This reaches approximately 7.15% of the 2026 anchor in 2031; it is not a Bank of Japan price forecast.'),
     }
+
+    interpolation_note = (
+        'SciPy PCHIP in one common display coordinate T(I) = sign(z) * ln(1 + abs(z)), '
+        'where z = ln(I / 100). This is D3 symlog with constant 1 applied to the '
+        'logarithm of the normalized index. All six series use the same transform. '
+        'The cubic passes through every annual knot, is continuously differentiable, '
+        'and does not overshoot adjacent knots. Fractional-year values are visual '
+        'interpolation, not additional measurements. Annual source values are unchanged.'
+    )
 
     for identity, item in series.items():
         baseline = item['baselineValue']
@@ -335,23 +362,125 @@ def build():
         start = 2025 if identity in ['specialist', 'deployment'] else 2026
         url, name, detail = scenario_notes[identity]
         item['scenario'] = {'startYear': start, 'sourceUrl': url, 'sourceName': name, 'detail': detail, 'coverage': 'modeled-scenario'}
-        item['projections'] = [{'year': round(t / 10, 1), 'raw': forecast(identity, t / 10),
-                                'value': forecast(identity, t / 10) / baseline * 100}
-                               for t in range(start * 10, 20401)]
+        observed = {point['year']: point for point in item['observations']}
+        item['projections'] = []
+        for year in range(start, LAST_YEAR + 1):
+            # Copy the shared measured anchor exactly rather than round-tripping
+            # through a formula and accidentally changing its final binary digit.
+            raw = observed[year]['raw'] if year == start and year in observed else forecast(identity, year)
+            item['projections'].append({'year': year, 'raw': raw, 'value': raw / baseline * 100})
 
-    positive = [point['value'] for item in series.values() for point in item['observations'] + item['projections'] if point['value'] > 0]
+        anchors = item['observations']
+        first = anchors[0]
+        # Skip repeated inventory totals when choosing the first supported trend.
+        # A negative measured trend (e.g. BOJ prices in 2020–21) is kept negative.
+        second = next(point for point in anchors[1:] if point['raw'] != first['raw'])
+        first_rate = math.log(second['raw'] / first['raw']) / (second['year'] - first['year'])
+        measured_curve = PchipInterpolator(
+            [point['year'] for point in anchors],
+            [display_value(point['value']) for point in anchors], extrapolate=False)
+        reconstruction = []
+        for year in range(FIRST_YEAR, start + 1):
+            if year in observed:
+                continue
+            if year < first['year']:
+                supporting = [first, second]
+                if identity == 'humanoid':
+                    logit = lambda value: math.log(value / (1 - value))
+                    rate = (logit(second['raw']) - logit(first['raw'])) / (second['year'] - first['year'])
+                    raw = 1 / (1 + math.exp(-(logit(first['raw']) + rate * (year - first['year']))))
+                    method = 'logit-backcast'
+                    explanation = (
+                        'Retrospective estimate under the later 14-task HumanoidBench protocol. '
+                        'The 2025–2026 selected-method logit slope is extended backward, using '
+                        'the task-success reference 1 as an assumed asymptote for this backcast. '
+                        'This is not a historical benchmark result or a claim that 1 is a mathematical maximum.'
+                    )
+                else:
+                    raw = first['raw'] * math.exp(first_rate * (year - first['year']))
+                    method = 'log-linear-backcast'
+                    explanation = (
+                        f"The log(raw) slope between the first distinct observed anchors "
+                        f"({first['year']} and {second['year']}) is extended backward. "
+                        'This is an extrapolated estimate, not a publisher observation.'
+                    )
+                    if identity == 'data':
+                        explanation += (
+                            ' These corpora were not yet released; the value is a hypothetical '
+                            'antecedent trajectory, not episodes available in the named inventory.'
+                        )
+                slope = rate if identity == 'humanoid' else first_rate
+            else:
+                before = max((point for point in anchors if point['year'] < year), key=lambda point: point['year'])
+                after = min((point for point in anchors if point['year'] > year), key=lambda point: point['year'])
+                supporting = [before, after]
+                raw = inverse_display_value(float(measured_curve(year))) / 100 * baseline
+                method = 'pchip-interpolation'
+                slope = None
+                explanation = (
+                    f"Estimated between the {before['year']} and {after['year']} source observations "
+                    'with shape-preserving PCHIP in the common display coordinate. '
+                    'No new observation is implied.'
+                )
+            point = {
+                'year': year, 'raw': raw, 'value': raw / baseline * 100,
+                'kind': 'reconstructed', 'coverage': 'reconstructed-history',
+                'date': str(year), 'approximate': True,
+                'sourceName': 'Historical reconstruction', 'sourceUrl': 'sources/#trajectories',
+                'precision': 'Estimated from source anchors; not reported data',
+                'reconstructionMethod': method, 'detail': explanation,
+                'anchorYears': [anchor['year'] for anchor in supporting],
+                'anchors': [{key: anchor[key] for key in ['year', 'raw', 'value', 'date', 'sourceName', 'sourceUrl']}
+                            for anchor in supporting],
+            }
+            if slope is not None:
+                point['backcastSlopePerYear'] = slope
+            reconstruction.append(point)
+        item['reconstructed'] = reconstruction
+        item['interpolation'] = {'method': 'PCHIP in common symlog-log coordinates', 'stepYears': SAMPLE_STEP, 'detail': interpolation_note}
+        item['reconstruction'] = {
+            'firstYear': FIRST_YEAR, 'firstObservedYear': first['year'],
+            'method': 'logit-backcast' if identity == 'humanoid' else 'log-linear-backcast',
+            'detail': 'Estimated historical years are separate from unchanged source observations. No confidence intervals are invented for estimates.',
+        }
+
+        # One interpolator spans history and future so joins at 2025/2026 are C1,
+        # while the annual model/accounting values remain exactly inspectable.
+        annual_knots = {point['year']: point for point in item['projections']}
+        annual_knots.update({point['year']: point for point in reconstruction})
+        annual_knots.update(observed)
+        years = list(range(FIRST_YEAR, LAST_YEAR + 1))
+        curve = PchipInterpolator(years, [display_value(annual_knots[year]['value']) for year in years])
+        samples = []
+        for tick in range(FIRST_YEAR * 20, LAST_YEAR * 20 + 1):
+            year = tick / 20
+            if tick % 20 == 0:
+                point = annual_knots[int(year)]
+                samples.append({key: point[key] for key in ['year', 'raw', 'value']})
+            else:
+                value = inverse_display_value(float(curve(year)))
+                samples.append({'year': year, 'raw': value / 100 * baseline, 'value': value})
+        item['samples'] = samples
+
+    positive = [point['value'] for item in series.values() for point in item['samples'] if point['value'] > 0]
     intervals = [point[key] for item in series.values() for point in item['observations'] for key in ['ciLow', 'ciHigh'] if point.get(key, 0) > 0]
     positive.extend(intervals)
+    display_minimum = display_value(min(positive)) - .08
+    display_maximum = display_value(max(positive)) + .08
     result = {
-        'schemaVersion': 1, 'reviewedOn': inputs['reviewedOn'],
+        'schemaVersion': 2, 'reviewedOn': inputs['reviewedOn'],
         'normalization': {'baselineYear': BASELINE_YEAR, 'formula': '100 * raw value / the same measure’s observed 2025 value',
-                          'interpretation': 'Multiples compare each measure with its own baseline, not absolute capability across unlike measures.'},
+                          'interpretation': 'Multiples compare each measure with its own baseline, not absolute capability across unlike measures.',
+                          'displayTransform': 'D3 symlog(ln(index / 100)), constant 1, shared by every series; axis labels and readouts use the actual normalized index.'},
         'domain': {'firstYear': 2015, 'lastYear': 2040, 'dividerYear': 2026, 'baselineYear': BASELINE_YEAR,
-                   'minimum': 10 ** math.floor(math.log10(min(positive))), 'maximum': 10 ** math.ceil(math.log10(max(positive))), 'scale': 'log', 'logBase': 10},
+                   'minimum': inverse_display_value(display_minimum), 'maximum': inverse_display_value(display_maximum),
+                   'displayMinimum': display_minimum, 'displayMaximum': display_maximum,
+                   'scale': 'symlog-log', 'symlogConstant': 1},
         'scenarioParameters': parameters, 'series': series,
         'audit': {'inputFile': 'data/observed-inputs.json', 'inputSha256': hashlib.sha256(INPUT.read_bytes()).hexdigest(),
                   'generator': 'scripts/build-graph-observations.py', 'sources': sources,
-                  'corpora': corpora, 'corpusAudit': inputs['corpusAudit']},
+                  'interpolationLibrary': 'SciPy', 'interpolationVersion': scipy.__version__, 'interpolation': interpolation_note,
+                  'requirements': 'scripts/requirements-graph.txt', 'corpora': corpora, 'corpusAudit': inputs['corpusAudit']},
     }
     dump(SITE / 'graph-observations.json', result)
     (SITE / 'graph-observations.js').write_text(
