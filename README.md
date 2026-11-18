@@ -19,14 +19,14 @@ or deploy the committed website. ES modules require HTTP rather than file://.
 ## Pages and source
 
 - `index.html`: homepage; page styles are in `revision/styles.css` and `site/`.
-- `research/index.html`: research article.
+- `research/index.html` and `research/media/`: research article and its figures.
 - `sources/index.html`: asset sources and licenses.
-- `site/graph.js`, `site/graph-data.js`, `site/graph.css`: interactive graph.
+- `site/graph.js`, `site/graph-data.js`, `site/graph-model.js`, `site/graph.css`: interactive graph.
 - `site/videos.js` and `site/video-manifest.json`: real footage previews.
 - `hero/renderer.js`: ASCII actuator integration source.
 - `hero/assets/`: compressed actuator model, font, attribution, and licenses.
 
-The graph combines audited publisher observations, labeled historical
+The graph combines audited publisher observations, historical
 reconstructions, and authored future scenarios. Each series uses its own
 reported 2025 value as index 100, with one shared compressed display scale.
 The sources page documents the metrics and assumptions; media manifests retain
@@ -44,22 +44,23 @@ with Specialist robots. IFR's industrial population and Counterpoint's broader
 humanoid population differ, so their observed ratio is not market share.
 
 The authored future robot-deployment trajectory follows the LLM curve's
-proportional growth and 2035 pause, reaching about 4.23 billion robots/year by
+proportional growth and 2037 pause, reaching about 4.10 billion robots/year by
 2040. This is a scenario anchored to industrial installations, not an IFR
 forecast or an all-robot census. Humanoid counts initially follow that growth,
 then increase sublinearly: with `g = robot deployments / 655000`,
 `humanoids = 50000 * (1 + (10 / 0.6) * ((1 + (g - 1) / 10)^0.6 - 1))`.
 Counts do not decrease; their modeled fraction falls from about 7.63% in 2026
-to 0.94% in 2040. Raw readouts use robots/year and the projected humanoid panel
+to 0.95% in 2040. Raw readouts use robots/year and the projected humanoid panel
 shows this modeled fraction. Vertical gaps between separately normalized lines
 do not show count shares.
 
-Other scenario anchors remain: a ten-work-year LLM ceiling and 2035 pause;
-interaction data approaching 30 times its inventory, reaching 95% in 2031;
-specialist installations peaking at four times their 2025 value in 2031 and
+The LLM scenario retains its ten-work-year ceiling, with its growth phase
+extended by a time factor of 5/9 and its pause starting in 2037.
+Interaction data approaches 30 times its inventory, reaching 95% in 2035;
+specialist installations peak at four times their 2025 value in 2034 and
 ending at one quarter in 2040; and hardware prices approaching a 3% floor with
-a 1.1-year half-life above it. Deterministic monotone PCHIP timing variations
-soften the pace between fixed 2026, 2030, 2031, 2035, and 2040 anchors. They add
+a 2.2-year half-life above it. Deterministic monotone PCHIP timing variations
+soften the pace between fixed 2026, 2030, 2031, 2034, 2035, 2037, and 2040 anchors. They add
 no observations. The plot remains continuous and densely sampled; inspection
 steps are annual from 2015 through 2026, then 2030, 2035, and 2040.
 
@@ -80,7 +81,8 @@ After changing the story manifests, run `node site/build-stories.mjs`.
 It validates complete coverage and permits only explicitly declared artwork
 placeholders. For the later artwork release, install each sketch at its reserved
 path, change its media state to `ready`, and use `--require-art` to enforce all
-84 unique images. To rebuild numerical data offline from the audited inputs,
+84 unique images. The numerical generator writes the runtime module
+`site/graph-model.js`. To rebuild it offline from the audited inputs,
 install the pinned Python dependencies as well as the frontend dependencies:
 
 ```sh

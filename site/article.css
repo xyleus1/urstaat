@@ -37,10 +37,13 @@
 .essay-body a:hover { color: var(--bright); text-decoration-color: currentColor; }
 .essay-body strong { font-weight: 550; color: var(--bright); }
 .essay-body blockquote { margin: 0 0 52px; padding-left: 24px; border-left: 1px solid var(--accent); color: var(--bright); font-size: 22px; line-height: 1.6; letter-spacing: -.25px; }
+.essay-body blockquote p { margin: 0; }
+.essay-body .essay-quote { font-style: italic; }
+.essay-body blockquote cite { display: block; margin-top: 12px; color: var(--muted); font-size: 13px; line-height: 1.7; font-style: normal; letter-spacing: 0; }
 .essay-body figure { margin: 40px 0; }
 .essay-body figure img { width: 100%; height: auto; display: block; }
-/* Reserve the source figure's space before its lazy image loads. */
-.essay-body img[src$="document-figure-1.png"] { aspect-ratio: 1872 / 1112; }
+.essay-body .essay-figure-link { display: block; cursor: zoom-in; }
+.essay-body figcaption { margin-top: 14px; color: var(--muted); font-size: 13px; line-height: 1.65; letter-spacing: 0; text-wrap: pretty; }
 .essay-body .essay-note { color: var(--muted); border-left: 1px solid var(--line); padding-left: 20px; font-size: 14px; line-height: 1.75; letter-spacing: 0; }
 .essay-body > :last-child { margin-bottom: 0; }
 .essay-end { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-top: 72px; padding: 0; border: 0; font-size: 13px; color: var(--muted); }
@@ -96,6 +99,7 @@
   .reading-layout { display: block; max-width: none; margin: 0; }
   .essay, .essay h1, .essay-body, .essay-body :is(h2, h3, strong, blockquote), .essay .essay-authors, .essay-body .essay-note { color: #111; }
   .essay-body a { color: inherit; }
+  .essay-body :is(figcaption, blockquote cite) { color: #333; }
   .source-intro { color: #333; }
   .essay h1 { font-size: 32pt; }
   .essay-body { font-size: 11pt; line-height: 1.6; }

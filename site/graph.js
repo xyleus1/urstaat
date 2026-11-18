@@ -1,5 +1,5 @@
 import { init, animate } from './vendor/graph-vendor.js?v=finish-1';
-import { graphDomain, graphSeries, graphViews, sampleSeries, readingAt, formatIndex, formatRaw, snapYear, stepYear, placeEndpointLabels, displayValue, inverseDisplayValue } from './graph-data.js?v=deployment-paths-1';
+import { graphDomain, graphSeries, graphViews, sampleSeries, readingAt, formatIndex, formatRaw, snapYear, stepYear, placeEndpointLabels, displayValue, inverseDisplayValue } from './graph-data.js?v=editorial-cleanup-1';
 import { getStory } from './graph-stories.js?v=finish-1';
 
 const clamp = (value, low, high) => Math.max(low, Math.min(high, value));

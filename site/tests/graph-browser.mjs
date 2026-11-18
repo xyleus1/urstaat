@@ -63,7 +63,7 @@ try {
   };
   const choose = async id => {
     await page.click(`.graph-popup-choice[data-series="${id}"]`);
-    await page.waitForSelector('.graph-popup[data-mode="event"] .graph-preview-media', { visible: true });
+    await page.waitForSelector('.graph-popup[data-mode="event"] .graph-preview-media[data-provider]', { visible: true });
     assert.equal((await state()).preview.mode, 'event');
   };
   const expand = async id => {
@@ -113,13 +113,77 @@ try {
     const projected = await page.evaluate(() => {
       const graph = window.__researchGraph;
       return {
-        specialist: graph.pointFor('specialist', 2040).y - graph.pointFor('specialist', 2030).y,
-        hardware: graph.pointFor('hardware', 2030).y - graph.pointFor('hardware', 2026).y,
-        data: graph.pointFor('data', 2026).y - graph.pointFor('data', 2030).y,
+        specialist: graph.pointFor('specialist', 2040).y - graph.pointFor('specialist', 2035).y,
+        hardware: graph.pointFor('hardware', 2035).y - graph.pointFor('hardware', 2026).y,
+        data: graph.pointFor('data', 2026).y - graph.pointFor('data', 2035).y,
       };
     });
     for (const [id, distance] of Object.entries(projected)) assert.ok(distance >= minimum, `${id} forecast has a visible ${distance.toFixed(1)}px change`);
     report.checks.push(`Forecast shape distances: ${JSON.stringify(projected)}`);
+    const laterMovement = await page.evaluate(() => {
+      const graph = window.__researchGraph;
+      return Object.fromEntries(['llm', 'humanoid', 'data', 'hardware'].map(id => [id,
+        Math.abs(graph.pointFor(id, 2035).y - graph.pointFor(id, 2030).y),
+      ]));
+    });
+    for (const [id, distance] of Object.entries(laterMovement)) assert.ok(distance > 3, `${id} continues visibly through 2030–2035 instead of entering an early plateau`);
+    report.checks.push(`Retimed 2030–2035 movement: ${JSON.stringify(laterMovement)}`);
+  };
+  const verifyHomeHeader = async () => {
+    assert.equal(await page.$('.header .subject'), null, 'The removed header brand does not return');
+    assert.equal(await page.$('.research-door'), null, 'The extra hero research door stays removed');
+    assert.doesNotMatch(await page.$eval('#contents .section-heading', node => node.innerText), /(?:hover|tap) to preview/i);
+    assert.match(await page.$eval('.header nav', node => node.innerText), /Research/);
+    const bounds = await page.evaluate(() => {
+      const box = selector => {
+        const r = document.querySelector(selector).getBoundingClientRect();
+        return { left: r.left, right: r.right, top: r.top, bottom: r.bottom };
+      };
+      return { information: box('.hero-information'), subtitle: box('.hero-information .subtitle'), authors: box('.hero-information .authors'), nav: box('.header nav'), header: box('.header'), width: innerWidth, scrollWidth: document.documentElement.scrollWidth };
+    });
+    assert.ok(Math.abs(bounds.subtitle.left - bounds.information.left) < 2, 'Subtitle aligns to the left edge');
+    assert.ok(Math.abs(bounds.authors.right - bounds.information.right) < 2, 'Authors align to the right edge');
+    assert.ok(bounds.subtitle.right <= bounds.authors.left, 'Subtitle and authors remain separate columns');
+    assert.ok(Math.abs(bounds.nav.right - bounds.header.right) < 2, 'Navigation remains right aligned');
+    assert.ok(bounds.scrollWidth <= bounds.width, 'Homepage has no horizontal overflow');
+    assert.match(await page.$eval('.hero-information .authors', node => node.innerText), /Nima Kamali[\s\S]*Ava Poole/);
+  };
+  const verifySources = async () => {
+    const text = await page.$eval('body', node => node.innerText);
+    assert.doesNotMatch(text, /Research text|Software\s*&\s*type|\d+(?:\.\d+)?-second preview/i);
+    assert.equal(await page.$('#software'), null);
+    assert.equal(await page.$$eval('a[href]', nodes => nodes.filter(node => /\.json(?:[?#]|$)/i.test(node.getAttribute('href'))).length), 0, 'Sources do not expose raw JSON links');
+    assert.equal(await page.$$eval('.source-article code', nodes => nodes.length), 0);
+    assert.equal(await page.$eval('#trajectories', node => node.textContent), 'Graph sources');
+    assert.match(text, /Historical trajectories combine published observations with interpolation and backward extensions\./);
+    const contributors = await page.$eval('section[aria-labelledby="contributors"]', node => node.innerText);
+    assert.match(contributors, /Written by Nima Kamali and Ava Poole\./);
+    assert.match(contributors, /Special thanks to X\./);
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'Sources have no horizontal overflow');
+  };
+  const verifyResearch = async () => {
+    assert.equal(await page.$$eval('.essay-body figure img', nodes => nodes.length), 10, 'All ten current document figures are present');
+    await page.$$eval('.essay-body img', nodes => nodes.forEach(node => { node.loading = 'eager'; }));
+    await page.waitForFunction(() => [...document.querySelectorAll('.essay-body img')].every(node => node.complete && node.naturalWidth > 0));
+    const content = await page.evaluate(() => {
+      const body = document.querySelector('.essay-body').getBoundingClientRect();
+      return {
+        images: [...document.querySelectorAll('.essay-body figure')].map(figure => {
+          const img = figure.querySelector('img'), rect = img.getBoundingClientRect(), link = figure.querySelector('.essay-figure-link');
+          return { src: img.currentSrc, width: img.naturalWidth, height: img.naturalHeight, alt: img.alt, caption: figure.querySelector('figcaption')?.textContent.trim(), declared: img.hasAttribute('width') && img.hasAttribute('height'), fits: rect.left >= body.left - 1 && rect.right <= body.right + 1, original: link?.href === img.src };
+        }),
+        quotes: [...document.querySelectorAll('.essay-quote')].map(node => ({ style: getComputedStyle(node).fontStyle, text: node.textContent.trim() })),
+        anchorsValid: [...document.querySelectorAll('.reading-contents a[href^="#"]')].every(node => document.getElementById(node.hash.slice(1))),
+        scalingPresent: !!document.getElementById('scaling'),
+        fitsViewport: document.documentElement.scrollWidth <= innerWidth,
+      };
+    });
+    assert.ok(content.images.every(item => item.width > 0 && item.height > 0 && item.alt && item.caption && item.declared && item.fits && item.original), 'Figures load, fit the reading column, retain captions, and link to their originals');
+    assert.equal(content.quotes.length, 17, 'All seventeen current document quotations are present');
+    assert.ok(content.quotes.every(item => item.style === 'italic' && item.text), 'Every quotation is visibly italic');
+    assert.ok(content.anchorsValid && content.scalingPresent, 'Research contents retain working section anchors and the new Scaling section');
+    assert.ok(content.fitsViewport, 'Research has no horizontal overflow');
+    return { figures: content.images.length, quotations: content.quotes.length };
   };
   await page.goto(base, { waitUntil: 'networkidle0' }); await ready();
   await page.evaluate(() => window.__researchGraph.setYear(2025));
@@ -405,11 +469,31 @@ try {
   await page.evaluate(() => document.activeElement?.blur());
   await page.$('#trajectories').then(element => element.screenshot({ path: resolve(outputDirectory, 'sourced-graph-homepage.png') }));
   report.checks.push('Actual homepage loader, Geist styling, six metric rail labels, and forecast menu');
-  await page.goto(`${base}/sources/index.html#trajectories`, { waitUntil: 'networkidle0' });
-  const sourceText = await page.$eval('body', node => node.innerText);
-  assert.match(sourceText, /methodology/i);
-  assert.match(sourceText, /estimated|reconstructed|reconstruction/i, 'Sources retain disclosure of historical reconstruction');
-  report.checks.push('Sources retain historical reconstruction methodology and disclosure');
+  await page.evaluate(() => scrollTo(0, 0));
+  await verifyHomeHeader();
+  await page.screenshot({ path: resolve(outputDirectory, 'editorial-home-desktop.png') });
+  await page.goto(`${base}/sources/index.html`, { waitUntil: 'networkidle0' });
+  await verifySources();
+  await page.screenshot({ path: resolve(outputDirectory, 'editorial-sources-desktop.png') });
+  assert.equal(await page.evaluate(async () => (await fetch('/site/graph-model.js')).status), 200, 'The runtime graph model is served');
+  await page.goto(`${base}/research/index.html`, { waitUntil: 'networkidle0' });
+  const desktopResearch = await verifyResearch();
+  await page.screenshot({ path: resolve(outputDirectory, 'editorial-research-desktop.png') });
+  await page.$('.essay-body figure').then(element => element.screenshot({ path: resolve(outputDirectory, 'editorial-research-figure-desktop.png') }));
+  await page.$('.essay-body blockquote').then(element => element.screenshot({ path: resolve(outputDirectory, 'editorial-research-quote-desktop.png') }));
+  await page.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });
+  await page.goto(`${base}/index.html`, { waitUntil: 'networkidle0' });
+  await verifyHomeHeader();
+  await page.screenshot({ path: resolve(outputDirectory, 'editorial-home-mobile.png') });
+  await page.goto(`${base}/sources/index.html`, { waitUntil: 'networkidle0' });
+  await verifySources();
+  await page.screenshot({ path: resolve(outputDirectory, 'editorial-sources-mobile.png') });
+  await page.goto(`${base}/research/index.html`, { waitUntil: 'networkidle0' });
+  const mobileResearch = await verifyResearch();
+  await page.screenshot({ path: resolve(outputDirectory, 'editorial-research-mobile.png') });
+  await page.$('.essay-body figure').then(element => element.screenshot({ path: resolve(outputDirectory, 'editorial-research-figure-mobile.png') }));
+  report.checks.push('Desktop/mobile clean header, two-column subtitle/authors, simplified Sources with contributors and retained provenance, runtime model available');
+  report.checks.push(`Research desktop/mobile: ${desktopResearch.figures}/${mobileResearch.figures} loaded figures; ${desktopResearch.quotations}/${mobileResearch.quotations} italic quotations; captions, originals, section links and column bounds verified`);
   assert.deepEqual(errors, []);
   assert.deepEqual(futureArtworkRequests, [], 'Placeholders do not request missing sketches');
   report.passed = true;

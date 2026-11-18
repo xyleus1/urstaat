@@ -1,7 +1,7 @@
 """Build the graph from compact, auditable publisher-data snapshots.
 
-Offline: python site/scripts/build-graph-observations.py
-Refresh and re-verify primary sources: python site/scripts/build-graph-observations.py --refresh
+Offline: python site/scripts/build-graph-model.py
+Refresh and re-verify primary sources: python site/scripts/build-graph-model.py --refresh
 
 Install the pinned interpolation dependencies from requirements-graph.txt.
 The optional refresh also requires PyYAML and PyMuPDF. Observations remain
@@ -296,41 +296,42 @@ def build():
     data_factor = 30
     parameters = {
         'llm': {'growthRate': growth, 'fitRecordCount': len(fit), 'fitRecords': [{'model': row['model'], 'date': row['date'], 'minutes': row['estimate']} for row in fit],
-                'ceilingMinutes': 10 * 2000 * 60, 'anchorYear': 2026, 'anchorMinutes': annual[2026]['estimate'], 'pauseYear': 2035, 'workHoursPerYear': 2000},
+                'ceilingMinutes': 10 * 2000 * 60, 'anchorYear': 2026, 'anchorMinutes': annual[2026]['estimate'], 'pauseYear': 2037, 'workHoursPerYear': 2000,
+                'timeScale': 5 / 9, 'timingAssumption': 'The former five-year rapid-growth phase is spread over nine years; the fitted historical rate is retained as provenance.'},
         'humanoid': {'anchorYear': 2026, 'anchorDeployments': h['forecast2026Shipments'], 'growthExponent': .6,
                      'growthTransition': 10, 'linkedSeries': 'deployment', 'forecastQualifier': h['forecastQualifier']},
         'data': {'anchorYear': 2026, 'anchorEpisodes': data_anchor, 'ceilingFactor': data_factor, 'ceilingEpisodes': data_anchor * data_factor,
-                 'growthRate': math.log(19 * (data_factor - 1)) / 5, 'plateauYear': 2031, 'plateauFraction': .95},
-        'specialist': {'anchorYear': 2026, 'anchorInstallations': ifr['forecast2026Installations'], 'peakYear': 2031,
+                 'growthRate': math.log(19 * (data_factor - 1)) / 9, 'plateauYear': 2035, 'plateauFraction': .95},
+        'specialist': {'anchorYear': 2026, 'anchorInstallations': ifr['forecast2026Installations'], 'peakYear': 2034,
                        'peakInstallations': 4 * installed[2025], 'endYear': 2040, 'endInstallations': .25 * installed[2025]},
         'deployment': {'anchorYear': 2026, 'anchorDeployments': ifr['forecast2026Installations'], 'linkedSeries': 'llm',
                        'scope': 'Author-selected total-deployment scenario anchored to the annual industrial proxy, not a published forecast for all robots.'},
-        'hardware': {'anchorYear': 2026, 'anchorPrice': prices[-1]['raw'], 'floorFraction': .03, 'halfLifeYears': 1.1},
+        'hardware': {'anchorYear': 2026, 'anchorPrice': prices[-1]['raw'], 'floorFraction': .03, 'halfLifeYears': 2.2},
     }
 
     def specialists(year):
         p = parameters['specialist']
         if year <= 2026:
             return installed[2025] * (p['anchorInstallations'] / installed[2025]) ** (year - 2025)
-        if year <= 2031:
-            return p['anchorInstallations'] * (p['peakInstallations'] / p['anchorInstallations']) ** ((year - 2026) / 5)
-        return p['peakInstallations'] * (p['endInstallations'] / p['peakInstallations']) ** ((year - 2031) / 9)
+        if year <= p['peakYear']:
+            return p['anchorInstallations'] * (p['peakInstallations'] / p['anchorInstallations']) ** ((year - p['anchorYear']) / (p['peakYear'] - p['anchorYear']))
+        return p['peakInstallations'] * (p['endInstallations'] / p['peakInstallations']) ** ((year - p['peakYear']) / (p['endYear'] - p['peakYear']))
 
     # A restrained, monotone change of pace gives the future the same varied
-    # curvature as historical PCHIP paths. Inspection milestones and the existing
-    # 2031 peak/plateau, 2035 pause and 2040 endpoints remain exactly in place.
+    # curvature as historical PCHIP paths. Inspection milestones and the later
+    # 2034 peak, 2035 data threshold and 2037 pause remain exactly in place.
     timing_years = list(range(2026, LAST_YEAR + 1))
     timing_offsets = {
-        'llm': [0, -.25, .12, -.22, 0, 0, .18, -.15, .08, 0, .20, .06, -.18, .10, 0],
-        'data': [0, -.18, .24, -.12, 0, 0, .12, -.20, .16, 0, .18, -.08, -.12, .16, 0],
-        'specialist': [0, -.20, .16, -.15, 0, 0, .14, -.18, .10, 0, .16, -.10, .18, -.12, 0],
-        'hardware': [0, -.14, .18, -.20, 0, 0, .16, -.12, .20, 0, .12, -.18, .08, -.10, 0],
+        'llm': [0, -.25, .12, -.22, 0, 0, .18, -.15, 0, 0, .20, 0, -.18, .10, 0],
+        'data': [0, -.18, .24, -.12, 0, 0, .12, -.20, 0, 0, .18, 0, -.12, .16, 0],
+        'specialist': [0, -.20, .16, -.15, 0, 0, .14, -.18, 0, 0, .16, 0, .18, -.12, 0],
+        'hardware': [0, -.14, .18, -.20, 0, 0, .16, -.12, 0, 0, .12, 0, .08, -.10, 0],
     }
     timing_curves = {identity: PchipInterpolator(timing_years, [year + offset for year, offset in zip(timing_years, offsets)])
                      for identity, offsets in timing_offsets.items()}
     parameters['timing'] = {'method': 'Monotone PCHIP pace variation; not additional observations',
                             'years': timing_years, 'offsetYears': timing_offsets,
-                            'fixedYears': [2026, 2030, 2031, 2035, 2040]}
+                            'fixedYears': [2026, 2030, 2031, 2034, 2035, 2037, 2040]}
 
     def scenario_year(identity, year):
         return float(timing_curves[identity](year)) if year > 2026 and identity in timing_curves else year
@@ -339,7 +340,7 @@ def build():
         p = parameters[identity]
         phase = scenario_year(identity, year)
         if identity == 'llm':
-            return p['ceilingMinutes'] / (1 + (p['ceilingMinutes'] / p['anchorMinutes'] - 1) * math.exp(-p['growthRate'] * (min(phase, p['pauseYear']) - 2026)))
+            return p['ceilingMinutes'] / (1 + (p['ceilingMinutes'] / p['anchorMinutes'] - 1) * math.exp(-p['growthRate'] * p['timeScale'] * (min(phase, p['pauseYear']) - 2026)))
         if identity == 'humanoid':
             if year == 2025:
                 return series['humanoid']['baselineValue']
@@ -364,17 +365,17 @@ def build():
 
     scenario_notes = {
         'llm': ('https://ai-2040.com/supplements/takeoff-forecast', 'METR trend / Plan A-inspired scenario',
-                'Logistic scenario anchored to the latest measured 2026 p80 horizon. Initial growth is fitted to 2023–2026 Horizon 1.1 records; a 10-work-year ceiling (2,000 hours/year) is an author-set anchor informed by AI 2040’s autonomous-coding threshold, not a measured maximum or a TED-AI equivalence. The 2035 level is held through 2040; no numerical resumption jump is invented.'),
+                'Logistic scenario anchored to the latest measured 2026 p80 horizon. The growth rate fitted to 2023–2026 Horizon 1.1 records is retained as provenance; an author-selected time scale of 5/9 spreads the former five-year phase across nine years. A 10-work-year ceiling (2,000 hours/year) is an author-set anchor informed by AI 2040’s autonomous-coding threshold, not a measured maximum or a TED-AI equivalence. The 2037 level is held through 2040; this later pause is a site-authored timing assumption, and no numerical resumption jump is invented.'),
         'humanoid': (source('counterpoint2026'), 'Annual humanoid-deployment scenario',
                      'The approximate 16,000 additional installations reported for 2025 replace the former benchmark-return measure. The 2026 anchor of 50,000 is a conservative reference to a published forecast of more than 50,000 shipments, not an observed full-year count. Future humanoid deployments initially follow modeled robot deployment growth, then grow sublinearly with exponent 0.6 and transition multiplier 10. Counts keep rising while their ratio to the modeled total shrinks. This ratio is an author-set relationship, not observed market share; the historical industrial proxy and humanoid shipment survey cover different populations.'),
         'data': ('https://github.com/OpenDriveLab/AgiBot-World', 'Public-corpus growth scenario',
-                 'Logistic growth from the fixed inventory to an author-selected ceiling of 30 times its 2025 episode count; the curve reaches 95% of that ceiling in 2031. The ceiling, timing and saturation are scenario assumptions, not a prediction by the dataset publishers or an extrapolated historical CAGR.'),
+                 'Logistic growth from the fixed inventory to an author-selected ceiling of 30 times its 2025 episode count; the curve reaches 95% of that ceiling in 2035. The ceiling, timing and saturation are scenario assumptions, not a prediction by the dataset publishers or an extrapolated historical CAGR.'),
         'specialist': (source('ifr2026'), 'IFR forecast / specialist-adoption scenario',
-                       '2026 uses IFR’s 655,000-installation forecast. The site-authored annual scenario then grows geometrically to four times the 2025 count in 2031 and declines to one quarter of that 2025 count in 2040. A shape-preserving cubic rounds the peak between annual values without overshoot. These later targets are assumptions, not historical observations or IFR forecasts.'),
+                       '2026 uses IFR’s 655,000-installation forecast. The site-authored annual scenario then grows geometrically to four times the 2025 count in 2034 and declines to one quarter of that 2025 count in 2040. A shape-preserving cubic rounds the peak between annual values without overshoot. These later targets are assumptions, not historical observations or IFR forecasts.'),
         'deployment': (source('ifr2026'), 'LLM-linked annual deployment scenario',
-                       'Annual industrial installations replace the former operating-stock measure so both deployment series use robots per year. The authored future total-deployment scenario starts at the IFR 2026 industrial forecast of 655,000 and follows the same proportional growth, slowdown and 2035 pause as the LLM path. It is independent of the specialist-adoption curve. Industrial installations are a historical proxy, not a census of all robots, and the future count trajectory is not an IFR forecast.'),
+                       'Annual industrial installations replace the former operating-stock measure so both deployment series use robots per year. The authored future total-deployment scenario starts at the IFR 2026 industrial forecast of 655,000 and follows the same proportional growth, slowdown and 2037 pause as the LLM path. It is independent of the specialist-adoption curve. Industrial installations are a historical proxy, not a census of all robots, and the future count trajectory is not an IFR forecast.'),
         'hardware': ('https://www.boj.or.jp/en/statistics/outline/exp/pi/cgpi_2020/outline.htm', 'Robot-cost scenario',
-                     'Author-selected cost decline from the January–October 2026 observed average: a 3% floor and a 1.1-year halving time for the distance above that floor. This reaches approximately 7.15% of the 2026 anchor in 2031; it is not a Bank of Japan price forecast.'),
+                     'Author-selected cost decline from the January–October 2026 observed average: a 3% floor and a 2.2-year halving time for the distance above that floor. The decline approaches its floor through the late 2030s rather than flattening in the early 2030s; it is not a Bank of Japan price forecast.'),
     }
 
     interpolation_note = (
@@ -507,14 +508,13 @@ def build():
                    'scale': 'symlog-log', 'symlogConstant': 1},
         'scenarioParameters': parameters, 'series': series,
         'audit': {'inputFile': 'data/observed-inputs.json', 'inputSha256': hashlib.sha256(INPUT.read_bytes()).hexdigest(),
-                  'generator': 'scripts/build-graph-observations.py', 'sources': sources,
+                  'generator': 'scripts/build-graph-model.py', 'sources': sources,
                   'interpolationLibrary': 'SciPy', 'interpolationVersion': scipy.__version__, 'interpolation': interpolation_note,
                   'requirements': 'scripts/requirements-graph.txt', 'corpora': corpora, 'corpusAudit': inputs['corpusAudit']},
     }
-    dump(SITE / 'graph-observations.json', result)
-    (SITE / 'graph-observations.js').write_text(
-        '// Generated by scripts/build-graph-observations.py; edit publisher snapshots or the generator, then rebuild.\n'
-        + 'export const observedGraph = ' + json.dumps(result, ensure_ascii=False, separators=(',', ':'), allow_nan=False) + ';\n', encoding='utf-8')
+    (SITE / 'graph-model.js').write_text(
+        '// Generated by scripts/build-graph-model.py; edit publisher snapshots or the generator, then rebuild.\n'
+        + 'export const graphModel = ' + json.dumps(result, ensure_ascii=False, separators=(',', ':'), allow_nan=False) + ';\n', encoding='utf-8')
     print(json.dumps({'baselines': {key: item['baselineValue'] for key, item in series.items()},
                       'hardware2026Ytd': prices[-1]['raw'], 'domain': result['domain'],
                       'llmGrowthRate': growth,

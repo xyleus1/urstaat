@@ -13,8 +13,6 @@ export async function mountVideos(root = document) {
   let active = null;
   let armedTouch = null;
   let pointerType = 'mouse';
-  const touchHint = root.querySelector('.mobile-preview-hint');
-  const setTouchHint = () => { if (touchHint) touchHint.textContent = armedTouch ? 'Tap again to read' : 'Tap to preview'; };
 
   let hint = document.getElementById('video-preview-instructions');
   if (!hint) {
@@ -33,7 +31,7 @@ export async function mountVideos(root = document) {
     state.card.classList.remove('is-previewing', 'is-video-playing');
     state.card.dataset.videoStatus = state.failed ? 'error' : 'idle';
     if (active === state) active = null;
-    if (armedTouch === state) { armedTouch = null; setTouchHint(); }
+    if (armedTouch === state) armedTouch = null;
   }
 
   async function start(state, explicit = false) {
@@ -142,13 +140,11 @@ export async function mountVideos(root = document) {
       if (pointerType !== 'touch' || event.detail === 0) return;
       if (armedTouch === state) {
         armedTouch = null;
-        setTouchHint();
         return; // Second tap follows the original essay anchor.
       }
       event.preventDefault();
       armedTouch = state;
       start(state, true);
-      setTouchHint();
     }, options);
     observer.observe(card);
   });
@@ -158,7 +154,6 @@ export async function mountVideos(root = document) {
     if (armedTouch && !armedTouch.card.contains(event.target)) {
       stop(armedTouch);
       armedTouch = null;
-      setTouchHint();
     }
   }, { ...options, capture: true });
   document.addEventListener('keydown', () => { pointerType = 'keyboard'; }, { ...options, capture: true });

@@ -1,10 +1,10 @@
-import { observedGraph } from './graph-observations.js?v=deployment-paths-1';
+import { graphModel } from './graph-model.js?v=editorial-cleanup-1';
 import { scaleSymlog } from './vendor/scale-vendor.js?v=continuous-indices-1';
 
 // Numeric observations and scenario samples are generated offline from the
 // audited source snapshot. The browser selects, formats and projects them.
-export const graphDomain = Object.freeze(observedGraph.domain);
-export const scenarioParameters = Object.freeze(observedGraph.scenarioParameters);
+export const graphDomain = Object.freeze(graphModel.domain);
+export const scenarioParameters = Object.freeze(graphModel.scenarioParameters);
 // The same compression is used for every line. It changes display coordinates,
 // never the fixed 2025 normalization or the values shown to a reader.
 const commonDisplayScale = scaleSymlog().constant(1)
@@ -22,7 +22,7 @@ export const graphSeries = Object.freeze([
   { id: 'deployment', name: 'Robot deployment', color: '#F07855' },
   { id: 'data', name: 'Interaction data', color: '#C8B57A' },
   { id: 'hardware', name: 'Hardware cost', color: '#B6A3CE' },
-].map(item => Object.freeze({ ...item, ...observedGraph.series[item.id] })));
+].map(item => Object.freeze({ ...item, ...graphModel.series[item.id] })));
 
 export const graphViews = Object.freeze([
   { id: 'all', label: 'All systems', series: graphSeries.map(series => series.id) },

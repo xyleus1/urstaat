@@ -20,15 +20,14 @@ function startSections() {
   document.removeEventListener('click', onNavigation);
   const graphHost = document.querySelector('#robotics-graph');
   if (graphHost) {
-    import('./graph.js?v=deployment-paths-1').then(({ mountGraph }) => {
+    import('./graph.js?v=editorial-cleanup-1').then(({ mountGraph }) => {
       window.__researchGraph = mountGraph(graphHost);
     }).catch(error => { console.warn('Research trajectories could not start.', error); });
   }
-  import('./videos.js?v=finish-1').then(({ mountVideos }) => mountVideos(document))
+  import('./videos.js?v=editorial-cleanup-1').then(({ mountVideos }) => mountVideos(document))
     .then(controller => { window.__researchVideos = controller; })
     .catch(error => {
       // Chapter links and their original posters remain usable if previews cannot load.
-      document.querySelectorAll('.desktop-preview-hint, .mobile-preview-hint').forEach(hint => { hint.hidden = true; });
       console.warn('Chapter previews are unavailable.', error);
     });
 }

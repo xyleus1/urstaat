@@ -183,22 +183,27 @@ test('every projected year is finite and fits the common positive index domain',
   }
 });
 
-test('LLM scenario rises toward its declared ceiling and pauses during 2035–2040', () => {
+test('LLM scenario spreads its growth over nine years and holds only from 2037', () => {
   const p = scenarioParameters.llm;
   close(p.ceilingMinutes, 10 * 2000 * 60);
   assert.ok(p.growthRate > 0);
-  for (let year = 2027; year <= 2035; year++) {
+  close(p.timeScale, 5 / 9);
+  assert.equal(p.pauseYear, 2037);
+  for (let year = 2027; year <= 2037; year++) {
     assert.ok(at('llm', year).raw > at('llm', year - 1).raw);
     assert.ok(at('llm', year).raw < p.ceilingMinutes);
   }
-  assert.ok(at('llm', 2035).raw > .99 * p.ceilingMinutes);
-  for (let year = 2036; year <= 2040; year++) close(at('llm', year).raw, at('llm', 2035).raw);
+  assert.ok(at('llm', 2035).raw < .9 * p.ceilingMinutes, 'The growth phase still has meaningful headroom in 2035');
+  assert.ok(at('llm', 2037).raw > .95 * p.ceilingMinutes);
+  for (let year = 2038; year <= 2040; year++) close(at('llm', year).raw, at('llm', 2037).raw);
 });
 
-test('interaction data reaches 95% of its pronounced plateau in 2031', () => {
+test('interaction data takes until 2035 to reach 95% of its plateau', () => {
   const p = scenarioParameters.data;
   close(p.ceilingFactor, 30);
-  close(at('data', 2031).raw, .95 * p.ceilingEpisodes);
+  assert.equal(p.plateauYear, 2035);
+  close(at('data', 2035).raw, .95 * p.ceilingEpisodes);
+  assert.ok(at('data', 2031).raw < .8 * p.ceilingEpisodes, 'The previous plateau year remains in the active growth phase');
   for (let year = 2027; year <= 2040; year++) {
     assert.ok(at('data', year).raw > at('data', year - 1).raw);
     assert.ok(at('data', year).raw < p.ceilingEpisodes);
@@ -210,14 +215,16 @@ test('specialist installation decline and hardware cost decline retain their exi
     assert.ok(at('hardware', year).raw < at('hardware', year - 1).raw);
   }
   close(scenarioParameters.hardware.floorFraction, .03);
-  close(scenarioParameters.hardware.halfLifeYears, 1.1);
-  assert.ok(at('hardware', 2031).raw < .1 * at('hardware', 2026).raw);
+  close(scenarioParameters.hardware.halfLifeYears, 2.2);
+  assert.ok(at('hardware', 2031).raw > .2 * at('hardware', 2026).raw);
+  assert.ok(at('hardware', 2035).raw < .1 * at('hardware', 2026).raw);
   assert.ok(at('hardware', 2040).raw > .03 * at('hardware', 2026).raw);
-  assert.ok(at('hardware', 2040).raw < .031 * at('hardware', 2026).raw);
-  close(at('specialist', 2031).raw, 4 * 603307);
+  assert.ok(at('hardware', 2040).raw < .05 * at('hardware', 2026).raw);
+  assert.equal(scenarioParameters.specialist.peakYear, 2034);
+  close(at('specialist', 2034).raw, 4 * 603307);
   close(at('specialist', 2040).raw, .25 * 603307);
-  for (let year = 2027; year <= 2031; year++) assert.ok(at('specialist', year).raw > at('specialist', year - 1).raw);
-  for (let year = 2032; year <= 2040; year++) assert.ok(at('specialist', year).raw < at('specialist', year - 1).raw);
+  for (let year = 2027; year <= 2034; year++) assert.ok(at('specialist', year).raw > at('specialist', year - 1).raw);
+  for (let year = 2035; year <= 2040; year++) assert.ok(at('specialist', year).raw < at('specialist', year - 1).raw);
 });
 
 test('robot deployments follow the LLM growth, slowdown and pause rather than specialist decline', () => {
@@ -228,7 +235,7 @@ test('robot deployments follow the LLM growth, slowdown and pause rather than sp
   }
   assert.ok(at('deployment', 2026).raw > at('deployment', 2025).raw);
   assert.ok(at('deployment', 2040).raw > 1000 * at('deployment', 2026).raw);
-  for (let year = 2036; year <= 2040; year++) close(at('deployment', year).raw, at('deployment', 2035).raw);
+  for (let year = 2038; year <= 2040; year++) close(at('deployment', year).raw, at('deployment', 2037).raw);
 });
 
 test('humanoids initially grow with robot deployments, then form a smaller modeled fraction', () => {
@@ -254,7 +261,7 @@ test('humanoids initially grow with robot deployments, then form a smaller model
 
 test('natural forecast pacing retains all existing direction changes and inspection milestones', () => {
   const { timing } = scenarioParameters;
-  assert.deepEqual(timing.fixedYears, [2026, 2030, 2031, 2035, 2040]);
+  assert.deepEqual(timing.fixedYears, [2026, 2030, 2031, 2034, 2035, 2037, 2040]);
   for (const offsets of Object.values(timing.offsetYears)) {
     for (const fixed of timing.fixedYears) close(offsets[timing.years.indexOf(fixed)], 0);
     assert.ok(offsets.some(offset => Math.abs(offset) > .1));
@@ -284,5 +291,5 @@ test('endpoint labels separate the very different projected magnitudes', () => {
   const placed = placeEndpointLabels(endpoints, 52, 452, 57);
   assert.equal(placed[0].id, 'llm');
   assert.ok(placed[0].labelY >= 52 && placed.at(-1).labelY <= 452);
-  placed.slice(1).forEach((point, i) => assert.ok(point.labelY - placed[i].labelY >= 57));
+  placed.slice(1).forEach((point, i) => assert.ok(point.labelY - placed[i].labelY >= 57 - 1e-9));
 });
