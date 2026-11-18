@@ -1,6 +1,6 @@
 import { init, animate } from './vendor/graph-vendor.js?v=finish-1';
-import { graphDomain, graphSeries, graphViews, sampleSeries, readingAt, formatIndex, formatRaw, snapYear, stepYear, placeEndpointLabels, displayValue, inverseDisplayValue } from './graph-data.js?v=editorial-cleanup-1';
-import { getStory } from './graph-stories.js?v=storyboards-complete-20261118-1';
+import { graphDomain, graphSeries, graphViews, sampleSeries, readingAt, formatIndex, formatRaw, snapYear, stepYear, placeEndpointLabels, displayValue, inverseDisplayValue, indexPresentation, compressIndex, uncompressIndex } from './graph-data.js?v=rough-display-20261118-1';
+import { getStory } from './graph-stories.js?v=rough-display-20261118-1';
 
 const clamp = (value, low, high) => Math.max(low, Math.min(high, value));
 const make = (tag, className, text) => {
@@ -13,12 +13,9 @@ const absolute = source => new URL(source, import.meta.url).href;
 const safeSource = source => {
   try { const url = new URL(source); return ['https:', 'http:'].includes(url.protocol) ? url.href : null; } catch { return null; }
 };
-const compactNumber = new Intl.NumberFormat('en-US', { notation: 'compact', maximumSignificantDigits: 3 });
-const percentage = new Intl.NumberFormat('en-US', { style: 'percent', maximumFractionDigits: 2 });
-const displayIndex = value => Number.isFinite(value) ? compactNumber.format(value) : '—';
-const displayMultiple = value => Number.isFinite(value) ? `${compactNumber.format(value / 100)}×` : '—';
+const displayIndex = formatIndex;
 const positive = value => Number.isFinite(value) && value > 0;
-const axisIndex = value => positive(value) && value < .01 ? value.toExponential(0).replace('e-', 'e−') : displayIndex(value);
+const axisIndex = formatIndex;
 let youtubeReady;
 let mediaSequence = 0;
 
@@ -58,8 +55,8 @@ function mountMedia(host, story, { preview = false, reducedMotion = false, expan
       : 'The publisher’s video could not load here.';
     host.append(make('p', 'graph-media-message', message));
     const source = safeSource(story.sourceUrl);
-    if (source) {
-      const link = make('a', 'graph-source', story.kind === 'scenario' ? 'Research context ↗' : 'Open the original source ↗');
+    if (source && story.kind !== 'scenario') {
+      const link = make('a', 'graph-source', 'Open the original source ↗');
       link.href = source; link.target = '_blank'; link.rel = 'noopener noreferrer'; host.append(link);
     }
   };
@@ -176,12 +173,12 @@ export function mountGraph(element) {
     <div class="graph-heading"><h2 id="trajectories-title">From intelligence to work.</h2></div>
     <div class="graph-toolbar" role="group" aria-label="Highlight trajectories">
       ${graphViews.map(view => `<button type="button" data-graph-view="${view.id}" aria-pressed="${view.id === 'all'}">${view.label}</button>`).join('')}
-      <span class="graph-status">2025 = 100 · compressed index scale</span>
+      <span class="graph-status">Compressed index · 2025 = 100</span>
     </div>
     <div class="graph-stage">
       <div class="graph-plot" tabindex="0" role="group" aria-label="Six robotics indices from 2015 to 2040, with historical trajectories and projected scenarios. All lines use the same compressed index scale and their measured 2025 baseline of 100. Use arrow keys to inspect annual history through 2026, then 2030, 2035 and 2040. Press Enter to open the year menu."></div>
       <div class="graph-labels" role="group" aria-label="2040 endpoints. Choose a trajectory to highlight it.">
-        ${graphSeries.map((series, index) => `<button type="button" class="graph-label" data-graph-series="${series.id}" style="--series-color:${series.color}" aria-pressed="false"><span class="graph-label-name">${series.name}</span><span class="graph-label-definition">2040 projection · 2025 = 100</span><span class="graph-label-value">${displayIndex(endpoints[index]?.value)} <span>· ${displayMultiple(endpoints[index]?.value)}</span></span><span class="graph-label-metric">${series.definition}</span></button>`).join('')}
+        ${graphSeries.map((series, index) => `<button type="button" class="graph-label" data-graph-series="${series.id}" style="--series-color:${series.color}" aria-pressed="false"><span class="graph-label-name">${series.name}</span><span class="graph-label-definition">2040 projection · 2025 = 100</span><span class="graph-label-value">${displayIndex(endpoints[index]?.value)}</span><span class="graph-label-metric">${series.definition}</span></button>`).join('')}
       </div>
     </div>
     <div class="graph-scrubber"><label for="trajectory-year">Explore a year</label><input id="trajectory-year" type="range" min="2015" max="2040" step="1" value="2026" aria-label="Year to inspect: annual through 2026, then 2030, 2035 and 2040"><output for="trajectory-year">2026</output><button type="button" class="graph-open-year">Open year <span aria-hidden="true">↗</span></button></div>
@@ -199,21 +196,22 @@ export function mountGraph(element) {
 
   function axisTickValues(height = 480) {
     const low = displayValue(graphDomain.minimum), high = displayValue(graphDomain.maximum);
+    const minimum = compressIndex(graphDomain.minimum), maximum = indexPresentation.maximum;
     const decades = [], niceValues = [];
-    for (let exponent = Math.floor(Math.log10(graphDomain.minimum)); exponent <= Math.ceil(Math.log10(graphDomain.maximum)); exponent++) {
+    for (let exponent = Math.floor(Math.log10(minimum)); exponent <= Math.ceil(Math.log10(maximum)); exponent++) {
       decades.push(10 ** exponent);
       for (const multiple of [1, 2, 5]) {
         const value = multiple * 10 ** exponent;
-        if (value >= graphDomain.minimum && value <= graphDomain.maximum) niceValues.push(value);
+        if (value >= minimum && value <= maximum) niceValues.push(value);
       }
     }
     decades.sort((a, b) => Math.abs(Math.log(a / 100)) - Math.abs(Math.log(b / 100)));
     const chosen = [];
-    // Keep the baseline and rounded outer ticks explicit, then select readable shared index
-    // ticks. The transform is identical for all six series at every viewport.
-    for (const value of [100, niceValues[0], niceValues.at(-1), 50, 200, 25, 400, ...decades]) {
-      if (value < graphDomain.minimum || value > graphDomain.maximum) continue;
-      const position = displayValue(value);
+    // Tick labels use presentation units; inverse-map them onto the unchanged
+    // plot coordinates. Keep the baseline and 10,000 ceiling explicit.
+    for (const value of [100, maximum, niceValues[0], ...decades, 50, 200, 500, 2000, 5000]) {
+      if (value < minimum || value > maximum) continue;
+      const position = displayValue(uncompressIndex(value));
       if (chosen.every(tick => Math.abs(tick - position) / (high - low) * height >= 28)) chosen.push(position);
     }
     return chosen.sort((a, b) => a - b);
@@ -227,23 +225,19 @@ export function mountGraph(element) {
     if (!reading || !positive(reading.value)) {
       block.append(make('p', 'graph-measurement-status', `No comparable observation reported for ${selectedYear}.`));
     } else {
-      block.append(make('p', 'graph-measurement-value', `${reading.approximate && reading.kind !== 'reconstructed' ? '≈ ' : ''}${formatRaw(series, reading.raw)} · index ${formatIndex(reading.value)}`));
-      const kind = reading.kind === 'scenario' ? 'Projected' : 'Historical';
+      block.append(make('p', 'graph-measurement-value', `≈ ${formatRaw(series, reading.raw)} · compressed index ${formatIndex(reading.value)}`));
       const date = reading.date || String(selectedYear);
       const period = reading.coverage === 'year-to-date' ? `YTD through ${date}` : date;
-      block.append(make('p', 'graph-measurement-status', `${kind} · ${period} · 2025 = 100`));
+      block.append(make('p', 'graph-measurement-status', `Historical · ${period} · 2025 = 100`));
       if (expanded && reading.detail && reading.kind !== 'reconstructed') block.append(make('p', 'graph-measurement-detail', reading.detail));
-      if (expanded && reading.kind === 'scenario' && Number.isFinite(reading.modeledShare)) {
-        block.append(make('p', 'graph-measurement-detail', `${percentage.format(reading.modeledShare)} of modeled robot deployments.`));
-      }
       if (expanded && Number.isFinite(reading.ciLowRaw) && Number.isFinite(reading.ciHighRaw)) {
         block.append(make('p', 'graph-measurement-detail', `Reported interval: ${formatRaw(series, reading.ciLowRaw)}–${formatRaw(series, reading.ciHighRaw)}.`));
       }
     }
-    const modeled = reading?.kind === 'scenario' || reading?.kind === 'reconstructed';
+    const modeled = reading?.kind === 'reconstructed';
     const source = modeled ? absolute('../sources/#trajectories') : safeSource(reading?.sourceUrl || series.sourceUrl);
     if (source) {
-      const link = make('a', 'graph-measurement-source', reading?.kind === 'scenario' ? 'Scenario assumptions ↗' : reading?.kind === 'reconstructed' ? 'Methodology ↗' : 'Metric source ↗');
+      const link = make('a', 'graph-measurement-source', modeled ? 'Methodology ↗' : 'Metric source ↗');
       link.href = source; link.target = '_blank'; link.rel = 'noopener noreferrer'; block.append(link);
     }
     return block;
@@ -297,7 +291,7 @@ export function mountGraph(element) {
       { id: 'future-field', type: 'rect', silent: true, z: -1, shape: { x: x(2026), y: layout.gy, width: x(2040) - x(2026), height: layout.gh }, style: { fill: 'rgba(199,205,208,.022)' } },
       { id: 'divider', type: 'line', silent: true, z: 4, shape: { x1: x(2026), x2: x(2026), y1: layout.gy, y2: layout.gy + layout.gh }, style: { stroke: '#C7CDD0', opacity: .4, lineWidth: 1 } },
       { id: 'divider-text', type: 'text', silent: true, z: 5, x: x(2026) + 5, y: layout.gy + 12, style: { text: '2026', fill: '#929A9F', font: `11px ${font}`, opacity: Math.abs(currentX - x(2026)) < 50 ? 0 : 1 } },
-      { id: 'axis-title', type: 'text', silent: true, x: layout.gx, y: 13, style: { text: layout.width < 500 ? '2025 = 100 · compressed scale' : '2025 = 100 · compressed index scale', fill: '#929A9F', font: `10px ${font}` } },
+      { id: 'axis-title', type: 'text', silent: true, x: layout.gx, y: 13, style: { text: 'Compressed index · 2025 = 100', fill: '#929A9F', font: `10px ${font}` } },
       { id: 'future-title', type: 'text', silent: true, x: x(2040), y: 13, style: { text: layout.width < 500 ? 'Scenarios' : 'Projected scenarios', fill: '#929A9F', align: 'right', font: `10px ${font}` } },
       { id: 'crosshair', type: 'line', silent: true, z: 6, shape: { x1: currentX, x2: currentX, y1: layout.gy, y2: layout.gy + layout.gh }, style: { stroke: '#C7CDD0', opacity: .6, lineWidth: 1, lineDash: [2, 4] } },
       { id: 'year-pill', type: 'rect', silent: true, z: 7, shape: { x: clamp(currentX - 25, layout.gx, x(2040) - 50), y: layout.gy - 28, width: 50, height: 21 }, style: { fill: '#C7CDD0' } },
@@ -326,7 +320,7 @@ export function mountGraph(element) {
       const endpoint = endpointPositions.find(item => item.id === series.id), labelX = x(2040) + 46;
       labels[index].style.left = `${labelX}px`; labels[index].style.top = `${endpoint.labelY}px`;
       labels[index].style.width = `${Math.max(0, layout.width - labelX)}px`;
-      labels[index].setAttribute('aria-label', `Highlight ${series.name}. ${series.definition}. 2040 projected index ${formatIndex(endpoints[index]?.value)}, ${displayMultiple(endpoints[index]?.value)} its measured 2025 baseline.`);
+      labels[index].setAttribute('aria-label', `Highlight ${series.name}. ${series.definition}. 2040 projected compressed index about ${formatIndex(endpoints[index]?.value)}. 2025 = 100.`);
       elements.push({ id: `leader-${series.id}`, type: 'polyline', silent: true, ignore: layout.compact, z: 2, shape: { points: [[x(2040), endpoint.y], [x(2040) + 14, endpoint.y], [labelX - 14, endpoint.labelY + 8], [labelX - 5, endpoint.labelY + 8]] }, style: { stroke: series.color, lineWidth: .8, fill: null, opacity: active ? .85 : .13 } });
     });
     chart.setOption({ graphic: { elements } });
@@ -428,7 +422,9 @@ export function mountGraph(element) {
         const header = make('div', 'graph-popup-header');
         header.append(make('p', 'graph-popup-eyebrow', `${previewYear} · ${series.name}`), make('span', 'graph-popup-index', displayIndex(readingAt(hit.seriesIndex, previewYear)?.value)));
         const mediaHost = make('div', 'graph-preview-media');
-        popup.append(header, measurement(hit.seriesIndex, previewYear), mediaHost, make('h3', 'graph-popup-title', story.title));
+        popup.append(header);
+        if (story.kind !== 'scenario') popup.append(measurement(hit.seriesIndex, previewYear));
+        popup.append(mediaHost, make('h3', 'graph-popup-title', story.title));
         const expand = make('button', 'graph-expand', 'Expand event ↗'); expand.type = 'button';
         expand.addEventListener('click', () => openStory(series.id, previewYear, opener)); popup.append(expand);
         requestAnimationFrame(() => {
@@ -463,12 +459,14 @@ export function mountGraph(element) {
     close.addEventListener('click', () => closePanel()); top.append(close);
     const inner = make('div', 'graph-panel-inner'), mediaHost = make('div', 'graph-panel-media'), copy = make('div', 'graph-panel-copy');
     const heading = make('h3', '', story.title); heading.id = 'graph-panel-title'; heading.tabIndex = -1;
-    copy.append(heading, measurement(graphSeries.indexOf(series), story.year, true), make('p', 'graph-panel-blurb', story.blurb));
+    copy.append(heading);
+    if (story.kind !== 'scenario') copy.append(measurement(graphSeries.indexOf(series), story.year, true));
+    copy.append(make('p', 'graph-panel-blurb', story.blurb));
     const evidenceLabels = { 'lab-demo': 'Research demonstration', launch: 'Product launch', 'operational-report': 'Operational report', pilot: 'Deployment pilot' };
-    if (story.evidenceType) copy.append(make('p', 'graph-evidence', evidenceLabels[story.evidenceType] || story.evidenceType));
+    if (story.evidenceType && story.kind !== 'scenario') copy.append(make('p', 'graph-evidence', evidenceLabels[story.evidenceType] || story.evidenceType));
     const source = safeSource(story.sourceUrl);
-    if (source) {
-      const link = make('a', 'graph-source', story.kind === 'scenario' ? 'Research context ↗' : 'Event source ↗');
+    if (source && story.kind !== 'scenario') {
+      const link = make('a', 'graph-source', 'Event source ↗');
       link.href = source; link.target = '_blank'; link.rel = 'noopener noreferrer'; copy.append(link);
     }
     inner.append(mediaHost, copy); panel.append(top, inner);

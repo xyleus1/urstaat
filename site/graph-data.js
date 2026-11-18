@@ -5,8 +5,7 @@ import { scaleSymlog } from './vendor/scale-vendor.js?v=continuous-indices-1';
 // audited source snapshot. The browser selects, formats and projects them.
 export const graphDomain = Object.freeze(graphModel.domain);
 export const scenarioParameters = Object.freeze(graphModel.scenarioParameters);
-// The same compression is used for every line. It changes display coordinates,
-// never the fixed 2025 normalization or the values shown to a reader.
+// Preserve the established plot coordinates and native 2025-normalized data.
 const commonDisplayScale = scaleSymlog().constant(1)
   .domain([-1, 1]).range([-Math.LN2, Math.LN2]);
 export function displayValue(index) {
@@ -14,6 +13,21 @@ export function displayValue(index) {
 }
 export function inverseDisplayValue(value) {
   return Number.isFinite(value) ? 100 * Math.exp(commonDisplayScale.invert(value)) : NaN;
+}
+// One shared presentation scale keeps 2025 at 100 and the chart ceiling at
+// 10,000. This is display compression, not a change to source or scenario data.
+export const indexPresentation = Object.freeze({
+  baseline: 100,
+  maximum: 10000,
+  power: Math.log(10000 / 100) / Math.log(graphDomain.maximum / 100),
+});
+export function compressIndex(value) {
+  return Number.isFinite(value) && value > 0
+    ? indexPresentation.baseline * (value / indexPresentation.baseline) ** indexPresentation.power : NaN;
+}
+export function uncompressIndex(value) {
+  return Number.isFinite(value) && value > 0
+    ? indexPresentation.baseline * (value / indexPresentation.baseline) ** (1 / indexPresentation.power) : NaN;
 }
 export const graphSeries = Object.freeze([
   { id: 'llm', name: 'LLM performance', color: '#8EAAF0' },
@@ -96,28 +110,25 @@ export function interpolateSample(points, year) {
   return inverseDisplayValue(displayValue(before.value) + (displayValue(after.value) - displayValue(before.value)) * fraction);
 }
 
-const compact = new Intl.NumberFormat('en-US', { notation: 'compact', maximumSignificantDigits: 3 });
-const integer = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 });
-const significant = (value, digits = 3) => Number(value.toPrecision(digits)).toString();
+const compact = new Intl.NumberFormat('en-US', { notation: 'compact', maximumSignificantDigits: 1 });
+const roughIndex = new Intl.NumberFormat('en-US', { maximumSignificantDigits: 1 });
 
 export function formatIndex(value) {
-  if (!Number.isFinite(value)) return '—';
-  if (Math.abs(value) >= 1000) return compact.format(value);
-  if (Math.abs(value) >= 10) return value.toFixed(1);
-  return significant(value, 3);
+  const compressed = compressIndex(value);
+  return Number.isFinite(compressed) ? roughIndex.format(compressed) : '—';
 }
 
 export function formatRaw(series, value) {
   if (!Number.isFinite(value)) return '—';
   if (series.unit === 'minutes') {
-    if (value < 1) return `${significant(value * 60)} human-seconds`;
-    if (value < 60) return `${significant(value)} human-minutes`;
-    if (value < 120000) return `${significant(value / 60)} human-hours`;
-    return `${significant(value / 120000)} work-years (2,000 h/year)`;
+    if (value < 1) return `${compact.format(value * 60)} human-seconds`;
+    if (value < 60) return `${compact.format(value)} human-minutes`;
+    if (value < 120000) return `${compact.format(value / 60)} human-hours`;
+    return `${compact.format(value / 120000)} work-years (2,000 h/year)`;
   }
-  if (series.unit === 'success-normalized return') return `${value.toFixed(3)} success-normalized return`;
-  if (series.unit === 'source index') return `${value.toFixed(2)} BOJ source index`;
-  return `${integer.format(value)} ${series.unit}`;
+  if (series.unit === 'success-normalized return') return `${compact.format(value)} success-normalized return`;
+  if (series.unit === 'source index') return `${compact.format(value)} BOJ source index`;
+  return `${compact.format(value)} ${series.unit}`;
 }
 
 // Optional projector permits ECharts convertToPixel. The fallback follows the
