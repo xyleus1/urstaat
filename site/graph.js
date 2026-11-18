@@ -458,7 +458,15 @@ export function mountGraph(element) {
     const close = make('button', 'graph-panel-close', 'Close ×'); close.type = 'button'; close.setAttribute('aria-label', 'Close event');
     close.addEventListener('click', () => closePanel()); top.append(close);
     const inner = make('div', 'graph-panel-inner'), mediaHost = make('div', 'graph-panel-media'), copy = make('div', 'graph-panel-copy');
+    if (story.kind === 'scenario') {
+      const context = make('div', 'graph-panel-context'), identity = make('p', 'graph-panel-identity');
+      identity.id = 'graph-panel-identity';
+      context.style.setProperty('--series-color', series.color);
+      identity.append(make('span', 'graph-panel-year', String(story.year)), make('span', 'graph-panel-series', series.name));
+      context.append(identity, close); copy.append(context);
+    }
     const heading = make('h3', '', story.title); heading.id = 'graph-panel-title'; heading.tabIndex = -1;
+    if (story.kind === 'scenario') heading.setAttribute('aria-describedby', 'graph-panel-identity');
     copy.append(heading);
     if (story.kind !== 'scenario') copy.append(measurement(graphSeries.indexOf(series), story.year, true));
     copy.append(make('p', 'graph-panel-blurb', story.blurb));
@@ -469,7 +477,9 @@ export function mountGraph(element) {
       const link = make('a', 'graph-source', 'Event source ↗');
       link.href = source; link.target = '_blank'; link.rel = 'noopener noreferrer'; copy.append(link);
     }
-    inner.append(mediaHost, copy); panel.append(top, inner);
+    inner.append(mediaHost, copy);
+    if (story.kind !== 'scenario') panel.append(top);
+    panel.append(inner);
     panel.hidden = false; panel.style.height = 'auto'; panel.style.opacity = '1';
     panelMedia = mountMedia(mediaHost, story, { reducedMotion });
     const finalHeight = panel.getBoundingClientRect().height;

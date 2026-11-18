@@ -89,6 +89,12 @@
 .robotics-graph .graph-panel-media { width: 100%; aspect-ratio: 16 / 9; min-height: 220px; overflow: hidden; background: var(--graph-paper); }
 .robotics-graph .graph-panel-copy h3 { margin: 0 0 18px; color: var(--graph-ink); font-size: 25px; line-height: 1.2; letter-spacing: -.55px; font-weight: 400; }
 .robotics-graph .graph-panel-copy h3:focus { outline: none; }
+.robotics-graph .graph-panel-context { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 24px; }
+.robotics-graph .graph-panel-identity { display: flex; flex-direction: column; align-items: flex-start; gap: 9px; min-width: 0; margin: 0; }
+.robotics-graph .graph-panel-year { color: var(--graph-ink); font-size: 28px; line-height: 1; letter-spacing: -.6px; font-variant-numeric: tabular-nums; }
+.robotics-graph .graph-panel-series { display: flex; align-items: center; gap: 8px; color: var(--series-color); font-size: 12px; line-height: 18px; }
+.robotics-graph .graph-panel-series::before { content: ''; flex: 0 0 5px; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+.robotics-graph .graph-panel-context .graph-panel-close { flex-shrink: 0; padding: 0 0 0 12px; }
 .robotics-graph .graph-panel-copy .graph-measurement { margin-bottom: 20px; }
 .robotics-graph .graph-panel-copy .graph-measurement-name { font-size: 11px; line-height: 17px; }
 .robotics-graph .graph-panel-copy .graph-measurement-value { font-size: 14px; line-height: 22px; }
