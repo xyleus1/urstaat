@@ -1,6 +1,6 @@
 import { init, animate } from './vendor/graph-vendor.js?v=finish-1';
 import { graphDomain, graphSeries, graphViews, sampleSeries, readingAt, formatIndex, formatRaw, snapYear, stepYear, placeEndpointLabels, displayValue, inverseDisplayValue } from './graph-data.js?v=editorial-cleanup-1';
-import { getStory } from './graph-stories.js?v=storyboards-20261118-1';
+import { getStory } from './graph-stories.js?v=storyboards-complete-20261118-1';
 
 const clamp = (value, low, high) => Math.max(low, Math.min(high, value));
 const make = (tag, className, text) => {
@@ -81,7 +81,7 @@ function mountMedia(host, story, { preview = false, reducedMotion = false, expan
       button.type = 'button'; button.setAttribute('aria-label', `Expand ${story.title}`);
       button.append(image); on(button, 'click', expand); host.append(button);
     } else host.append(image);
-    image.src = absolute(media.src);
+    image.src = absolute(media.src) + (media.revision ? `?v=${encodeURIComponent(media.revision)}` : '');
   } else if (media.provider === 'native' && media.src) {
     const video = make('video', 'graph-story-video');
     video.controls = !preview || reducedMotion; video.muted = preview;
@@ -165,6 +165,7 @@ export function mountGraph(element) {
   let layout, disposed = false, resizeFrame = 0, hoverTimer, hideTimer, previewMedia, panelMedia, panelAnimation, popupAnimation;
   let previewKey = '', pendingPreviewKey = '', previewState = null, opened = null, lastOpener = null, panelRevision = 0;
   let tooltipAnchor = [0, 0], pointerStart = null, wheelDelta = 0, wheelTime = 0, wheelEventTime = 0, popupDistance = Infinity;
+  let openingPointer = null;
   const disposers = [];
   const listen = (target, type, handler, options) => {
     target.addEventListener(type, handler, options);
@@ -513,6 +514,15 @@ export function mountGraph(element) {
     const inspected = chart.convertFromPixel({ xAxisIndex: 0 }, point.x);
     if (Number.isFinite(inspected)) updateYear(inspected);
   };
+  // A touch/pen release opens and focuses the menu before its click arrives.
+  // Consume only that gesture's retargeted click; a new press or keyboard
+  // activation can immediately choose an item, without a timing lockout.
+  listen(plot, 'pointerdown', () => { openingPointer = null; }, { capture: true });
+  listen(popup, 'click', event => {
+    const pointer = openingPointer; openingPointer = null;
+    if (pointer === null || event.detail === 0 || ('pointerId' in event && event.pointerId !== pointer)) return;
+    event.preventDefault(); event.stopImmediatePropagation();
+  }, { capture: true });
   listen(plot, 'pointermove', event => {
     if (popup.contains(event.target) || (event.pointerType !== 'mouse' && !pointerStart)) return;
     if (previewState && !pointerStart) {
@@ -546,6 +556,7 @@ export function mountGraph(element) {
     const point = pointerPosition(event); if (!inGrid(point)) return;
     inspectPoint(point, event.pointerType === 'mouse' ? 8 : 18);
     showYearMenu([x(year), point.y], { immediate: true, focus: true });
+    if (event.pointerType !== 'mouse') openingPointer = event.pointerId;
   });
   listen(plot, 'pointercancel', () => { pointerStart = null; hidePreview(); });
   listen(plot, 'pointerleave', scheduleHide);

@@ -352,12 +352,13 @@
     "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
     "publisher": "Run before you walk",
     "sketchBrief": "An engineer reviews a complete bounded software change, with a laptop, a testing sheet, and the original brief.",
-    "sketchPrompt": "One extremely rough, sparse, unfinished pre-animation storyboard thumbnail, 16:9 landscape. Flat near-black #080A0B background; only loose steel-gray #C7CDD0 strokes and a few faint construction marks. Leave 70-80 percent of the frame empty. Make contours broken, tentative, uneven, and visibly incomplete, with economical hand-sketched gesture and a clear silhouette. Concentrate one legible action in a modest area of the frame; include only essential people, machinery, and props. Use at most one or two faint ghost positions when the scene requests movement. No words, numbers, lettering, logos, gradients, shaded surfaces, dense hatching, paper texture, polished vectors, decorative scenery, futuristic cityscapes, glowing brains, or floating network diagrams. Screens contain only a few illegible rough marks, not a fabricated readable interface. Scene: Close three-quarter view of an ordinary desk: one engineer reviews a laptop, a testing sheet, and the original brief. Show completed work only through sparse illegible marks. Keep the work bounded and recognizably software; no robot action, clock, numerical score, or overnight-work cue. Preserve an animatic thumbnail's incompleteness; make the central action readable without finishing every contour.",
+    "sketchPrompt": "An engineer sits at the left end of a plain rectangular desk, reviewing a completed software change on a small open laptop at the center. Two loose sheets lie to the right: the original brief and a testing sheet, indicated only by a few short unreadable working marks. One hand points to the testing sheet. The laptop, papers, and reviewing gesture form the entire action.\n\nCenter the complete vignette within roughly half the canvas width and half its height. Keep generous, balanced blank margins above, below, left, and right. Use a 16:9 landscape frame; keep every essential part visible.\n\nDraw an extremely rough, sparse animator's pencil thumbnail: economical broken steel-gray #C7CDD0 contours on a perfectly flat near-black #080A0B field. Leave 70-80 percent of the canvas bare. Use uneven pressure, tentative construction strokes, and incomplete outlines. Keep surfaces unshaded and unlettered, with only a few illegible marks on any screen. The result is an unfinished gesture drawing, not a polished illustration.",
     "media": {
       "provider": "image",
       "src": "graph-media/future/llm/2030.webp",
       "alt": "Rough storyboard sketch: An engineer reviews a complete bounded software change, with a laptop, a testing sheet, and the original brief.",
-      "state": "placeholder"
+      "state": "ready",
+      "revision": "cb38e247983e"
     }
   },
   {
@@ -371,12 +372,13 @@
     "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
     "publisher": "Run before you walk",
     "sketchBrief": "A humanoid reaches to an ordinary kitchen shelf for a utensil, following a nearby person's gesture.",
-    "sketchPrompt": "One extremely rough, sparse, unfinished pre-animation storyboard thumbnail, 16:9 landscape. Flat near-black #080A0B background; only loose steel-gray #C7CDD0 strokes and a few faint construction marks. Leave 70-80 percent of the frame empty. Make contours broken, tentative, uneven, and visibly incomplete, with economical hand-sketched gesture and a clear silhouette. Concentrate one legible action in a modest area of the frame; include only essential people, machinery, and props. Use at most one or two faint ghost positions when the scene requests movement. No words, numbers, lettering, logos, gradients, shaded surfaces, dense hatching, paper texture, polished vectors, decorative scenery, futuristic cityscapes, glowing brains, or floating network diagrams. Screens contain only a few illegible rough marks, not a fabricated readable interface. Scene: Sparse side view of an ordinary kitchen, indicated by one shelf and a short counter line. An unbranded practical humanoid reaches for a utensil on the shelf while a nearby person gestures toward the intended destination. Make the familiar reach height and environment clear; avoid futuristic fittings or decorative room detail. Preserve an animatic thumbnail's incompleteness; make the central action readable without finishing every contour.",
+    "sketchPrompt": "A practical humanoid robot stands to the right of a short ordinary kitchen counter. Its cylindrical joints and simple mechanical limbs distinguish it from the person standing at the left. The person points toward a utensil on one shelf above the counter; the robot reaches up and closes its hand around the utensil. Use only the shelf, counter, utensil, and the two clear body gestures to establish an existing human-scale kitchen.\n\nCenter the complete vignette within roughly half the canvas width and half its height. Keep generous, balanced blank margins above, below, left, and right. Use a 16:9 landscape frame; keep every essential part visible.\n\nDraw an extremely rough, sparse animator's pencil thumbnail: economical broken steel-gray #C7CDD0 contours on a perfectly flat near-black #080A0B field. Leave 70-80 percent of the canvas bare. Use uneven pressure, tentative construction strokes, and incomplete outlines. Keep surfaces unshaded and unlettered, with only a few illegible marks on any screen. The result is an unfinished gesture drawing, not a polished illustration.",
     "media": {
       "provider": "image",
       "src": "graph-media/future/humanoid/2030.webp",
       "alt": "Rough storyboard sketch: A humanoid reaches to an ordinary kitchen shelf for a utensil, following a nearby person's gesture.",
-      "state": "placeholder"
+      "state": "ready",
+      "revision": "c92cccfc2267"
     }
   },
   {
@@ -390,12 +392,13 @@
     "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
     "publisher": "Run before you walk",
     "sketchBrief": "A compact suction packing arm moves a box within its bounded work area.",
-    "sketchPrompt": "One extremely rough, sparse, unfinished pre-animation storyboard thumbnail, 16:9 landscape. Flat near-black #080A0B background; only loose steel-gray #C7CDD0 strokes and a few faint construction marks. Leave 70-80 percent of the frame empty. Make contours broken, tentative, uneven, and visibly incomplete, with economical hand-sketched gesture and a clear silhouette. Concentrate one legible action in a modest area of the frame; include only essential people, machinery, and props. Use at most one or two faint ghost positions when the scene requests movement. No words, numbers, lettering, logos, gradients, shaded surfaces, dense hatching, paper texture, polished vectors, decorative scenery, futuristic cityscapes, glowing brains, or floating network diagrams. Screens contain only a few illegible rough marks, not a fabricated readable interface. Scene: Close low three-quarter view of one compact packing arm moving a cardboard box with a simple suction gripper. Include only the arm support and a hint of the receiving surface. Let the geometry explain the task. No humanoid or extra fingers. Keep this a close morphology study, distinct from the wider deployment-2030 work cell. Preserve an animatic thumbnail's incompleteness; make the central action readable without finishing every contour.",
+    "sketchPrompt": "An unoccupied compact packing station contains one short industrial arm fixed to a low support. A simple suction cup at the arm's end is visibly attached to the top of a cardboard box, lifting it toward a nearby receiving surface. A second box rests on that surface. Draw the suction contact and the arm's short reach clearly. This is a close view of a task-shaped mechanism, with only the essential support and surfaces.\n\nCenter the complete vignette within roughly half the canvas width and half its height. Keep generous, balanced blank margins above, below, left, and right. Use a 16:9 landscape frame; keep every essential part visible.\n\nDraw an extremely rough, sparse animator's pencil thumbnail: economical broken steel-gray #C7CDD0 contours on a perfectly flat near-black #080A0B field. Leave 70-80 percent of the canvas bare. Use uneven pressure, tentative construction strokes, and incomplete outlines. Keep surfaces unshaded and unlettered, with only a few illegible marks on any screen. The result is an unfinished gesture drawing, not a polished illustration.",
     "media": {
       "provider": "image",
       "src": "graph-media/future/specialist/2030.webp",
       "alt": "Rough storyboard sketch: A compact suction packing arm moves a box within its bounded work area.",
-      "state": "ready"
+      "state": "ready",
+      "revision": "33e5c658ef9b"
     }
   },
   {
@@ -409,12 +412,13 @@
     "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
     "publisher": "Run before you walk",
     "sketchBrief": "A working packing cell includes a person handling an irregular package exception beside the ordinary material flow.",
-    "sketchPrompt": "One extremely rough, sparse, unfinished pre-animation storyboard thumbnail, 16:9 landscape. Flat near-black #080A0B background; only loose steel-gray #C7CDD0 strokes and a few faint construction marks. Leave 70-80 percent of the frame empty. Make contours broken, tentative, uneven, and visibly incomplete, with economical hand-sketched gesture and a clear silhouette. Concentrate one legible action in a modest area of the frame; include only essential people, machinery, and props. Use at most one or two faint ghost positions when the scene requests movement. No words, numbers, lettering, logos, gradients, shaded surfaces, dense hatching, paper texture, polished vectors, decorative scenery, futuristic cityscapes, glowing brains, or floating network diagrams. Screens contain only a few illegible rough marks, not a fabricated readable interface. Scene: Wider side view than specialist-2030. Show one operating packing station, a short material path, and a nearby person dealing with an irregular package at the edge of the cell. The arrangement and support are the subject, not gripper design. No throughput numbers, giant warehouse, or claim of a completely unattended operation. Preserve an animatic thumbnail's incompleteness; make the central action readable without finishing every contour.",
+    "sketchPrompt": "A working packing cell occupies a short conveyor and receiving table. A compact industrial arm continues transferring ordinary boxes at the right. At the left edge of the cell, a person handles one irregular, awkwardly shaped package that needs attention. Draw the person's intervention and the arm's ongoing work as parts of one operating arrangement. Include only the two short work surfaces, boxes, arm, and person; the surrounding factory remains empty.\n\nCenter the complete vignette within roughly half the canvas width and half its height. Keep generous, balanced blank margins above, below, left, and right. Use a 16:9 landscape frame; keep every essential part visible.\n\nDraw an extremely rough, sparse animator's pencil thumbnail: economical broken steel-gray #C7CDD0 contours on a perfectly flat near-black #080A0B field. Leave 70-80 percent of the canvas bare. Use uneven pressure, tentative construction strokes, and incomplete outlines. Keep surfaces unshaded and unlettered, with only a few illegible marks on any screen. The result is an unfinished gesture drawing, not a polished illustration.",
     "media": {
       "provider": "image",
       "src": "graph-media/future/deployment/2030.webp",
       "alt": "Rough storyboard sketch: A working packing cell includes a person handling an irregular package exception beside the ordinary material flow.",
-      "state": "placeholder"
+      "state": "ready",
+      "revision": "0ee8b6aec036"
     }
   },
   {
@@ -428,12 +432,13 @@
     "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
     "publisher": "Run before you walk",
     "sketchBrief": "A human-held UMI gripper works a resistant partly stuck drawer, with one camera and faint repeated collection stations.",
-    "sketchPrompt": "One extremely rough, sparse, unfinished pre-animation storyboard thumbnail, 16:9 landscape. Flat near-black #080A0B background; only loose steel-gray #C7CDD0 strokes and a few faint construction marks. Leave 70-80 percent of the frame empty. Make contours broken, tentative, uneven, and visibly incomplete, with economical hand-sketched gesture and a clear silhouette. Concentrate one legible action in a modest area of the frame; include only essential people, machinery, and props. Use at most one or two faint ghost positions when the scene requests movement. No words, numbers, lettering, logos, gradients, shaded surfaces, dense hatching, paper texture, polished vectors, decorative scenery, futuristic cityscapes, glowing brains, or floating network diagrams. Screens contain only a few illegible rough marks, not a fabricated readable interface. Scene: Close three-quarter view of a human hand operating a UMI-style handheld gripper on a resistant partly open drawer. Include one recording camera at the edge and very faint repeated station outlines behind it. Establish the drawer silhouette for later data scenes. Show motion without force displays or a suggestion that UMI inherently measures every contact state. Preserve an animatic thumbnail's incompleteness; make the central action readable without finishing every contour.",
+    "sketchPrompt": "Edit this rough storyboard while preserving its drawer, camera, composition, black background and sparse broken steel-grey pencil strokes. Replace ONLY the long rigid robotic forearm approaching from the right with an unmistakably human hand holding a separate small handheld mechanical gripper. The human wrist has a soft organic contour. Show a clearly readable thumb and four curled human fingers wrapped around a vertical pistol-shaped grip BELOW the gripper mechanism. The separate mechanical gripper has two parallel jaws clamped around the drawer handle; its linkage connects to the grip held by the hand, not to a fixed robot wrist. The hand is operating this tool to pull the drawer while the camera records. Remove the faint ghost robot forearm above, leaving that area empty. Keep all other objects and the unfinished scratchy drawing style. No words, labels, arrows, extra hands or polished rendering. The human grasp must be obvious at thumbnail size.",
     "media": {
       "provider": "image",
       "src": "graph-media/future/data/2030.webp",
       "alt": "Rough storyboard sketch: A human-held UMI gripper works a resistant partly stuck drawer, with one camera and faint repeated collection stations.",
-      "state": "placeholder"
+      "state": "ready",
+      "revision": "a517d31871c9"
     }
   },
   {
@@ -447,12 +452,13 @@
     "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
     "publisher": "Run before you walk",
     "sketchBrief": "An electric joint lifts an arm, with essential motor, gearing, and cooling visible and a ghosted prior arm pose.",
-    "sketchPrompt": "One extremely rough, sparse, unfinished pre-animation storyboard thumbnail, 16:9 landscape. Flat near-black #080A0B background; only loose steel-gray #C7CDD0 strokes and a few faint construction marks. Leave 70-80 percent of the frame empty. Make contours broken, tentative, uneven, and visibly incomplete, with economical hand-sketched gesture and a clear silhouette. Concentrate one legible action in a modest area of the frame; include only essential people, machinery, and props. Use at most one or two faint ghost positions when the scene requests movement. No words, numbers, lettering, logos, gradients, shaded surfaces, dense hatching, paper texture, polished vectors, decorative scenery, futuristic cityscapes, glowing brains, or floating network diagrams. Screens contain only a few illegible rough marks, not a fabricated readable interface. Scene: Close side view of an electric joint lifting a short arm. Show only essential motor, reduction stage, and modest cooling contours around the joint; one pale prior arm pose suggests repeated duty. Keep the mechanism plausible but incomplete. No prices, performance numbers, shaded CAD detail, or miracle-actuator styling. Preserve an animatic thumbnail's incompleteness; make the central action readable without finishing every contour.",
+    "sketchPrompt": "One straight lifting bar is attached at one end to a compact cylindrical electric joint mounted on a fixed base. Show the entire assembly from the side, with the bar raised slightly above horizontal. A few essential concentric contours suggest the motor and gearing inside the cylinder, and short exterior fins suggest cooling. One very pale horizontal prior bar pose shares the pivot, indicating repeated lifting. The fixed base, joint, attached bar, and both bar endpoints remain fully visible.\n\nCenter the complete vignette within roughly half the canvas width and half its height. Keep generous, balanced blank margins above, below, left, and right. Use a 16:9 landscape frame; keep every essential part visible.\n\nDraw an extremely rough, sparse animator's pencil thumbnail: economical broken steel-gray #C7CDD0 contours on a perfectly flat near-black #080A0B field. Leave 70-80 percent of the canvas bare. Use uneven pressure, tentative construction strokes, and incomplete outlines. Keep surfaces unshaded and unlettered, with only a few illegible marks on any screen. The result is an unfinished gesture drawing, not a polished illustration.",
     "media": {
       "provider": "image",
       "src": "graph-media/future/hardware/2030.webp",
       "alt": "Rough storyboard sketch: An electric joint lifts an arm, with essential motor, gearing, and cooling visible and a ghosted prior arm pose.",
-      "state": "placeholder"
+      "state": "ready",
+      "revision": "06af9115c3e0"
     }
   },
   {
@@ -922,12 +928,13 @@
     "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
     "publisher": "Run before you walk",
     "sketchBrief": "The same desk holds a coordinated collection, training, and evaluation software workflow represented on three physical working sheets.",
-    "sketchPrompt": "One extremely rough, sparse, unfinished pre-animation storyboard thumbnail, 16:9 landscape. Flat near-black #080A0B background; only loose steel-gray #C7CDD0 strokes and a few faint construction marks. Leave 70-80 percent of the frame empty. Make contours broken, tentative, uneven, and visibly incomplete, with economical hand-sketched gesture and a clear silhouette. Concentrate one legible action in a modest area of the frame; include only essential people, machinery, and props. Use at most one or two faint ghost positions when the scene requests movement. No words, numbers, lettering, logos, gradients, shaded surfaces, dense hatching, paper texture, polished vectors, decorative scenery, futuristic cityscapes, glowing brains, or floating network diagrams. Screens contain only a few illegible rough marks, not a fabricated readable interface. Scene: Return to the same engineer, laptop, and camera as llm-2030. Three physical sheets on the desk represent the connected collection, training, and evaluation workflow, with only rough unreadable working marks. The engineer reviews the whole project. Use the desktop arrangement, not a floating network diagram, to connect its parts. Preserve an animatic thumbnail's incompleteness; make the central action readable without finishing every contour.",
+    "sketchPrompt": "An engineer sits at the left end of a plain rectangular desk with a small open laptop at the center. Three physical working sheets are spread together on the right, representing one software project covering data collection, training, and evaluation. A few rough blocks and short lines on the sheets suggest related work without readable labels. One hand spans the sheets as the engineer reviews the complete workflow; all connections remain on the physical desktop.\n\nCenter the complete vignette within roughly half the canvas width and half its height. Keep generous, balanced blank margins above, below, left, and right. Use a 16:9 landscape frame; keep every essential part visible.\n\nDraw an extremely rough, sparse animator's pencil thumbnail: economical broken steel-gray #C7CDD0 contours on a perfectly flat near-black #080A0B field. Leave 70-80 percent of the canvas bare. Use uneven pressure, tentative construction strokes, and incomplete outlines. Keep surfaces unshaded and unlettered, with only a few illegible marks on any screen. The result is an unfinished gesture drawing, not a polished illustration.",
     "media": {
       "provider": "image",
       "src": "graph-media/future/llm/2035.webp",
       "alt": "Rough storyboard sketch: The same desk holds a coordinated collection, training, and evaluation software workflow represented on three physical working sheets.",
-      "state": "placeholder"
+      "state": "ready",
+      "revision": "4ea0ffd15718"
     }
   },
   {
@@ -941,12 +948,13 @@
     "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
     "publisher": "Run before you walk",
     "sketchBrief": "The same humanoid recovers a dropped utensil while the unfinished task remains on the counter, with one pale prior hand pose.",
-    "sketchPrompt": "One extremely rough, sparse, unfinished pre-animation storyboard thumbnail, 16:9 landscape. Flat near-black #080A0B background; only loose steel-gray #C7CDD0 strokes and a few faint construction marks. Leave 70-80 percent of the frame empty. Make contours broken, tentative, uneven, and visibly incomplete, with economical hand-sketched gesture and a clear silhouette. Concentrate one legible action in a modest area of the frame; include only essential people, machinery, and props. Use at most one or two faint ghost positions when the scene requests movement. No words, numbers, lettering, logos, gradients, shaded surfaces, dense hatching, paper texture, polished vectors, decorative scenery, futuristic cityscapes, glowing brains, or floating network diagrams. Screens contain only a few illegible rough marks, not a fabricated readable interface. Scene: Return to the same counter and humanoid as humanoid-2030. A utensil lies on the floor and the humanoid changes posture to retrieve it. Preserve the prior hand pose as one pale incomplete contour. Leave one unfinished-task prop on the counter. The gesture is recovery within a continuing sequence, not a triumphant flawless-autonomy pose. Preserve an animatic thumbnail's incompleteness; make the central action readable without finishing every contour.",
+    "sketchPrompt": "A practical humanoid with cylindrical joints bends beside a short ordinary kitchen counter to retrieve a dropped utensil from the floor. A bowl and one unfinished preparation item remain on the counter, making the continuing task visible. Draw the current lowered hand and utensil clearly. Add one very pale outline of the previous hand position higher beside the counter, indicating an earlier pose of this robot. Keep the robot's whole body and feet within the vignette.\n\nCenter the complete vignette within roughly half the canvas width and half its height. Keep generous, balanced blank margins above, below, left, and right. Use a 16:9 landscape frame; keep every essential part visible.\n\nDraw an extremely rough, sparse animator's pencil thumbnail: economical broken steel-gray #C7CDD0 contours on a perfectly flat near-black #080A0B field. Leave 70-80 percent of the canvas bare. Use uneven pressure, tentative construction strokes, and incomplete outlines. Keep surfaces unshaded and unlettered, with only a few illegible marks on any screen. The result is an unfinished gesture drawing, not a polished illustration.",
     "media": {
       "provider": "image",
       "src": "graph-media/future/humanoid/2035.webp",
       "alt": "Rough storyboard sketch: The same humanoid recovers a dropped utensil while the unfinished task remains on the counter, with one pale prior hand pose.",
-      "state": "placeholder"
+      "state": "ready",
+      "revision": "724a7fed33a8"
     }
   },
   {
@@ -960,12 +968,13 @@
     "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
     "publisher": "Run before you walk",
     "sketchBrief": "An ordinary excavator actively digs with its existing human-sized cab clearly empty and a minimal added sensor.",
-    "sketchPrompt": "One extremely rough, sparse, unfinished pre-animation storyboard thumbnail, 16:9 landscape. Flat near-black #080A0B background; only loose steel-gray #C7CDD0 strokes and a few faint construction marks. Leave 70-80 percent of the frame empty. Make contours broken, tentative, uneven, and visibly incomplete, with economical hand-sketched gesture and a clear silhouette. Concentrate one legible action in a modest area of the frame; include only essential people, machinery, and props. Use at most one or two faint ghost positions when the scene requests movement. No words, numbers, lettering, logos, gradients, shaded surfaces, dense hatching, paper texture, polished vectors, decorative scenery, futuristic cityscapes, glowing brains, or floating network diagrams. Screens contain only a few illegible rough marks, not a fabricated readable interface. Scene: Loose side profile of an existing excavator making one digging movement. Retain familiar tracks, boom, bucket, and the clearly empty human-sized cab, with one minimal unobtrusive sensor. A faint bucket ghost may suggest movement. No humanoid driver and no cab removal yet; draw only a short ground line around the machine. Preserve an animatic thumbnail's incompleteness; make the central action readable without finishing every contour.",
+    "sketchPrompt": "Side view of an ordinary tracked excavator actively digging with its boom and bucket. Retain a clearly recognizable human-sized cab, with an open-looking window outline that visibly reveals the empty interior. Place one tiny sensor on the machinery. A short ground line meets the digging bucket; one pale prior bucket contour can suggest movement. This is an unoccupied machine operating with its existing cab and conventional body intact.\n\nCenter the complete vignette within roughly half the canvas width and half its height. Keep generous, balanced blank margins above, below, left, and right. Use a 16:9 landscape frame; keep every essential part visible.\n\nDraw an extremely rough, sparse animator's pencil thumbnail: economical broken steel-gray #C7CDD0 contours on a perfectly flat near-black #080A0B field. Leave 70-80 percent of the canvas bare. Use uneven pressure, tentative construction strokes, and incomplete outlines. Keep surfaces unshaded and unlettered, with only a few illegible marks on any screen. The result is an unfinished gesture drawing, not a polished illustration.",
     "media": {
       "provider": "image",
       "src": "graph-media/future/specialist/2035.webp",
       "alt": "Rough storyboard sketch: An ordinary excavator actively digs with its existing human-sized cab clearly empty and a minimal added sensor.",
-      "state": "ready"
+      "state": "ready",
+      "revision": "b8bce01694a0"
     }
   },
   {
@@ -979,12 +988,13 @@
     "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
     "publisher": "Run before you walk",
     "sketchBrief": "Several work cells share a space, with two continuing to work while a person helps at another.",
-    "sketchPrompt": "One extremely rough, sparse, unfinished pre-animation storyboard thumbnail, 16:9 landscape. Flat near-black #080A0B background; only loose steel-gray #C7CDD0 strokes and a few faint construction marks. Leave 70-80 percent of the frame empty. Make contours broken, tentative, uneven, and visibly incomplete, with economical hand-sketched gesture and a clear silhouette. Concentrate one legible action in a modest area of the frame; include only essential people, machinery, and props. Use at most one or two faint ghost positions when the scene requests movement. No words, numbers, lettering, logos, gradients, shaded surfaces, dense hatching, paper texture, polished vectors, decorative scenery, futuristic cityscapes, glowing brains, or floating network diagrams. Screens contain only a few illegible rough marks, not a fabricated readable interface. Scene: Continue the visual language of deployment-2030. Show three loosely indicated work cells: two operating and a person helping at the third. Draw only essential arms, material surfaces, and the intervention gesture; leave repeated contours incomplete. Their small depicted count is compositional, not a numerical fleet forecast. No network arrows or fully detailed factory. Preserve an animatic thumbnail's incompleteness; make the central action readable without finishing every contour.",
+    "sketchPrompt": "Three modest packing cells share one operating space, each indicated by a short work surface and a compact industrial arm. At two cells, the arms continue holding or placing boxes. At the nearest cell, one person adjusts an irregular package while its arm waits. Keep the active material movement and this single intervention clearly separated. Repeated cell outlines stay incomplete and quiet, so the image reads as an operation continuing while one exception receives help.\n\nCenter the complete vignette within roughly half the canvas width and half its height. Keep generous, balanced blank margins above, below, left, and right. Use a 16:9 landscape frame; keep every essential part visible.\n\nDraw an extremely rough, sparse animator's pencil thumbnail: economical broken steel-gray #C7CDD0 contours on a perfectly flat near-black #080A0B field. Leave 70-80 percent of the canvas bare. Use uneven pressure, tentative construction strokes, and incomplete outlines. Keep surfaces unshaded and unlettered, with only a few illegible marks on any screen. The result is an unfinished gesture drawing, not a polished illustration.",
     "media": {
       "provider": "image",
       "src": "graph-media/future/deployment/2035.webp",
       "alt": "Rough storyboard sketch: Several work cells share a space, with two continuing to work while a person helps at another.",
-      "state": "placeholder"
+      "state": "ready",
+      "revision": "49f786e2b9d9"
     }
   },
   {
@@ -998,12 +1008,13 @@
     "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
     "publisher": "Run before you walk",
     "sketchBrief": "The same drawer shows a ghosted failed angled pull followed by a corrected aligned retry.",
-    "sketchPrompt": "One extremely rough, sparse, unfinished pre-animation storyboard thumbnail, 16:9 landscape. Flat near-black #080A0B background; only loose steel-gray #C7CDD0 strokes and a few faint construction marks. Leave 70-80 percent of the frame empty. Make contours broken, tentative, uneven, and visibly incomplete, with economical hand-sketched gesture and a clear silhouette. Concentrate one legible action in a modest area of the frame; include only essential people, machinery, and props. Use at most one or two faint ghost positions when the scene requests movement. No words, numbers, lettering, logos, gradients, shaded surfaces, dense hatching, paper texture, polished vectors, decorative scenery, futuristic cityscapes, glowing brains, or floating network diagrams. Screens contain only a few illegible rough marks, not a fabricated readable interface. Scene: Reuse the drawer silhouette and close three-quarter camera from data-2030. Draw one failed angled pull as a pale broken gripper contour, then a corrected aligned retry in a few firmer strokes. Keep the drawer and changing contact as nearly the entire scene. No labels, arrows, force numbers, chart, or extra simultaneous action. Preserve an animatic thumbnail's incompleteness; make the central action readable without finishing every contour.",
+    "sketchPrompt": "A single extremely rough sparse animator's storyboard drawing, landscape 16:9, light steel-grey #C7CDD0 pencil strokes on a perfectly flat near-black #080A0B field. Unfinished exploratory pencil rough, very few economical broken contours, uneven pressure, no shading or filled surfaces. About 75% of the canvas stays completely empty.\nShow a robot retrying a stuck drawer pull, in a simple readable side view with only slight perspective. At center-left, ONE small cabinet drawer protrudes a little from its cabinet. Its drawer front faces right and has a simple bar handle. Only draw the essential cabinet and drawer edges. At center-right, a cropped small industrial robot forearm extends horizontally, with two simple parallel gripper fingers visibly closed AROUND THE DRAWER HANDLE. The wrist and pull are aligned horizontally with the drawer slide. This is the current corrected pull and uses the main, brighter lines.\nAdd one very faint ghost of the SAME forearm and gripper, tilted upward above the current arm, still centered on the same handle, to show the earlier bad pull angle. The earlier ghost is only two or three faint broken contours at about one fifth of the brightness of the current pose. It must look like a previous motion pose, not another robot. The two poses share the handle contact point.\nOne small clear action centered within broad empty margins, subject around half the canvas width and half the height. The cabinet edges stay quieter than the gripper and handle. The drawer stays intact. No whole robot, humans, room, extra props, second drawer, technical detail, text, arrows, labels, numerals, logos, panel borders, glow, texture, hatching, sci-fi scenery or polished illustration finish. Make the contact and difference between two pull angles easy to read even at 350 pixels wide.",
     "media": {
       "provider": "image",
       "src": "graph-media/future/data/2035.webp",
       "alt": "Rough storyboard sketch: The same drawer shows a ghosted failed angled pull followed by a corrected aligned retry.",
-      "state": "ready"
+      "state": "ready",
+      "revision": "35ea4480742f"
     }
   },
   {
@@ -1017,12 +1028,13 @@
     "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
     "publisher": "Run before you walk",
     "sketchBrief": "A hand checks a bearing beside a magnet and unfinished actuator at a simple assembly fixture.",
-    "sketchPrompt": "One extremely rough, sparse, unfinished pre-animation storyboard thumbnail, 16:9 landscape. Flat near-black #080A0B background; only loose steel-gray #C7CDD0 strokes and a few faint construction marks. Leave 70-80 percent of the frame empty. Make contours broken, tentative, uneven, and visibly incomplete, with economical hand-sketched gesture and a clear silhouette. Concentrate one legible action in a modest area of the frame; include only essential people, machinery, and props. Use at most one or two faint ghost positions when the scene requests movement. No words, numbers, lettering, logos, gradients, shaded surfaces, dense hatching, paper texture, polished vectors, decorative scenery, futuristic cityscapes, glowing brains, or floating network diagrams. Screens contain only a few illegible rough marks, not a fabricated readable interface. Scene: A restrained close view of one technician's hand checking a bearing at a simple assembly fixture. Include a small magnet and partial actuator housing beside it, using only essential contours. If a simple gauge helps, its reading remains invisible. Concentrate on part quality and fit, without numerical tolerances, dense workshop scenery, or a claim that cheapness guarantees durability. Preserve an animatic thumbnail's incompleteness; make the central action readable without finishing every contour.",
+    "sketchPrompt": "At a small assembly fixture, one cropped technician's hand checks a bearing with a simple mechanical gauge. The bearing is visibly held between the measuring contacts. A small magnet blank and an unfinished cylindrical actuator housing rest immediately beside it. Keep the hand, bearing contact, and part fit legible; the gauge face stays blank. These few components and the short fixture outline form the whole workbench vignette.\n\nCenter the complete vignette within roughly half the canvas width and half its height. Keep generous, balanced blank margins above, below, left, and right. Use a 16:9 landscape frame; keep every essential part visible.\n\nDraw an extremely rough, sparse animator's pencil thumbnail: economical broken steel-gray #C7CDD0 contours on a perfectly flat near-black #080A0B field. Leave 70-80 percent of the canvas bare. Use uneven pressure, tentative construction strokes, and incomplete outlines. Keep surfaces unshaded and unlettered, with only a few illegible marks on any screen. The result is an unfinished gesture drawing, not a polished illustration.",
     "media": {
       "provider": "image",
       "src": "graph-media/future/hardware/2035.webp",
       "alt": "Rough storyboard sketch: A hand checks a bearing beside a magnet and unfinished actuator at a simple assembly fixture.",
-      "state": "ready"
+      "state": "ready",
+      "revision": "0b8a426af78c"
     }
   },
   {
@@ -1492,12 +1504,13 @@
     "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
     "publisher": "Run before you walk",
     "sketchBrief": "The familiar desk opens onto a physical test bench where a researcher uses ready software to test an intact actuator.",
-    "sketchPrompt": "One extremely rough, sparse, unfinished pre-animation storyboard thumbnail, 16:9 landscape. Flat near-black #080A0B background; only loose steel-gray #C7CDD0 strokes and a few faint construction marks. Leave 70-80 percent of the frame empty. Make contours broken, tentative, uneven, and visibly incomplete, with economical hand-sketched gesture and a clear silhouette. Concentrate one legible action in a modest area of the frame; include only essential people, machinery, and props. Use at most one or two faint ghost positions when the scene requests movement. No words, numbers, lettering, logos, gradients, shaded surfaces, dense hatching, paper texture, polished vectors, decorative scenery, futuristic cityscapes, glowing brains, or floating network diagrams. Screens contain only a few illegible rough marks, not a fabricated readable interface. Scene: Keep the desk, laptop, and working sheets recognizable from llm-2035. Widen the view slightly to reveal a researcher applying the software at a modest bench containing an intact actuator. The mechanism is complete. Do not draw missing parts, breakdowns, exhausted software, or any cue claiming that hardware bottlenecks cause the METR software plateau. Preserve an animatic thumbnail's incompleteness; make the central action readable without finishing every contour.",
+    "sketchPrompt": "An engineer sits at the left of a plain desk, using a small open laptop to test an intact actuator on a short adjacent bench at the right. The actuator is a complete cylindrical electric joint fixed to a base, with one short straight arm attached. Three loose working sheets sit beside the laptop. One hand operates the laptop while the engineer observes the physical mechanism. This is a functioning laboratory test with all essential parts present.\n\nCenter the complete vignette within roughly half the canvas width and half its height. Keep generous, balanced blank margins above, below, left, and right. Use a 16:9 landscape frame; keep every essential part visible.\n\nDraw an extremely rough, sparse animator's pencil thumbnail: economical broken steel-gray #C7CDD0 contours on a perfectly flat near-black #080A0B field. Leave 70-80 percent of the canvas bare. Use uneven pressure, tentative construction strokes, and incomplete outlines. Keep surfaces unshaded and unlettered, with only a few illegible marks on any screen. The result is an unfinished gesture drawing, not a polished illustration.",
     "media": {
       "provider": "image",
       "src": "graph-media/future/llm/2040.webp",
       "alt": "Rough storyboard sketch: The familiar desk opens onto a physical test bench where a researcher uses ready software to test an intact actuator.",
-      "state": "placeholder"
+      "state": "ready",
+      "revision": "e80bccdf8a4d"
     }
   },
   {
@@ -1511,12 +1524,13 @@
     "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
     "publisher": "Run before you walk",
     "sketchBrief": "A person enjoys choosing ingredients while a humanoid supports a heavy pot beside them, leaving the person in control of the meal.",
-    "sketchPrompt": "One extremely rough, sparse, unfinished pre-animation storyboard thumbnail, 16:9 landscape. Flat near-black #080A0B background; only loose steel-gray #C7CDD0 strokes and a few faint construction marks. Leave 70-80 percent of the frame empty. Make contours broken, tentative, uneven, and visibly incomplete, with economical hand-sketched gesture and a clear silhouette. Concentrate one legible action in a modest area of the frame; include only essential people, machinery, and props. Use at most one or two faint ghost positions when the scene requests movement. No words, numbers, lettering, logos, gradients, shaded surfaces, dense hatching, paper texture, polished vectors, decorative scenery, futuristic cityscapes, glowing brains, or floating network diagrams. Screens contain only a few illegible rough marks, not a fabricated readable interface. Scene: Return to the same ordinary kitchen. A person actively chooses ingredients at the counter while a humanoid supports a heavy pot at a comfortable height nearby. Suggest their coordination with a small gesture. Keep the person engaged in the meal and the assistance selective; no passive owner, servant pose, or completely automated domestic scene. Preserve an animatic thumbnail's incompleteness; make the central action readable without finishing every contour.",
+    "sketchPrompt": "A person at the left of a short ordinary kitchen counter actively chooses ingredients from two small bowls. Beside them on the right, a practical humanoid with cylindrical joints supports a heavy cooking pot with both hands at a comfortable working height. The person gestures toward the desired ingredient while staying involved in preparing the meal. Their coordinated actions show selected physical help, with the person continuing to direct the cooking.\n\nCenter the complete vignette within roughly half the canvas width and half its height. Keep generous, balanced blank margins above, below, left, and right. Use a 16:9 landscape frame; keep every essential part visible.\n\nDraw an extremely rough, sparse animator's pencil thumbnail: economical broken steel-gray #C7CDD0 contours on a perfectly flat near-black #080A0B field. Leave 70-80 percent of the canvas bare. Use uneven pressure, tentative construction strokes, and incomplete outlines. Keep surfaces unshaded and unlettered, with only a few illegible marks on any screen. The result is an unfinished gesture drawing, not a polished illustration.",
     "media": {
       "provider": "image",
       "src": "graph-media/future/humanoid/2040.webp",
       "alt": "Rough storyboard sketch: A person enjoys choosing ingredients while a humanoid supports a heavy pot beside them, leaving the person in control of the meal.",
-      "state": "placeholder"
+      "state": "ready",
+      "revision": "4f89d4cf4a17"
     }
   },
   {
@@ -1530,12 +1544,13 @@
     "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
     "publisher": "Run before you walk",
     "sketchBrief": "The same side view now shows a purpose-built cabless digger whose body follows reach, load, and ground contact.",
-    "sketchPrompt": "One extremely rough, sparse, unfinished pre-animation storyboard thumbnail, 16:9 landscape. Flat near-black #080A0B background; only loose steel-gray #C7CDD0 strokes and a few faint construction marks. Leave 70-80 percent of the frame empty. Make contours broken, tentative, uneven, and visibly incomplete, with economical hand-sketched gesture and a clear silhouette. Concentrate one legible action in a modest area of the frame; include only essential people, machinery, and props. Use at most one or two faint ghost positions when the scene requests movement. No words, numbers, lettering, logos, gradients, shaded surfaces, dense hatching, paper texture, polished vectors, decorative scenery, futuristic cityscapes, glowing brains, or floating network diagrams. Screens contain only a few illegible rough marks, not a fabricated readable interface. Scene: Use the same side view and digging action as specialist-2035. Draw a plausible low stable digging machine with tracks, boom, and bucket, but no cab or seat. The body is shaped around loading and ground contact. Keep it a rough functional concept, not an exact future product, a humanoid vehicle, or a fantastical robot insect. Preserve an animatic thumbnail's incompleteness; make the central action readable without finishing every contour.",
+    "sketchPrompt": "Side view of a cabless digging machine: a low sealed machinery box sits directly on two tracks, carrying one articulated boom and digging bucket. A tiny sensor sits on the machinery box. Every part of the top is machinery, with a low continuous equipment cover rather than an elevated enclosure. The bucket contacts a short ground line. The scene is unoccupied: no operator, cab, seat, windscreen, or human figure. Show the entire low body, tracks, boom, and bucket.\n\nCenter the complete vignette within roughly half the canvas width and half its height. Keep generous, balanced blank margins above, below, left, and right. Use a 16:9 landscape frame; keep every essential part visible.\n\nDraw an extremely rough, sparse animator's pencil thumbnail: economical broken steel-gray #C7CDD0 contours on a perfectly flat near-black #080A0B field. Leave 70-80 percent of the canvas bare. Use uneven pressure, tentative construction strokes, and incomplete outlines. Keep surfaces unshaded and unlettered, with only a few illegible marks on any screen. The result is an unfinished gesture drawing, not a polished illustration.",
     "media": {
       "provider": "image",
       "src": "graph-media/future/specialist/2040.webp",
       "alt": "Rough storyboard sketch: The same side view now shows a purpose-built cabless digger whose body follows reach, load, and ground contact.",
-      "state": "placeholder"
+      "state": "ready",
+      "revision": "d7efd9548a42"
     }
   },
   {
@@ -1549,12 +1564,13 @@
     "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
     "publisher": "Run before you walk",
     "sketchBrief": "A factory gantry positions one housing wall panel with a few completed panels nearby.",
-    "sketchPrompt": "One extremely rough, sparse, unfinished pre-animation storyboard thumbnail, 16:9 landscape. Flat near-black #080A0B background; only loose steel-gray #C7CDD0 strokes and a few faint construction marks. Leave 70-80 percent of the frame empty. Make contours broken, tentative, uneven, and visibly incomplete, with economical hand-sketched gesture and a clear silhouette. Concentrate one legible action in a modest area of the frame; include only essential people, machinery, and props. Use at most one or two faint ghost positions when the scene requests movement. No words, numbers, lettering, logos, gradients, shaded surfaces, dense hatching, paper texture, polished vectors, decorative scenery, futuristic cityscapes, glowing brains, or floating network diagrams. Screens contain only a few illegible rough marks, not a fabricated readable interface. Scene: Sparse wide side view of a factory gantry positioning a housing wall panel, with a few completed panel outlines nearby. Use only the lifting structure, panel, and essential supports. The useful building component is the focal point. No futuristic skyline, house prices, crowds, or visual promise that lower production costs automatically reach everyone. Preserve an animatic thumbnail's incompleteness; make the central action readable without finishing every contour.",
+    "sketchPrompt": "A factory gantry positions one upright housing wall panel with a simple rectangular window opening. The gantry has two slim supports and an overhead crossbeam; its short lifting connection visibly holds the panel near an assembly fixture. Two completed panel outlines stand nearby, quieter than the moving panel. The gantry, supports, lifted panel, and finished panels form one compact industrial vignette. Show the complete lifting arrangement rather than a factory interior or cityscape.\n\nCenter the complete vignette within roughly half the canvas width and half its height. Keep generous, balanced blank margins above, below, left, and right. Use a 16:9 landscape frame; keep every essential part visible.\n\nDraw an extremely rough, sparse animator's pencil thumbnail: economical broken steel-gray #C7CDD0 contours on a perfectly flat near-black #080A0B field. Leave 70-80 percent of the canvas bare. Use uneven pressure, tentative construction strokes, and incomplete outlines. Keep surfaces unshaded and unlettered, with only a few illegible marks on any screen. The result is an unfinished gesture drawing, not a polished illustration.",
     "media": {
       "provider": "image",
       "src": "graph-media/future/deployment/2040.webp",
       "alt": "Rough storyboard sketch: A factory gantry positions one housing wall panel with a few completed panels nearby.",
-      "state": "placeholder"
+      "state": "ready",
+      "revision": "79b493db4a42"
     }
   },
   {
@@ -1568,12 +1584,13 @@
     "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
     "publisher": "Run before you walk",
     "sketchBrief": "The familiar drawer has an awkward unfamiliar handle and contact geometry, approached by a different gripper.",
-    "sketchPrompt": "One extremely rough, sparse, unfinished pre-animation storyboard thumbnail, 16:9 landscape. Flat near-black #080A0B background; only loose steel-gray #C7CDD0 strokes and a few faint construction marks. Leave 70-80 percent of the frame empty. Make contours broken, tentative, uneven, and visibly incomplete, with economical hand-sketched gesture and a clear silhouette. Concentrate one legible action in a modest area of the frame; include only essential people, machinery, and props. Use at most one or two faint ghost positions when the scene requests movement. No words, numbers, lettering, logos, gradients, shaded surfaces, dense hatching, paper texture, polished vectors, decorative scenery, futuristic cityscapes, glowing brains, or floating network diagrams. Screens contain only a few illegible rough marks, not a fabricated readable interface. Scene: Return to the same drawer and camera position from data-2030 and data-2035. Change only the relevant conditions: an awkward unfamiliar handle and a visibly different plausible gripper testing its contact. A faint former-handle outline may establish the changed shape. No solved-world symbolism, endless data streams, robot army, or universal-transfer claim. Preserve an animatic thumbnail's incompleteness; make the central action readable without finishing every contour.",
+    "sketchPrompt": "A small partly open cabinet drawer at center-left has an awkward offset bent-metal loop handle on its right-facing front. At center-right, only a short cropped industrial forearm ends in a circular metal wrist and a three-finger industrial gripper. Its three blunt rigid rectangular mechanical fingers close around the awkward handle, showing unfamiliar contact geometry. Keep the handle and mechanical finger placement clear. This is an unoccupied scene containing only the small drawer and robotic forearm; no person or human hand.\n\nCenter the complete vignette within roughly half the canvas width and half its height. Keep generous, balanced blank margins above, below, left, and right. Use a 16:9 landscape frame; keep every essential part visible.\n\nDraw an extremely rough, sparse animator's pencil thumbnail: economical broken steel-gray #C7CDD0 contours on a perfectly flat near-black #080A0B field. Leave 70-80 percent of the canvas bare. Use uneven pressure, tentative construction strokes, and incomplete outlines. Keep surfaces unshaded and unlettered, with only a few illegible marks on any screen. The result is an unfinished gesture drawing, not a polished illustration.",
     "media": {
       "provider": "image",
       "src": "graph-media/future/data/2040.webp",
       "alt": "Rough storyboard sketch: The familiar drawer has an awkward unfamiliar handle and contact geometry, approached by a different gripper.",
-      "state": "placeholder"
+      "state": "ready",
+      "revision": "cfaa756a52ce"
     }
   },
   {
@@ -1587,12 +1604,13 @@
     "sourceUrl": "https://docs.google.com/document/d/1F8j724ST4Oe-kyCQiJ-HXEXj4pLJkm_6di0bpfsGwos/edit?tab=t.ait4q4jgkfvn",
     "publisher": "Run before you walk",
     "sketchBrief": "Three finished actuator modules retain the same joint silhouette, with one installed in a mechanism.",
-    "sketchPrompt": "One extremely rough, sparse, unfinished pre-animation storyboard thumbnail, 16:9 landscape. Flat near-black #080A0B background; only loose steel-gray #C7CDD0 strokes and a few faint construction marks. Leave 70-80 percent of the frame empty. Make contours broken, tentative, uneven, and visibly incomplete, with economical hand-sketched gesture and a clear silhouette. Concentrate one legible action in a modest area of the frame; include only essential people, machinery, and props. Use at most one or two faint ghost positions when the scene requests movement. No words, numbers, lettering, logos, gradients, shaded surfaces, dense hatching, paper texture, polished vectors, decorative scenery, futuristic cityscapes, glowing brains, or floating network diagrams. Screens contain only a few illegible rough marks, not a fabricated readable interface. Scene: Continue the joint silhouette from hardware-2030 and hardware-2035. Show three finished actuator modules: two in a plain tray and one installed in a minimal arm mechanism. Use a few incomplete repeated contours to suggest consistent production. The depicted quantity is compositional only; no output totals, prices, fantastical fabrication devices, or implication that hardware becomes free. Preserve an animatic thumbnail's incompleteness; make the central action readable without finishing every contour.",
+    "sketchPrompt": "Three finished compact cylindrical actuator modules share one simple ringed housing design. Two rest side by side in a plain shallow tray at the left. The third is installed on a fixed base at the right, attached to one short straight lifting arm. Keep the installed module visibly identical in basic silhouette to the two loose modules. Show the whole tray and complete small arm assembly, with the modest repetition suggesting consistent component production.\n\nCenter the complete vignette within roughly half the canvas width and half its height. Keep generous, balanced blank margins above, below, left, and right. Use a 16:9 landscape frame; keep every essential part visible.\n\nDraw an extremely rough, sparse animator's pencil thumbnail: economical broken steel-gray #C7CDD0 contours on a perfectly flat near-black #080A0B field. Leave 70-80 percent of the canvas bare. Use uneven pressure, tentative construction strokes, and incomplete outlines. Keep surfaces unshaded and unlettered, with only a few illegible marks on any screen. The result is an unfinished gesture drawing, not a polished illustration.",
     "media": {
       "provider": "image",
       "src": "graph-media/future/hardware/2040.webp",
       "alt": "Rough storyboard sketch: Three finished actuator modules retain the same joint silhouette, with one installed in a mechanism.",
-      "state": "ready"
+      "state": "ready",
+      "revision": "5788e9c49bfb"
     }
   }
 ]
