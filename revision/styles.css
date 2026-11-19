@@ -1,15 +1,23 @@
 @font-face {
-  font-family: Geist;
-  src: url("../revision-assets/geist.woff2") format("woff2");
-  font-weight: 100 900;
+  font-family: "General Sans";
+  src: url("https://cdn.fontshare.com/wf/LHQJ5KSAL7VGAEIDSTEXCCOIUKFLT2I6/GW57XUEG4ZBVMLZZTQZTGYPROITRRQ5W/JA3IZUEMJ2J6WWT2OQVJOAWDXO3YL4YG.woff2") format("woff2");
+  font-weight: 200 700;
   font-style: normal;
+  font-display: swap;
+}
+/* Official Fontshare webfonts, served under the ITF Free Font License. */
+@font-face {
+  font-family: "General Sans";
+  src: url("https://cdn.fontshare.com/wf/RRO6TYZXO7WQBHSH4BZYSTI7E7T2HKLF/55LXPUDQQQTSLB3M2T377FIN2EKQQWJY/3HUYMY6WP3BZQYPOVGG6IZQAM476CQDC.woff2") format("woff2");
+  font-weight: 200 700;
+  font-style: italic;
   font-display: swap;
 }
 
 :root { color-scheme: light; --ink: #252923; --paper: #F3F1E9; --accent: #D64D2D; }
 * { box-sizing: border-box; }
 html { overflow-x: clip; scroll-behavior: smooth; scroll-padding-top: 24px; }
-body { overflow-x: clip; margin: 0; color: var(--ink); background: var(--paper); font-family: Geist, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+body { overflow-x: clip; margin: 0; color: var(--ink); background: var(--paper); font-family: "General Sans", Arial, sans-serif; -webkit-font-smoothing: antialiased; }
 a { color: inherit; text-decoration: none; }
 a:focus-visible, button:focus-visible { outline: 3px solid var(--accent); outline-offset: 6px; }
 figure, p { margin: 0; }
@@ -44,7 +52,7 @@ h2 { font-size: 30px; line-height: 38px; font-weight: 400; letter-spacing: -.9px
 .contents-tile:hover, .contents-tile:focus-visible { transform: translateY(-2px); }
 .contents-tile:hover .contents-image > img, .contents-tile:focus-visible .contents-image > img { opacity: 1; transform: scale(1.02); }
 .contents-tile:hover .contents-image::after, .contents-tile:focus-visible .contents-image::after { box-shadow: inset 0 0 0 3px var(--accent); }
-.contents-tile h3 { margin: 12px 0 0; color: var(--ink); font-family: Geist, Arial, sans-serif; font-size: 18px; line-height: 24px; font-weight: 400; letter-spacing: -.2px; }
+.contents-tile h3 { margin: 12px 0 0; color: var(--ink); font-family: inherit; font-size: 18px; line-height: 24px; font-weight: 400; letter-spacing: -.2px; }
 /* Source is 1920x300. This exposes x=180..713.333 rather than the empty center. */
 .hardware-image > img { position: absolute; top: 0; left: -33.75%; width: 360%; max-width: none; height: 100%; object-fit: fill; transform-origin: 23.2639% 50%; }
 

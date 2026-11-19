@@ -207,7 +207,7 @@ export function mountHero({ motorElement, waveElement, pauseButton, posterElemen
     wavesStarting = true;
     timings.wavesStarted = performance.now();
     try {
-      waves = background(waveElement, { preset: swell, palette: INK, speed: 0.2, cellSize: 12, cursor: 'fluid', mark: 'glyph', opacity: 0.08, lazy: false, clear: motorElement,
+      waves = background(waveElement, { preset: swell, palette: '#DCE2E6', speed: 0.2, cellSize: 12, cursor: 'fluid', mark: 'glyph', opacity: 0.22, lazy: false, clear: false,
         look: { font: '"IBM Plex Mono", monospace', fontWeight: 400, glyphScale: 1, cellAspect: 0.6, charset: ' .,:-=+*#%@', hover: 'fluid', tap: 'none', fluid: { radius: 0.12, force: 0.3, dissipation: 1.3, refraction: 0.012, glow: 0.15, curl: 12, resolution: 96 }, post: { bloom: 0, scanlines: 0, grain: 0, chroma: 0, curvature: 0 } } });
       await waves.field?.ready;
       if (disposed) return;

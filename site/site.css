@@ -1,4 +1,4 @@
-/* Hallmark · custom research site · dark steel · existing Geist and Plex · v2.0.0 */
+/* Research site · dark steel · General Sans and the existing Plex ASCII glyphs. */
 /* Critique: the actuator carries the complexity; the writing and navigation remain direct. */
 :root {
   color-scheme: dark;
@@ -10,7 +10,7 @@
   --line: rgba(199,205,208,.2);
   --link: #A7B9F0;
   --surface: #101416;
-  --site-font: Geist, Arial, sans-serif;
+  --site-font: "General Sans", Arial, sans-serif;
   --site-mono: "IBM Plex Mono", monospace;
 }
 body { background: var(--paper); color: var(--ink); }
@@ -24,9 +24,9 @@ main:focus { outline: none; }
 .header { color: var(--ink); justify-content: flex-end; }
 .header a:hover { color: var(--bright); }
 .hero-study .hero-title { color: var(--bright); }
-.hero-study .hero-motor { top: 170px; width: min(1000px,100%); height: 370px; }
+.hero-study .hero-motor { top: 135px; width: min(1160px,100%); height: 440px; }
 .hero-study .hero-tools { display: none; }
-.hero-study .hero-information { grid-template-columns: minmax(0, 1fr) auto; align-items: center; top: 550px; }
+.hero-study .hero-information { grid-template-columns: minmax(0, 1fr) auto; align-items: center; top: 600px; }
 .hero-study .subtitle { color: var(--ink); }
 .hero-study .authors { grid-column: 2; grid-row: 1; justify-self: end; align-self: center; margin: 0; color: var(--muted); }
 .contents { padding-top: 40px; padding-bottom: 56px; }
@@ -53,8 +53,8 @@ main:focus { outline: none; }
 @media (max-width: 1000px) {
   .hero-study .hero-information { grid-template-columns: minmax(0, 1fr) auto; gap: 28px; }
   .hero-study .authors { flex-direction: row; gap: 28px; }
-  .hero-study .hero-motor { top: 178px; height: 350px; }
-  .hero.hero-study { height: 675px; min-height: 675px; }
+  .hero-study .hero-motor { top: 158px; height: 400px; }
+  .hero.hero-study { height: 690px; min-height: 690px; }
 }
 @media (max-width: 720px) {
   .header nav a:first-child { display: inline-flex; }
@@ -65,8 +65,9 @@ main:focus { outline: none; }
   .section-heading p { font-size: 12px; text-align: right; }
 }
 @media (max-width: 520px) {
-  .hero.hero-study { height: 655px; min-height: 655px; }
-  .hero-study .hero-motor { top: 158px; height: 300px; }
+  .hero.hero-study { height: 655px; min-height: 655px; overflow: visible; }
+  .hero-study .hero-art { left: -20px; right: -20px; overflow: clip; }
+  .hero-study .hero-motor { top: 142px; width: 100%; height: 330px; }
   .hero-study .hero-information { top: 488px; grid-template-columns: minmax(0, 1fr) auto; gap: 20px; }
   .hero-study .subtitle { grid-column: 1; grid-row: 1; font-size: 18px; line-height: 25px; }
   .hero-study .authors { grid-column: 2; grid-row: 1; flex-direction: column; font-size: 12px; gap: 12px; align-self: center; }

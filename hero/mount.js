@@ -223,7 +223,7 @@ if (motorElement) {
       return response.arrayBuffer();
     });
     modelData.catch(() => {});
-    loading = import('./hero-renderer.js?v=instant-motion-1').then(async ({ mountHero }) => {
+    loading = import('./hero-renderer.js?v=hero-refinement-20261118-1').then(async ({ mountHero }) => {
       if (disposed) return;
       controller = mountHero({
         motorElement,
