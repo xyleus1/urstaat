@@ -124,5 +124,5 @@ npm run build
 ## Deployment
 
 GitHub Pages serves the `main` branch root. `.nojekyll` keeps this a plain static
-site; `CNAME` retains the existing `urstaat.com` domain. All page and asset paths
+site; `CNAME` sets `runbeforeyouwalk.com` as the primary custom domain. All page and asset paths
 are relative, including support for a repository subpath on another static host.
