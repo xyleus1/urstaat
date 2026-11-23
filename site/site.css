@@ -23,6 +23,10 @@ main:focus { outline: none; }
 .header, .hero.hero-study, .contents { border-color: var(--line); }
 .header { color: var(--ink); justify-content: flex-end; }
 .header a:hover { color: var(--bright); }
+.header nav .nav-research { gap: 7px; color: #F4F6F7; text-decoration: none; }
+.header nav .nav-research span { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 6px; }
+.header nav .nav-research img { width: 14px; height: 14px; filter: brightness(0) invert(1); opacity: .92; }
+.header nav .nav-research:hover { color: #fff; }
 .hero-study .hero-title { color: var(--bright); }
 .hero-study .hero-motor { top: 135px; width: min(1160px,100%); height: 440px; }
 .hero-study .hero-tools { display: none; }
