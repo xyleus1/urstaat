@@ -83,7 +83,8 @@ export async function mountTaku({
   const { signal } = listeners;
   let texture, freeMaterials, batches, motionModel;
   const gl = renderer.getContext(), device = gl.getExtension('WEBGL_debug_renderer_info');
-  let useMotionModel = mobile || (device && /swiftshader|llvmpipe|software|basic render/i.test(gl.getParameter(device.UNMASKED_RENDERER_WEBGL)));
+  const softwareRendering = device && /swiftshader|llvmpipe|software|basic render/i.test(gl.getParameter(device.UNMASKED_RENDERER_WEBGL));
+  let useMotionModel = mobile || softwareRendering;
   const raycaster = new THREE.Raycaster(), pointer = new THREE.Vector2();
   const hitMetadata = new WeakMap(), anchors = new Map();
   const pickBounds = [];
@@ -195,7 +196,9 @@ export async function mountTaku({
     if (!box.width || !box.height || (width === box.width && height === box.height)) return;
     width = box.width; height = box.height;
     fullRatio = Math.min(devicePixelRatio || 1, mobile ? 1.5 : 1.75);
-    motionRatio = Math.min(fullRatio, 1);
+    // Software rasterizers are fill-rate limited, especially on a wide stage.
+    // Apply the pixel budget only between poses; stopped views retain full detail.
+    motionRatio = softwareRendering ? Math.min(fullRatio, .72, Math.sqrt(80000 / (width * height))) : Math.min(fullRatio, 1);
     fullResolution();
     renderer.setSize(width, height, false);
     camera.aspect = width / height;
