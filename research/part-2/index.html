@@ -5,36 +5,67 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#080A0B">
   <title>Run before you walk — Part 2</title>
-  <meta name="description" content="Part 2 of Run before you walk, a research series on robotics and embodied intelligence.">
+  <meta name="description" content="Explore Dyna Taku in 3D. Orbit the robot or inspect the face, DynaClaw, shoulder, elbow, wrist, folding waist and wheel base up close.">
   <link rel="canonical" href="https://runbeforeyouwalk.com/research/part-2/">
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="Run before you walk">
   <meta property="og:title" content="Run before you walk — Part 2">
-  <meta property="og:description" content="Part 2 of Run before you walk, a research series on robotics and embodied intelligence.">
+  <meta property="og:description" content="An interactive study of Dyna Taku, from the articulated wrist to the folding waist.">
   <meta property="og:url" content="https://runbeforeyouwalk.com/research/part-2/">
-  <meta property="og:image" content="https://runbeforeyouwalk.com/hero/exports/motor-poster@2x.png">
-  <meta property="og:image:alt" content="Exploded actuator assembly rendered in ASCII.">
+  <meta property="og:image" content="https://runbeforeyouwalk.com/research/part-2/stills/overview.webp">
+  <meta property="og:image:alt" content="Dyna Taku in three-quarter view against a gray dot sculpture.">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" href="../../site/media/cog.svg" type="image/svg+xml">
-  <link rel="preconnect" href="https://cdn.fontshare.com" crossorigin>
+  <link rel="modulepreload" href="taku-viewer.min.js">
   <link rel="stylesheet" href="../../revision/styles.css?v=hero-refinement-20261118-1">
   <link rel="stylesheet" href="../../site/site.css?v=read-part-2-20261122-1">
-  <link rel="stylesheet" href="../../site/article.css?v=read-part-2-20261122-1">
+  <link rel="stylesheet" href="explorer.css">
+  <script type="module" src="explorer.js"></script>
 </head>
 <body>
-  <a class="skip" href="#essay">Skip to essay</a>
-  <div class="page">
-    <header class="reading-header">
-      <a class="back-link" href="../"><img src="../../site/media/arrow-left.svg" alt="">Back to Part 1</a>
-    </header>
-    <main class="reading-layout">
-      <article class="essay" id="essay" tabindex="-1">
-        <header><h1>Run before you walk — Part 2</h1></header>
-        <div class="essay-body">
-          <p>The second essay is awaiting publication.</p>
+  <a class="skip" href="#views">Skip to camera views</a>
+  <main class="page taku-page">
+    <article>
+      <header class="reading-header">
+        <a class="back-link" href="../"><img src="../../site/media/arrow-left.svg" width="16" height="16" alt="">Back to Part 1</a>
+        <h1>Run before you walk — Part 2</h1>
+      </header>
+      <section class="taku-explorer" aria-labelledby="model-title">
+        <div class="taku-heading">
+          <h2 id="model-title">Dyna Taku</h2>
+          <p id="instructions">Choose a view to inspect the robot.</p>
         </div>
-      </article>
-    </main>
-  </div>
+        <div class="taku-stage" data-mode="stills" data-view="overview">
+          <picture id="still">
+            <source media="(max-width: 760px) and (orientation: portrait)" srcset="stills/overview-mobile.webp">
+            <img src="stills/overview.webp" width="1440" height="702" fetchpriority="high" alt="Three-quarter view of the white Dyna Taku robot on its wheeled base.">
+          </picture>
+          <canvas id="taku-canvas" aria-label="Interactive Dyna Taku model" aria-describedby="keyboard-hint" aria-hidden="true"></canvas>
+          <span id="keyboard-hint" class="screen-reader">Use the arrow keys to orbit, plus and minus to zoom, and Home to reset.</span>
+          <div class="stage-status" role="status" aria-live="polite"></div>
+          <div class="stage-tools" role="group" aria-label="View controls" hidden>
+            <button type="button" data-zoom="1.25" aria-label="Zoom in">+</button>
+            <button type="button" data-zoom="0.8" aria-label="Zoom out">−</button>
+            <button type="button" id="reset">Reset view</button>
+          </div>
+        </div>
+        <div class="camera-views" id="views" role="group" aria-label="Camera views" tabindex="-1">
+          <a href="stills/overview.webp" data-shot="overview" aria-current="true">Overview</a>
+          <a href="stills/side.webp" data-shot="side">Side</a>
+          <a href="stills/face.webp" data-shot="face">Face</a>
+          <a href="stills/shoulder.webp" data-shot="shoulder">Shoulder</a>
+          <a href="stills/elbow.webp" data-shot="elbow">Elbow</a>
+          <a href="stills/wrist.webp" data-shot="wrist">Wrist</a>
+          <a href="stills/claw.webp" data-shot="claw">DynaClaw</a>
+          <a href="stills/waist.webp" data-shot="waist">Folding waist</a>
+          <a href="stills/base.webp" data-shot="base">Wheel base</a>
+        </div>
+      </section>
+      <footer class="model-credit">
+        <span>Model adapted from <a href="https://github.com/dyna-robotics/dyna_robot_description/tree/afa61685f434a9a2a61e255711788bcfe2f42f92/dyna_taku">Dyna Robotics</a>.</span>
+        <a href="assets/LICENSE-Dyna.txt" rel="license">Apache 2.0</a>
+      </footer>
+    </article>
+  </main>
 </body>
 </html>

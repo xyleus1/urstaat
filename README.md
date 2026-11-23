@@ -3,7 +3,7 @@
 Robotics and embodied intelligence research by Nima Kamali and Ava Poole.
 
 The website includes an animated ASCII actuator, eight video chapter previews,
-the research article, interactive robotics trajectories, and a sources page.
+the research article, interactive robotics trajectories, and a 3D study of Dyna Taku.
 
 ## Preview
 
@@ -20,6 +20,7 @@ or deploy the committed website. ES modules require HTTP rather than file://.
 
 - `index.html`: homepage; page styles are in `revision/styles.css` and `site/`.
 - `research/index.html` and `research/media/`: research article and its figures.
+- [Part 2](research/part-2/) opens the Taku viewer. The model, nine camera views, and fallback stills are served from the site. The editable model pipeline lives in [tools/taku](tools/taku/).
 - `sources/index.html`: asset sources and licenses.
 - `site/graph.js`, `site/graph-data.js`, `site/graph-model.js`, `site/graph.css`: interactive graph.
 - `site/videos.js` and `site/video-manifest.json`: real footage previews.
@@ -120,6 +121,21 @@ cd hero
 npm ci
 npm run build
 ```
+
+## Rebuild the Taku viewer
+
+The Taku viewer bundle and its responsive stills are checked in. After changing the cameras, materials, or backdrop, rebuild the bundle and capture the views through the same renderer visitors use.
+
+```sh
+npm --prefix hero ci
+npm --prefix site ci
+npm --prefix hero run build:taku
+npm --prefix site run render:taku-stills
+npm --prefix site run test:taku
+npm --prefix site run test:part-2
+```
+
+`node site/scripts/measure-taku.mjs` measures a cold load and orbit frame times. Pass a deployed Part 2 URL to measure CDN transfers. [Model authoring instructions](tools/taku/) cover rebuilding the two GLBs and the photographic lighting atlas.
 
 ## Deployment
 
