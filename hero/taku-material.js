@@ -25,7 +25,7 @@ const fragmentShader = /* glsl */ `
   #include <cube_uv_reflection_fragment>
   uniform sampler2D studioAtlas, printMap;
   uniform vec3 paint;
-  uniform float hasAtlas, metalness, roughness, coat, coatRoughness;
+  uniform float hasAtlas, metalness, roughness, coat, coatRoughness, chestPrint;
   varying vec2 printUv;
   varying vec3 surfacePosition;
   varying vec3 surfaceNormal;
@@ -63,7 +63,11 @@ const fragmentShader = /* glsl */ `
     return mix(vec3(.045,.047,.048), vec3(.65,.72,.8), sky);
   }
   void main() {
-    vec3 albedo = paint * texture2D(printMap, printUv).rgb;
+    vec3 ink = texture2D(printMap, printUv).rgb;
+    // Dyna's printed lettering is gold on a white duplicate of the chest skin.
+    // Let the continuous moulding show through the unprinted portion.
+    if (chestPrint > .5 && ink.r - ink.b < .018) discard;
+    vec3 albedo = paint * ink;
     vec3 n = normalize(surfaceNormal) * (gl_FrontFacing ? 1. : -1.);
     vec3 v = normalize(cameraPosition - surfacePosition);
     float ndv = max(dot(n, v), .002);
@@ -107,10 +111,12 @@ export function applyTakuMaterials(THREE, robot, atlas) {
       name: source.name,
       vertexShader, fragmentShader,
       side: THREE.DoubleSide,
+      polygonOffset: !!source.map, polygonOffsetFactor: -1, polygonOffsetUnits: -1,
       uniforms: {
         studioAtlas: { value: atlas || white },
         hasAtlas: { value: atlas ? 1 : 0 },
         printMap: { value: map },
+        chestPrint: { value: source.map ? 1 : 0 },
         printTransform: { value: map.matrix.clone() },
         paint: { value: source.color?.clone() || new THREE.Color(1, 1, 1) },
         roughness: { value: source.roughness ?? .45 },

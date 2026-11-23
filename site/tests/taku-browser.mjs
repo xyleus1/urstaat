@@ -15,6 +15,9 @@ try {
     const page = await browser.newPage();
     const errors = [], models = [];
     page.on('pageerror', error => errors.push(error.message));
+    page.on('console', message => {
+      if (message.type() === 'error' && message.text().includes('Shader Error')) errors.push(message.text());
+    });
     page.on('response', response => {
       if (new URL(response.url()).pathname.endsWith('.glb')) models.push(new URL(response.url()).pathname);
     });
@@ -60,6 +63,19 @@ try {
         await page.click('#reset');
         await page.waitForSelector('.taku-stage[data-settled="overview"]');
       }
+      await page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'no-preference' }]);
+      await page.click(buttonFor('face'));
+      await page.click(buttonFor('wrist'));
+      await page.waitForSelector('.taku-stage[data-settled="wrist"]');
+      const canvas = await page.$('#taku-canvas');
+      const before = await canvas.screenshot();
+      await page.mouse.move(rect.x + .5 * rect.width, rect.y + .5 * rect.height);
+      await page.mouse.down();
+      await page.mouse.move(rect.x + .59 * rect.width, rect.y + .51 * rect.height, { steps: 5 });
+      await page.mouse.up();
+      await new Promise(resolve => setTimeout(resolve, 450));
+      assert.notDeepEqual(await canvas.screenshot(), before, 'Dragging orbits the settled close-up');
+      assert.equal(new URL(page.url()).hash, '#wrist', 'Dragging is distinct from tapping another part');
     }
     if (width === 390) {
       await page.setOfflineMode(false);
@@ -94,6 +110,19 @@ try {
   }
   assert.equal(await fallback.$eval('.stage-tools', el => el.hidden), true);
   await fallback.close();
+
+  const stalled = await browser.newPage();
+  await stalled.evaluateOnNewDocument(() => { window.Worker = class {
+    constructor() { setTimeout(() => this.onmessage?.({ data: 'probing' }), 0); }
+    terminate() {}
+  }; });
+  await stalled.goto(origin + '/research/part-2/', { waitUntil: 'domcontentloaded' });
+  await stalled.click(buttonFor('shoulder'));
+  await stalled.waitForFunction(() => {
+    const image = document.querySelector('#still img');
+    return document.querySelector('.taku-stage').dataset.mode === 'stills' && image.complete && image.currentSrc.endsWith('/shoulder.webp');
+  });
+  await stalled.close();
 
   const plain = await browser.newPage();
   await plain.setJavaScriptEnabled(false);

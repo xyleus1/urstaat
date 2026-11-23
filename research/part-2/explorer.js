@@ -6,7 +6,7 @@ const links = new Map([...views.querySelectorAll('[data-shot]')].map(link => [li
 const instructions = document.querySelector('#instructions');
 const status = stage.querySelector('.stage-status');
 const tools = stage.querySelector('.stage-tools');
-const mobile = matchMedia('(max-width: 760px)');
+const mobile = matchMedia('(max-width: 760px), (pointer: coarse) and (max-width: 1100px)');
 const bilateral = new Set(['shoulder', 'elbow', 'wrist', 'claw']);
 function linkedView() {
   const fragment = location.hash.slice(1);
@@ -81,17 +81,45 @@ tools.addEventListener('click', event => {
   else controller.zoom(Number(button.dataset.zoom));
 });
 
+function graphicsReady() {
+  if (!window.Worker || !window.OffscreenCanvas) return Promise.resolve(true);
+  return new Promise(resolve => {
+    const worker = new Worker(new URL('gpu-check.js', import.meta.url));
+    const finish = ok => { clearTimeout(timer); worker.terminate(); resolve(ok); };
+    let timer = setTimeout(() => finish(false), 15000);
+    worker.onmessage = ({ data }) => {
+      if (data === 'probing') {
+        clearTimeout(timer);
+        timer = setTimeout(() => finish(false), 4500);
+      } else finish(data);
+    };
+    worker.onerror = () => finish(false);
+  });
+}
+
 async function start() {
   stage.dataset.mode = 'loading';
   status.textContent = 'Loading 3D…';
   const tier = mobile.matches ? 'mobile' : 'desktop';
   const assetUrl = new URL('assets/taku-' + tier + '.glb', import.meta.url).href;
   try {
-    const { mountTaku } = await import('./taku-viewer.min.js');
-    if (disposed) return;
+    if (!window.WebGL2RenderingContext) { useStills(); return; }
+    // Download the chosen model while the browser evaluates the renderer bundle.
+    const request = new AbortController();
+    const assetData = fetch(assetUrl, { signal: request.signal }).then(response => {
+      if (!response.ok) throw new Error('Model returned HTTP ' + response.status);
+      return response.arrayBuffer();
+    });
+    assetData.catch(() => {}); // mountTaku reports a rejected model after import completes.
+    const [{ mountTaku }, canDraw] = await Promise.all([import('./taku-viewer.min.js'), graphicsReady()]);
+    if (disposed || !canDraw) {
+      request.abort();
+      if (!disposed) useStills();
+      return;
+    }
     const opening = current, openingSide = side;
     controller = await mountTaku({
-      canvas, assetUrl, initialView: opening, initialSide: openingSide,
+      canvas, assetUrl, assetData, mobile: tier === 'mobile', initialView: opening, initialSide: openingSide,
       onViewChange(id, which) {
         if (stage.dataset.mode === 'live') {
           delete stage.dataset.settled;

@@ -27,3 +27,13 @@ test('both Taku exports are self-contained GLBs, within the transfer budget', as
   }
   assert.ok(sizes[0] < sizes[1], 'Mobile uses the smaller export');
 });
+
+test('the in-motion mesh fits a single indexed draw', async () => {
+  const bytes = await readFile(new URL('taku-motion.bin', base));
+  assert.equal(bytes.toString('ascii', 0, 4), 'TKM1');
+  const vertices = bytes.readUInt32LE(4), indices = bytes.readUInt32LE(8);
+  assert.ok(vertices > 0 && vertices < 65536);
+  assert.ok(indices > 0 && indices % 3 === 0);
+  assert.equal(bytes.length, 36 + vertices * 12 + indices * 2);
+  for (let i = 36 + vertices * 12; i < bytes.length; i += 2) assert.ok(bytes.readUInt16LE(i) < vertices);
+});

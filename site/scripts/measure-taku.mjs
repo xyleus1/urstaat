@@ -8,13 +8,21 @@ const preview = deployed ? null : await startPreviewServer();
 const url = deployed || preview.origin + '/research/part-2/';
 let browser;
 try {
-  const args = process.argv.includes('--software') ? ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'] : [];
+  const args = process.argv.includes('--software') ? ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'] : ['--enable-gpu'];
   browser = await puppeteer.launch({ headless: 'shell', args });
   for (const mobile of [true, false]) {
     const trials = [];
-    for (let trial = 0; trial < 3; trial++) {
+    for (let trial = 0; trial < (process.argv.includes('--quick') ? 1 : 3); trial++) {
       const context = await browser.createBrowserContext();
       const page = await context.newPage();
+      await page.bringToFront();
+      await page.evaluateOnNewDocument(() => {
+        new PerformanceObserver(list => {
+          for (const entry of list.getEntries()) {
+            if (entry.element?.matches('#still img')) window.takuPosterPaint = entry.startTime;
+          }
+        }).observe({ type: 'largest-contentful-paint', buffered: true });
+      });
       await page.setViewport(mobile
         ? { width: 390, height: 844, deviceScaleFactor: 2, isMobile: true, hasTouch: true }
         : { width: 1440, height: 900, deviceScaleFactor: 1 });
@@ -33,7 +41,7 @@ try {
       });
       await page.goto(url, { waitUntil: 'domcontentloaded' });
       await page.waitForSelector('.taku-stage[data-mode="live"]', { timeout: 60000 });
-      const result = await page.evaluate(async () => {
+      const result = await page.evaluate(async frameCount => {
         const readyMs = Math.round(performance.getEntriesByName('taku-interactive')[0].startTime);
         const canvas = document.querySelector('#taku-canvas');
         const gl = canvas.getContext('webgl2');
@@ -45,23 +53,23 @@ try {
             if (prev !== undefined) samples.push(now - prev);
             prev = now;
             canvas.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true, cancelable: true }));
-            if (samples.length < 100) requestAnimationFrame(orbit);
+            if (samples.length < frameCount) requestAnimationFrame(orbit);
             else requestAnimationFrame(resolve);
           }
           requestAnimationFrame(orbit);
         });
         return {
-          readyMs,
+          readyMs, posterPaintMs: window.takuPosterPaint ? Math.round(window.takuPosterPaint) : null,
           orbitFps: Math.round(1000 * samples.length / samples.reduce((sum, n) => sum + n, 0)),
-          p95FrameMs: Math.round(samples.sort((a, b) => a - b)[94]),
+          p95FrameMs: Math.round(samples.sort((a, b) => a - b)[Math.ceil(samples.length * .95) - 1]),
           renderer: device ? gl.getParameter(device.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER),
         };
-      });
+      }, process.argv.includes('--quick') ? 40 : 100);
       const assets = [...requests.values()].filter(request => request.url.startsWith('http'));
       assert.equal(assets.filter(a => a.url.split('?')[0].endsWith('.glb')).length, 1);
       result.transferMiB = +(assets.reduce((sum, a) => sum + a.bytes, 0) / 1048576).toFixed(2);
       trials.push(result);
-      console.error(`${mobile ? 'Mobile' : 'Desktop'} trial ${trial + 1}: ${result.readyMs} ms, ${result.orbitFps} fps, ${result.transferMiB} MiB`);
+      console.error(`${mobile ? 'Mobile' : 'Desktop'} trial ${trial + 1}: ${result.readyMs} ms, ${result.orbitFps} fps, ${result.transferMiB} MiB on ${result.renderer}`);
       await context.close();
     }
     console.log(JSON.stringify({ viewport: mobile ? '390px, DPR 2, 4x CPU' : '1440px, DPR 1', trials }, null, 2));

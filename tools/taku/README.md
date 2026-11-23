@@ -18,12 +18,14 @@ The web exports face +X, use metres and have +Y up. The anatomical left arm lies
 
 | Export | Triangles | File size |
 | --- | ---: | ---: |
-| `taku-mobile.glb` | 203,341 | 1,330,824 bytes |
+| `taku-mobile.glb` | 122,553 | 985,024 bytes |
 | `taku-desktop.glb` | 499,576 | 2,520,452 bytes |
 
-The exporter pins `gltfpack@1.3.0`, preserves named nodes and materials, and uses mesh quantization and EXT meshopt compression. Its simplification targets are 28% for mobile and 74% for desktop. The maximum relative error settings are 0.0019 and 0.0008 respectively.
+The triangle counts above count shared geometry once. The exporter pins `gltfpack@1.3.0`, preserves named nodes and materials, and uses mesh quantization and EXT meshopt compression. Its simplification targets are 12% for mobile and 74% for desktop. The maximum relative error settings are 0.0019 and 0.0008 respectively. At runtime the display pose uses nine material batches. The original assembly remains available for hit testing.
 
 ## Studio and stills
+
+The Blender build also calls `motion.py` to create the single-draw camera-motion mesh. To rebuild it independently, run `uv run --with numpy python tools/taku/motion.py .qa/taku-authoring.glb research/part-2/assets/taku-motion.bin`. It bakes the rig transforms into Y-up metres, retains the material IDs, and omits the duplicate chest decal surface.
 
 From the repository root, generate the environment texture, then render the viewer's stills after building the site. `studio.py` uses NumPy and Pillow to bake the softboxes into a CubeUV atlas for the viewer's physical materials.
 
