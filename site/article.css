@@ -15,6 +15,7 @@
   display: grid; grid-template-columns: 192px minmax(0, 700px); gap: 100px;
   max-width: 992px; margin: 64px auto 64px; align-items: start;
 }
+.reading-layout > .essay:only-child { grid-column: -2 / -1; }
 .reading-contents { position: sticky; top: 120px; padding-top: 5px; max-height: calc(100svh - 144px); overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
 .reading-contents > p { font-size: 12px; line-height: 20px; color: var(--ink); margin-bottom: 18px; }
 .reading-contents ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
@@ -46,6 +47,9 @@
 .essay-body figcaption { margin-top: 14px; color: var(--muted); font-size: 13px; line-height: 1.65; letter-spacing: 0; text-wrap: pretty; }
 .essay-body .essay-note { color: var(--muted); border-left: 1px solid var(--line); padding-left: 20px; font-size: 14px; line-height: 1.75; letter-spacing: 0; }
 .essay-body > :last-child { margin-bottom: 0; }
+.chapter-turn { display: grid; justify-items: start; gap: 12px; min-height: 44px; margin-top: 28px; padding-block: 28px; border-block: 1px solid var(--line); }
+.chapter-turn .chapter-title { color: var(--bright); font-size: clamp(24px, 3vw, 32px); line-height: 1.2; letter-spacing: -.025em; }
+.chapter-turn + .essay-end { margin-top: 20px; }
 .essay-end { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-top: 72px; padding: 0; border: 0; font-size: 13px; color: var(--muted); }
 .essay-end a { display: inline-flex; align-items: center; min-height: 44px; }
 .essay-end .back-link { color: var(--ink); }
@@ -86,6 +90,7 @@
   .essay-body blockquote { font-size: 20px; padding-left: 18px; margin-bottom: 44px; }
   .essay-body h2 { font-size: 28px; margin-top: 64px; margin-bottom: 22px; }
   .essay-body h3 { font-size: 22px; }
+  .chapter-turn { padding-block: 22px; }
   .essay-end { flex-wrap: wrap; justify-content: flex-start; column-gap: 28px; row-gap: 8px; margin-top: 52px; }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -95,7 +100,7 @@
 @media print {
   body { background: #fff; color: #111; }
   .page { max-width: none; padding: 0; }
-  .reading-header, .reading-contents, .reading-progress, .essay-end, .skip { display: none; }
+  .reading-header, .reading-contents, .reading-progress, .essay-end, .chapter-turn, .skip { display: none; }
   .reading-layout { display: block; max-width: none; margin: 0; }
   .essay, .essay h1, .essay-body, .essay-body :is(h2, h3, strong, blockquote), .essay .essay-authors, .essay-body .essay-note { color: #111; }
   .essay-body a { color: inherit; }

@@ -7,7 +7,8 @@
     "build:data": "python scripts/build-graph-model.py",
     "refresh:data": "python scripts/build-graph-model.py --refresh",
     "test": "node --test tests/*.test.mjs",
-    "test:browser": "node tests/graph-browser.mjs"
+    "test:browser": "node tests/graph-browser.mjs",
+    "test:part-2": "node tests/part-2-browser.mjs"
   },
   "dependencies": {
     "d3-scale": "4.0.2",
