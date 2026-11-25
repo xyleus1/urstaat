@@ -80,7 +80,7 @@ const fragmentShader = /* glsl */ `
 `;
 
 export function prefersSoftwareStudio(renderer, mode = 'auto') {
-  if (mode === 'ggx') return false;
+  if (mode === 'ggx' || mode === 'studio') return false;
   if (mode === 'software') return true;
   const gl = renderer.getContext();
   const debug = gl.getExtension('WEBGL_debug_renderer_info');
@@ -91,7 +91,7 @@ export function prefersSoftwareStudio(renderer, mode = 'auto') {
 }
 
 export function createSoftwareStudio(THREE, texture) {
-  // Pixels already contain the same ACES and sRGB transfer as the GGX shader.
+  // Pixels already contain the same studio display curve as the hardware shader.
   texture.colorSpace = THREE.NoColorSpace;
   texture.flipY = false;
   texture.generateMipmaps = false;

@@ -17,7 +17,7 @@ try {
     .then(JSON.parse)
     .catch(() => ({}));
   const onlyShot = process.argv.find((arg) => arg.startsWith('--shot='))?.slice(7);
-  for (const mobile of [false, true]) {
+  for (const mobile of process.argv.includes('--desktop-only') ? [false] : [false, true]) {
     const page = await browser.newPage();
     await page.bringToFront();
     await page.setRequestInterception(true);
@@ -31,15 +31,15 @@ try {
         status: 200,
         contentType: 'text/javascript',
         body: `
-        import { mountTaku } from './taku-viewer.min.js?v=components-1';
+        import { mountTaku } from './taku-viewer.min.js?v=studio-3';
         const stage=document.querySelector('.taku-stage'), shot=location.hash.slice(1)||'overview';
         const side=shot.startsWith('right-')?'right':'left', id=shot.replace(/^right-/,'');
-        stage.dataset.view=id;
+        stage.dataset.mode='loading';stage.dataset.view=id;
         if(['shoulder','elbow','wrist','claw'].includes(id))stage.dataset.side=side;
         const viewer=await mountTaku({
           canvas:stage.querySelector('canvas'),mobile:${mobile},initialView:id,initialSide:side,
           assetUrl:new URL('assets/taku-${mobile ? 'mobile' : 'desktop'}.glb',import.meta.url).href,
-          lighting:'ggx',antialiasing:'msaa'
+          lighting:'studio',antialiasing:'msaa'
         });
         stage.dataset.mode='live';stage.dataset.settled=id;
         addEventListener('hashchange',()=>viewer.setView(id,{side,immediate:true}));
@@ -87,7 +87,7 @@ try {
       };
     });
     await page.setViewport({
-      width: mobile ? 390 : 1568,
+      width: mobile ? 390 : 1440,
       height: mobile ? 844 : 1050,
       deviceScaleFactor: mobile ? 2 : 1,
     });
@@ -106,7 +106,10 @@ try {
       await page.goto(origin + '/research/part-2/#' + shot, { waitUntil: 'domcontentloaded' });
       await page.waitForSelector('.taku-stage[data-mode="live"]', { timeout: 90000 });
       await page.addStyleTag({
-        content: '.stage-tools, .stage-status, #show-cutaway { visibility: hidden !important; }',
+        content:
+          '.stage-tools, .stage-status, #show-cutaway { visibility: hidden !important; }' +
+          // The original full-width 1440px plates sampled fractional CSS coordinates.
+          (mobile ? '' : '#taku-canvas { transform: translate3d(0,.4375px,0); }'),
       });
       const canvas = await page.$('#taku-canvas');
       await page.waitForFunction(
@@ -135,6 +138,17 @@ try {
             ': ' +
             JSON.stringify(mask && [mask.cols, mask.rows, mask.count]),
         );
+      const geometry = await canvas.evaluate((el) => {
+        const rect = el.getBoundingClientRect(),
+          stage = el.closest('.taku-stage').getBoundingClientRect();
+        return { width: rect.width, height: rect.height, toolbar: stage.height - rect.height };
+      });
+      if (
+        Math.abs(mask.rows - (mask.cols * geometry.height) / geometry.width) > 1 ||
+        (mobile && Math.abs(geometry.toolbar - 44) > 1)
+      ) {
+        throw Error('Captured plate/mask geometry mismatch for ' + filename + ' ' + JSON.stringify(geometry));
+      }
       masks[filename] = [mask.cols, mask.rows, mask.bits];
       await canvas.screenshot({
         path: fileURLToPath(new URL(filename, destination)),

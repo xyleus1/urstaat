@@ -1,9 +1,9 @@
-import { mountCutawayConnector } from '../../hero/taku-cutaway-connector.js?v=orbit-2';
+import { mountCutawayConnector } from '../../hero/taku-cutaway-connector.js?v=studio-3';
 
 const lenses = {
   overview: ['Torso enclosure panel', 'panel'],
   side: ['Lower support pivot'],
-  face: ['Optical assembly'],
+  face: ['Optical assembly', 'optics'],
   shoulder: ['Shoulder actuator', 'actuator'],
   elbow: ['Elbow actuator cap', 'actuator'],
   wrist: ['Wrist bearing cartridge', 'wrist'],
@@ -12,11 +12,13 @@ const lenses = {
   base: ['Wheel assembly'],
 };
 const cutawayTitles = {
+  optics: 'Head optical assembly',
   actuator: 'Rotary actuator',
   wrist: 'Wrist bearing cartridge',
   panel: 'Formed enclosure panel',
 };
 const cutawayDescriptions = {
+  optics: 'Exploded camera study showing the protective window, lens stack and image sensor.',
   actuator:
     'Exploded rotary actuator showing the motor, copper windings, planetary gears and output carrier.',
   wrist: 'Exploded wrist cartridge with concentric bearing races, rolling elements and seals.',
@@ -57,7 +59,7 @@ export function createInspector() {
     status.hidden = !!atlas;
     if (!atlas) document.querySelector('#supply-title').textContent = lenses[current][0];
     try {
-      loadingAtlas ||= import('./supply-map.js?v=orbit-2')
+      loadingAtlas ||= import('./supply-map.js?v=studio-3')
         .then((mod) => mod.createAtlas(map))
         .catch((err) => {
           loadingAtlas = null;
@@ -121,7 +123,7 @@ export function createInspector() {
     dialog.showModal();
     document.querySelector('#close-cutaway').focus({ preventScroll: true });
     try {
-      const { mountTakuCutaway } = await import('../../hero/taku-cutaways.js?v=orbit-2');
+      const { mountTakuCutaway } = await import('../../hero/taku-cutaways.js?v=studio-3');
       if (request !== cutawayRequest || !dialog.open) return;
       assembly = mountTakuCutaway(host, {
         part: type,

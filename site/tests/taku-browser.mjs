@@ -57,6 +57,31 @@ try {
     });
     assert.deepEqual(orbitSizes[0], orbitSizes[1], 'Orbit preserves full drawing resolution');
     assert.deepEqual(orbitSizes[0], orbitSizes[2], 'Stopping preserves the same resolution');
+    // Every component has its own working distances. All zoom inputs must meet
+    // the same endpoint and surface that endpoint through the visible controls.
+    for (const id of ['overview', 'face', 'wrist', 'base']) {
+      await page.click(buttonFor(id));
+      await page.waitForSelector('.taku-stage[data-settled="' + id + '"]');
+      const canvas = await page.$('#taku-canvas');
+      await canvas.focus();
+      await canvas.evaluate((el) => {
+        for (let i = 0; i < 16; i++)
+          el.dispatchEvent(new KeyboardEvent('keydown', { key: '+', bubbles: true, cancelable: true }));
+      });
+      await page.waitForSelector('[data-zoom="1.25"]:disabled');
+      assert.equal(await page.$eval('[data-zoom="0.8"]', (el) => el.disabled), false);
+      await canvas.evaluate((el) => {
+        for (let i = 0; i < 16; i++)
+          el.dispatchEvent(new WheelEvent('wheel', { deltaY: 140, bubbles: true, cancelable: true }));
+      });
+      await page.waitForSelector('[data-zoom="0.8"]:disabled');
+      assert.equal(await page.$eval('[data-zoom="1.25"]', (el) => el.disabled), false);
+      await page.click('[data-zoom="1.25"]');
+      await page.waitForSelector('[data-zoom="0.8"]:enabled');
+    }
+    await page.click('#reset');
+    await page.waitForSelector('.taku-stage[data-settled="overview"]');
+    assert.equal(await page.$$eval('[data-zoom]:disabled', (b) => b.length), 0);
     const seen = new Set();
     for (const id of shots) {
       if (mobile) await page.tap(buttonFor(id));
@@ -89,7 +114,10 @@ try {
         ['left', 0.568, 0.416],
         ['right', 0.455, 0.392],
       ]) {
-        await page.mouse.click(rect.x + x * rect.width, rect.y + y * rect.height);
+        await page.mouse.click(
+          rect.x + rect.width * 0.5 + (x - 0.5) * 2.05 * rect.height,
+          rect.y + y * rect.height,
+        );
         await page.waitForFunction(
           (which) => {
             const state = document.querySelector('.taku-stage').dataset;

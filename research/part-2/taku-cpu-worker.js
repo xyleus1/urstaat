@@ -1,4 +1,4 @@
-import { createRaster } from './taku-raster.js?v=orbit-2';
+import { createRaster } from './taku-raster.js?v=studio-3';
 
 let raster;
 self.onmessage = async ({ data }) => {

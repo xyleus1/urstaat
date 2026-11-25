@@ -1,22 +1,10 @@
+import { arrangements, layoutSculpture } from './taku-composition.js?v=studio-3';
 // A depth-buffered Canvas renderer. The worker consumes only the latest camera
 // pose; the UI thread remains free to receive drag, scroll and inspection input.
 const near = 0.009;
 const rgba = (r, g, b) => (255 << 24) | (b << 16) | (g << 8) | r;
 const background = rgba(16, 20, 21);
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
-const viewNames = ['overview', 'side', 'face', 'shoulder', 'elbow', 'wrist', 'claw', 'waist', 'base'];
-const decoration = [
-  [0, 1],
-  [2, 1],
-  [0, 2],
-  [0, 1],
-  [2, 1],
-  [1, 0],
-  [1, 2],
-  [2, 0],
-  [0, 2],
-];
-
 function unpack(bytes, kernel) {
   const data = new DataView(bytes),
     length = data.getUint32(4, true);
@@ -49,10 +37,18 @@ function decodeDots(bytes) {
   const data = new DataView(bytes);
   let at = 10;
   return [0, 1, 2].map((_, j) => {
-    const dots = [];
-    for (let i = 0, n = data.getUint16(4 + j * 2, true); i < n; i++, at += 3) {
-      const strength = data.getUint8(at + 2);
-      if (i % 2 === 0) dots.push([data.getInt8(at) / 125, data.getInt8(at + 1) / 125, (strength & 31) / 31]);
+    const count = data.getUint16(4 + j * 2, true);
+    const dots = new Float32Array(count * 5);
+    for (let i = 0; i < count; i++, at += 3) {
+      const packed = data.getUint8(at + 2),
+        layer = packed >> 5,
+        ink = layer < 5 ? (packed & 31) / 31 : 1.22;
+      const k = i * 5;
+      dots[k] = data.getInt8(at) / 125;
+      dots[k + 1] = data.getInt8(at + 1) / 125;
+      dots[k + 2] = layer < 5 ? layer : (layer - 5) * 2;
+      dots[k + 3] = 1.75 + ink * 1.8;
+      dots[k + 4] = 0.19 + 0.81 * ink;
     }
     return dots;
   });
@@ -149,27 +145,107 @@ export function createRaster({ model, lights, ink, inkSize, dots }, kernel) {
     }
     if (wasm) new Uint32Array(memory.buffer, palettePtr, palette.length).set(palette);
   }
-  function setBackground(name) {
-    const k = width + '/' + height + '/' + name;
-    if (k === backKey) return;
-    backKey = k;
+  function setBackground(pose, camera) {
+    const key = [width, height, pose.cssWidth, pose.id, ...pose.orbit, ...pose.target].join('/');
+    if (backKey === key) return;
+    backKey = key;
     back.fill(background);
-    const narrow = width / height < 1.12;
-    const shapes = decoration[viewNames.indexOf(name)] || decoration[0];
-    shapes.forEach((shape, i) => {
-      const cx = width * (i ? 0.78 : 0.22),
-        cy = height * (narrow ? (i ? 0.68 : 0.32) : i ? 0.53 : 0.46);
-      const radius = Math.min(height * 0.34, width * 0.198);
-      for (const [u, v, ink] of patterns[shape]) {
-        const x = Math.round(cx + u * radius),
-          y = Math.round(cy - v * radius);
-        if (x < 1 || x >= width - 1 || y < 1 || y >= height - 1) continue;
-        const shade = 17 + ink * 66,
-          p = y * width + x;
-        back[p] = rgba(shade, shade + 3, shade + 5);
-        back[p + 1] = back[p + width] = rgba(17 + ink * 32, 20 + ink * 32, 21 + ink * 32);
+    const registration = pose.preset || pose,
+      distance = registration.orbit[2],
+      aspect = width / height;
+    const halfAngle = Math.tan(Math.PI / 12),
+      focal = height / (halfAngle * 2);
+    const dpr = (width / pose.cssWidth) * (pose.mobile ? 0.88 : 1);
+    const smooth = (x) => {
+      const v = clamp(x, 0, 1);
+      return v * v * (3 - 2 * v);
+    };
+    const ref = basis(registration);
+    const d = ref.pos.map((v, k) => v - camera.pos[k]);
+    const projectAxis = (axis) => [
+      dot(...d, axis),
+      dot(...ref.right, axis),
+      dot(...ref.up, axis),
+      dot(...ref.eye, axis),
+    ];
+    const rx = projectAxis(camera.right),
+      ry = projectAxis(camera.up),
+      rz = projectAxis(camera.eye);
+    for (let i = 0; i < 2; i++) {
+      const spec = layoutSculpture(arrangements[pose.id][i], i, aspect),
+        points = patterns[spec.shape];
+      // Each cloud spans only five planes. Project an entire plane's basis once;
+      // a plane outside the frustum can skip all of its point and ink samples.
+      const planes = Array.from({ length: 5 }, (_, layer) => {
+        const distanceToPlane = distance * (1.32 + 0.21 * layer),
+          planeHalf = distanceToPlane * halfAngle;
+        const x = spec.x * aspect * planeHalf,
+          y = spec.y * planeHalf,
+          radius = spec.radius * planeHalf;
+        const sheetAxis = (a, sign) => [
+          (a[0] + a[1] * x + a[2] * y - a[3] * distanceToPlane) * sign,
+          a[1] * radius * sign,
+          a[2] * radius * sign,
+        ];
+        const xAxis = sheetAxis(rx, 1),
+          yAxis = sheetAxis(ry, 1),
+          depth = sheetAxis(rz, -1);
+        const outside = (a, slope, sign) =>
+          slope * depth[0] +
+            sign * a[0] +
+            Math.abs(slope * depth[1] + sign * a[1]) +
+            Math.abs(slope * depth[2] + sign * a[2]) <
+          0;
+        const visible =
+          depth[0] + Math.abs(depth[1]) + Math.abs(depth[2]) > 0.001 &&
+          !outside(xAxis, aspect * halfAngle, 1) &&
+          !outside(xAxis, aspect * halfAngle, -1) &&
+          !outside(yAxis, halfAngle, 1) &&
+          !outside(yAxis, halfAngle, -1);
+        return { xAxis, yAxis, depth, visible, distanceToPlane };
+      });
+      if (!planes.some((p) => p.visible)) continue;
+      for (let j = 0; j < points.length; j += pose.mobile ? 10 : 5) {
+        const u = points[j],
+          v = points[j + 1],
+          sheet = planes[points[j + 2]];
+        if (!sheet.visible) continue;
+        const z = sheet.depth,
+          depth = z[0] + u * z[1] + v * z[2];
+        if (depth <= 0.001) continue;
+        const x = sheet.xAxis,
+          y = sheet.yAxis,
+          scale = focal / depth,
+          plane = sheet.distanceToPlane;
+        const cx = width * 0.5 + scale * (x[0] + u * x[1] + v * x[2]),
+          cy = height * 0.5 - scale * (y[0] + u * y[1] + v * y[2]);
+        if (cx < 0 || cy < 0 || cx >= width || cy >= height) continue;
+        const size = dpr * clamp(points[j + 3] * Math.pow(plane / depth, 0.42), 1.4, 4.4);
+        const radius = size * 0.5,
+          density = points[j + 4] * spec.ink * smooth((depth / distance - 0.16) / 0.42);
+        const core2 = (0.33 * size) ** 2,
+          radius2 = radius * radius;
+        const y0 = Math.max(0, Math.ceil(cy - radius - 0.5)),
+          y1 = Math.min(height - 1, Math.floor(cy + radius - 0.5));
+        const x0 = Math.max(0, Math.ceil(cx - radius - 0.5)),
+          x1 = Math.min(width - 1, Math.floor(cx + radius - 0.5));
+        for (let py = y0; py <= y1; py++)
+          for (let px = x0; px <= x1; px++) {
+            const dx = px + 0.5 - cx,
+              dy = py + 0.5 - cy,
+              r2 = dx * dx + dy * dy;
+            if (r2 >= radius2) continue;
+            const coverage = r2 <= core2 ? 1 : 1 - smooth((Math.sqrt(r2) / size - 0.33) / 0.17);
+            const alpha = clamp(density * coverage, 0, 1),
+              index = py * width + px,
+              current = back[index];
+            const r = current & 255,
+              g = (current >>> 8) & 255,
+              b = (current >>> 16) & 255;
+            back[index] = rgba(r + (135 - r) * alpha, g + (143 - g) * alpha, b + (145 - b) * alpha);
+          }
       }
-    });
+    }
   }
   function paint(a, ai, b, bi, c, ci, tag, printed) {
     const ax = a[ai],
@@ -273,7 +349,7 @@ export function createRaster({ model, lights, ink, inkSize, dots }, kernel) {
       back = new Uint32Array(count);
     }
     setPalette(pose.orbit[0], pose.orbit[1]);
-    setBackground(pose.id);
+    setBackground(pose, basis(pose));
     pixels.set(back);
     depths.fill(0);
     surface.fill(0);

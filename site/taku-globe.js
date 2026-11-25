@@ -5,12 +5,12 @@ import land from './taku-land.json';
 // https://github.com/nvkelso/natural-earth-vector/blob/v5.1.2/geojson/ne_110m_land.geojson
 const grid = geoGraticule().step([20, 20])();
 const sphere = { type: 'Sphere' };
-const colors = {
-  raw: '#b4c8af',
-  refining: '#8bc4bf',
-  material: '#86b4d0',
-  component: '#c4a8cc',
-  assembly: '#f68a69',
+const stageTones = {
+  raw: '#a6a6a6',
+  refining: '#b8b8b8',
+  material: '#c8c8c8',
+  component: '#d8d8d8',
+  assembly: '#e8e8e8',
 };
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 const coord = (n) => [n.lon, n.lat];
@@ -50,7 +50,8 @@ function openingCenter(nodes, edges) {
 
 export function createGlobe(canvas, onPick) {
   // Keep the atlas on the 2D software surface so the main model retains GPU resources.
-  const ctx = canvas.getContext('2d', { alpha: false, willReadFrequently: true });
+  // An alpha-capable surface keeps Windows from adding colored subpixel fringes to the labels.
+  const ctx = canvas.getContext('2d', { alpha: true, willReadFrequently: true });
   if (!ctx) throw new Error('Canvas drawing unavailable');
   function stipple(size, color, points) {
     const tile = document.createElement('canvas');
@@ -60,8 +61,8 @@ export function createGlobe(canvas, onPick) {
     for (const [x, y] of points) brush.fillRect(x, y, 1, 1);
     return ctx.createPattern(tile, 'repeat');
   }
-  const field = stipple(16, '#2c3537', [[12, 12]]);
-  const grain = stipple(10, 'rgba(210,233,215,.22)', [
+  const field = stipple(16, '#292929', [[12, 12]]);
+  const grain = stipple(10, 'rgba(220,220,220,.16)', [
     [1, 1],
     [6, 1],
     [2, 6],
@@ -155,7 +156,7 @@ export function createGlobe(canvas, onPick) {
     const projection = project(),
       path = geoPath(projection, ctx);
     ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-    ctx.fillStyle = '#0c1113';
+    ctx.fillStyle = '#0f0f0f';
     ctx.fillRect(0, 0, width, height);
     ctx.setLineDash([]);
     // A fine registration field continues behind the globe at the scale of the printed study.
@@ -171,32 +172,32 @@ export function createGlobe(canvas, onPick) {
       cy,
       radius * 1.14,
     );
-    ocean.addColorStop(0, '#26383b');
-    ocean.addColorStop(0.73, '#172529');
-    ocean.addColorStop(1, '#10181a');
-    ctx.fillStyle = flatMode ? '#1c2a2e' : ocean;
+    ocean.addColorStop(0, '#323232');
+    ocean.addColorStop(0.73, '#202020');
+    ocean.addColorStop(1, '#151515');
+    ctx.fillStyle = flatMode ? '#202020' : ocean;
     ctx.fill();
-    ctx.strokeStyle = '#546467';
+    ctx.strokeStyle = '#686868';
     ctx.lineWidth = 0.8;
     ctx.stroke();
     ctx.beginPath();
     path(land);
-    ctx.fillStyle = '#455759';
+    ctx.fillStyle = '#595959';
     ctx.fill();
-    ctx.strokeStyle = '#81908d';
+    ctx.strokeStyle = '#858585';
     ctx.lineWidth = 0.65;
     ctx.stroke();
     ctx.fillStyle = grain;
     ctx.fill();
     ctx.beginPath();
     path(grid);
-    ctx.strokeStyle = 'rgba(181,207,206,.20)';
+    ctx.strokeStyle = 'rgba(210,210,210,.17)';
     ctx.lineWidth = 0.62;
     ctx.stroke();
     if (!flatMode) {
       ctx.beginPath();
       ctx.arc(cx, cy, radius + 5, 0, Math.PI * 2);
-      ctx.strokeStyle = 'rgba(127,150,151,.19)';
+      ctx.strokeStyle = 'rgba(170,170,170,.17)';
       ctx.lineWidth = 0.65;
       ctx.stroke();
     }
@@ -247,7 +248,7 @@ export function createGlobe(canvas, onPick) {
         run.push([x, y]);
       }
       if (run.length) runs.push(run);
-      ctx.strokeStyle = emphasized ? '#ff9676' : documented(edge) ? '#e0e9da' : '#adc5c4';
+      ctx.strokeStyle = emphasized ? '#fff' : documented(edge) ? '#d4d4d4' : '#adadad';
       ctx.globalAlpha = emphasized ? 1 : selected?.kind === 'edge' ? 0.5 : 0.91;
       ctx.lineWidth = emphasized ? 2.2 : documented(edge) ? 1.55 : 1.15;
       ctx.setLineDash(documented(edge) ? [] : [3, 3.5]);
@@ -256,6 +257,14 @@ export function createGlobe(canvas, onPick) {
         ctx.beginPath();
         ctx.moveTo(...points[0]);
         for (const pt of points.slice(1)) ctx.lineTo(...pt);
+        if (emphasized) {
+          // The dark casing separates a selected white route from crossing routes and coastlines.
+          ctx.save();
+          ctx.strokeStyle = '#171717';
+          ctx.lineWidth = 4.4;
+          ctx.stroke();
+          ctx.restore();
+        }
         ctx.stroke();
         strokes.push({ id: edge.id, points });
         if (emphasized && points.length > 9) {
@@ -267,7 +276,7 @@ export function createGlobe(canvas, onPick) {
             ctx.save();
             ctx.translate(x, y);
             ctx.rotate(dir);
-            ctx.fillStyle = '#ff9676';
+            ctx.fillStyle = '#fff';
             ctx.beginPath();
             ctx.moveTo(4, 0);
             ctx.lineTo(-3, -2.3);
@@ -291,22 +300,22 @@ export function createGlobe(canvas, onPick) {
         ctx.beginPath();
         ctx.moveTo(...point);
         ctx.lineTo(x, y);
-        ctx.strokeStyle = '#9caaa6';
+        ctx.strokeStyle = '#a1a1a1';
         ctx.lineWidth = 0.6;
         ctx.stroke();
       }
       ctx.beginPath();
       ctx.arc(x, y, r, 0, Math.PI * 2);
-      ctx.fillStyle = hot ? '#ff9676' : colors[node.stage] || '#d9e2dc';
+      ctx.fillStyle = hot ? '#fff' : stageTones[node.stage] || '#ccc';
       ctx.fill();
-      ctx.strokeStyle = '#0b1416';
+      ctx.strokeStyle = '#111';
       ctx.lineWidth = 1.25;
       ctx.stroke();
       if (hot) {
         ctx.beginPath();
         ctx.arc(x, y, 8.3, 0, Math.PI * 2);
         ctx.lineWidth = 1.1;
-        ctx.strokeStyle = '#ff9676';
+        ctx.strokeStyle = '#fff';
         ctx.stroke();
       }
     }
@@ -346,9 +355,10 @@ export function createGlobe(canvas, onPick) {
       )
         continue;
       placed.push(rect);
-      ctx.fillStyle = 'rgba(9,17,20,.88)';
+      const hot = pin.node.id === selected?.id;
+      ctx.fillStyle = hot ? '#e8e8e8' : 'rgba(12,12,12,.91)';
       ctx.fillRect(...rect);
-      ctx.fillStyle = pin.node.id === selected?.id ? '#ffb099' : '#e1e5df';
+      ctx.fillStyle = hot ? '#121212' : '#dfdfdf';
       ctx.fillText(label, x, y + 13);
     }
   }

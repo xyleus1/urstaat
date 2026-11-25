@@ -1,3 +1,4 @@
+import { zoomRange, zoomAvailability } from '../research/part-2/taku-composition.js';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -77,6 +78,7 @@ export async function mountTaku({
   onError,
   onInspect,
   onProjection,
+  onZoomChange,
   onSlow,
 }) {
   // The scene's MSAA and depth buffer belong to the offscreen studio target.
@@ -106,7 +108,7 @@ export async function mountTaku({
   const fine = matchMedia('(hover: hover) and (pointer: fine)');
   const listeners = new AbortController();
   const { signal } = listeners;
-  let texture, freeMaterials, batches, softwareStudio;
+  let freeMaterials, batches, softwareStudio, limits;
   const softwareAA =
     antialiasing === 'software' || (antialiasing === 'auto' && prefersSoftwareStudio(renderer));
   const outline = createTakuOutline(THREE, renderer, softwareAA);
@@ -183,6 +185,8 @@ export async function mountTaku({
       if (t < 1) invalidate();
       else {
         transition = null;
+        controls.minDistance = limits.min;
+        controls.maxDistance = limits.max;
         finished = true;
       }
     }
@@ -201,6 +205,7 @@ export async function mountTaku({
         y = (1 - projectedPart.y) / 2;
       onProjection({ x, y, visible: x >= 0 && x <= 1 && y >= 0 && y <= 1 && Math.abs(projectedPart.z) <= 1 });
     }
+    if (limits) onZoomChange?.(zoomAvailability(limits, camera.position.distanceTo(controls.target)));
     renderedFrames++;
     if (finished) onSettled?.(id, side);
   }
@@ -239,6 +244,9 @@ export async function mountTaku({
     side = nextSide === 'right' && armViews.has(name) ? 'right' : 'left';
     activePart.value = partCode(id, side);
     desired = pose();
+    limits = zoomRange(id, desired.position.distanceTo(desired.target));
+    controls.minDistance = limits.min;
+    controls.maxDistance = limits.max;
     userAdjusted = false;
     onViewChange?.(id, armViews.has(id) ? side : undefined);
     if (immediate || reduced.matches) {
@@ -252,6 +260,8 @@ export async function mountTaku({
       const from = new THREE.Spherical().setFromVector3(camera.position.clone().sub(controls.target));
       const to = new THREE.Spherical().setFromVector3(desired.position.clone().sub(desired.target));
       const deltaTheta = Math.atan2(Math.sin(to.theta - from.theta), Math.cos(to.theta - from.theta));
+      controls.minDistance = Math.min(limits.min, from.radius);
+      controls.maxDistance = Math.max(limits.max, from.radius);
       transition = { start: performance.now(), target: controls.target.clone(), from, to, deltaTheta };
       invalidate();
     }
@@ -267,11 +277,25 @@ export async function mountTaku({
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
     if (userAdjusted) {
+      const oldDefault = desired.position.distanceTo(desired.target);
       desired = pose();
+      const newDefault = desired.position.distanceTo(desired.target);
+      limits = zoomRange(id, newDefault);
+      controls.minDistance = limits.min;
+      controls.maxDistance = limits.max;
+      camera.position
+        .sub(controls.target)
+        .multiplyScalar(newDefault / oldDefault)
+        .add(controls.target);
+      controls.update();
       invalidate();
     } else setView(id, { side, immediate: true });
   }
   function interrupt() {
+    if (limits) {
+      controls.minDistance = limits.min;
+      controls.maxDistance = limits.max;
+    }
     transition = null;
     userAdjusted = true;
   }
@@ -333,7 +357,6 @@ export async function mountTaku({
     outline.dispose();
     releaseRobot(robot);
     softwareStudio?.dispose();
-    texture?.dispose();
     renderer.dispose();
     canvas.style.removeProperty('cursor');
   }
@@ -355,26 +378,13 @@ export async function mountTaku({
       const images = new THREE.TextureLoader();
       if (prefersSoftwareStudio(renderer, lighting)) {
         try {
-          const captures = await images.loadAsync(new URL('taku-finishes.webp', assetUrl).href);
+          const captures = await images.loadAsync(new URL('taku-finishes.webp?v=studio-3', assetUrl).href);
           if (dead) captures.dispose();
           else softwareStudio = createSoftwareStudio(THREE, captures);
           return;
         } catch {
           /* The regular studio also supports software WebGL. */
         }
-      }
-      try {
-        const atlas = await images.loadAsync(new URL('taku-studio.png', assetUrl).href);
-        if (dead) {
-          atlas.dispose();
-          return;
-        }
-        texture = atlas;
-        texture.colorSpace = THREE.SRGBColorSpace;
-        texture.generateMipmaps = false;
-        texture.minFilter = texture.magFilter = THREE.LinearFilter;
-      } catch {
-        /* The directional lights work without the reflection map. */
       }
     }
     const model = assetData
@@ -406,7 +416,7 @@ export async function mountTaku({
         partBoxes.get(info.code).union(box);
       }
     });
-    freeMaterials = applyTakuMaterials(THREE, robot, texture, activePart, softwareStudio, softwareAA);
+    freeMaterials = applyTakuMaterials(THREE, robot, activePart, softwareStudio, softwareAA);
     batches = batchTakuMeshes(THREE, robot, hitMetadata);
     scene.add(batches.group);
     freeGround = ground(scene, bounds);
@@ -561,8 +571,10 @@ export async function mountTaku({
         camera: camera.position.toArray(),
         target: controls.target.toArray(),
         dpr: renderer.getPixelRatio(),
+        distance: camera.position.distanceTo(controls.target),
+        zoomLimits: { ...limits },
         selectedPart: activePart.value,
-        lighting: softwareStudio ? 'software' : 'ggx',
+        lighting: softwareStudio ? 'software' : 'studio',
         antialiasing: softwareAA ? 'software' : 'msaa',
         triangles: batches.group.children.reduce((sum, m) => sum + m.geometry.index.count / 3, 0),
       }),

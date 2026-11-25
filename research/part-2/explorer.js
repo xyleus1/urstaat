@@ -1,4 +1,4 @@
-import { createInspector } from './part-inspector.js?v=orbit-2';
+import { createInspector } from './part-inspector.js?v=studio-3';
 
 const stage = document.querySelector('.taku-stage');
 let canvas = stage.querySelector('canvas');
@@ -7,6 +7,7 @@ const views = document.querySelector('#views');
 const links = new Map([...views.querySelectorAll('[data-shot]')].map((link) => [link.dataset.shot, link]));
 const status = stage.querySelector('.stage-status');
 const tools = stage.querySelector('.stage-tools');
+const zoomButtons = [...tools.querySelectorAll('[data-zoom]')];
 const mobile = matchMedia('(max-width: 760px), (pointer: coarse) and (max-width: 1100px)');
 const bilateral = new Set(['shoulder', 'elbow', 'wrist', 'claw']);
 function linkedView() {
@@ -38,7 +39,8 @@ function select(id, which = 'left', syncUrl = true) {
 }
 
 function showStill() {
-  const url = side === 'right' ? 'stills/right-' + current + '.webp' : links.get(current).getAttribute('href');
+  const url =
+    side === 'right' ? 'stills/right-' + current + '.webp?v=studio-3' : links.get(current).getAttribute('href');
   still.querySelector('source').srcset = url.replace('.webp', '-mobile.webp');
   const image = still.querySelector('img');
   image.src = url;
@@ -55,7 +57,7 @@ function useStills() {
   status.textContent = '';
   showStill();
   if (!stillRegions) {
-    fetch(new URL('assets/still-regions.json', import.meta.url))
+    fetch(new URL('assets/still-regions.json?v=studio-3', import.meta.url))
       .then(async (response) => {
         if (!response.ok || disposed) return;
         const masks = await response.json();
@@ -128,7 +130,7 @@ function graphicsReady() {
   return new Promise((resolve) => {
     let worker;
     try {
-      worker = new Worker(new URL('gpu-check.js?v=orbit-2', import.meta.url));
+      worker = new Worker(new URL('gpu-check.js?v=studio-3', import.meta.url));
     } catch {
       resolve('unknown');
       return;
@@ -201,6 +203,13 @@ async function openRenderer(graphics) {
     onInspect(id, which) {
       if (!stale()) inspector.inspect(id, which);
     },
+    onZoomChange({ canZoomIn, canZoomOut }) {
+      if (stale()) return;
+      for (const b of zoomButtons) {
+        const disabled = Number(b.dataset.zoom) > 1 ? !canZoomIn : !canZoomOut;
+        if (b.disabled !== disabled) b.disabled = disabled;
+      }
+    },
     onProjection(value) {
       if (!stale()) project(value);
     },
@@ -226,7 +235,7 @@ async function openRenderer(graphics) {
         return response.arrayBuffer();
       });
       assetData.catch(() => {});
-      const [{ mountTaku }] = await Promise.all([import('./taku-viewer.min.js?v=orbit-2'), assetData]);
+      const [{ mountTaku }] = await Promise.all([import('./taku-viewer.min.js?v=studio-3'), assetData]);
       if (stale()) return;
       deadline = setTimeout(() => {
         if (!stale()) openRenderer('unavailable');
@@ -242,7 +251,7 @@ async function openRenderer(graphics) {
         },
       });
     } else {
-      const { mountCpu } = await import('./taku-cpu.js?v=orbit-2');
+      const { mountCpu } = await import('./taku-cpu.js?v=studio-3');
       if (stale()) return;
       next = await mountCpu(callbacks);
     }

@@ -1,0 +1,36 @@
+{
+  "satin porcelain shell": {
+    "tint": 0.59,
+    "metalness": 0.57,
+    "roughness": 0.36
+  },
+  "chest print": {
+    "metalness": 0.26,
+    "roughness": 0.35
+  },
+  "graphite": {
+    "tint": 0.6,
+    "metalness": 0.28,
+    "roughness": 0.33
+  },
+  "elastomer": {
+    "tint": 0.51,
+    "metalness": 0.02,
+    "roughness": 0.75
+  },
+  "smoke optical glass": {
+    "tint": 0.43,
+    "metalness": 0.32,
+    "roughness": 0.15
+  },
+  "optical surround": {
+    "tint": 0.48,
+    "metalness": 0.38,
+    "roughness": 0.36
+  },
+  "satin joint cap": {
+    "tint": 0.43,
+    "metalness": 0.72,
+    "roughness": 0.26
+  }
+}

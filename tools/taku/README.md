@@ -30,12 +30,14 @@ Desktop browsers reporting a software driver use a separate fixed export with ti
 
 Camera movement uses the same device export, studio shading and pixel ratio as a stationary view. The selection pass uses the visible CAD surfaces to draw a double contour around the active part.
 
-Hardware uses multisampling and the studio material shader. Software renderers filter high-contrast edges at full resolution and interpolate local finish captures baked from that studio. Rebuild the finish texture with `uv run --with numpy --with pillow python tools/taku/capture-materials.py`. The reference stills use the hardware-quality lighting and multisampling on either backend.
+The main model and exploded assemblies share a warm key light and rectangular studio reflections. The main model uses a satin pewter shell, dark graphite collars and smoked lens covers. The source chest lettering, jaw pads, selection contour and joint geometry are preserved. The finish overrides live in `hero/taku-finishes.json`. The WebGL shader evaluates the studio directly. The Canvas renderer interpolates captures of the same studio across orbit angles.
 
-From the repository root, generate the environment texture, then render the viewer's stills after building the site. `studio.py` uses NumPy and Pillow to bake the softboxes into a CubeUV atlas for the viewer's physical materials.
+The backdrop uses the original two sculptures for each named view. Five world-space planes register their dots into silhouettes of the head, claw or folding linkage. Free orbit and zoom reveal the separation between those planes.
+
+From the repository root, bake the finish texture, build the viewer and render the matching posters and selection masks.
 
 ```powershell
-uv run --isolated --python 3.11 --with numpy --with pillow python tools/taku/studio.py
+uv run --isolated --python 3.11 --with numpy --with pillow python tools/taku/capture-materials.py
 npm --prefix hero ci
 npm --prefix hero run build:taku
 npm --prefix site ci
