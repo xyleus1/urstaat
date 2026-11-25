@@ -1,3 +1,5 @@
+import { preservePartMask } from './taku-outline.js';
+
 // A contour is split over five physical planes. Its samples land on the
 // intended outline from one camera pose; orbiting reveals their separation.
 const arrangements = {
@@ -64,22 +66,24 @@ function unpack(THREE, buffer, mobile) {
   });
 }
 
-export function createTakuBackdrop({ THREE, scene, renderer, mobile, invalidate }) {
+export function createTakuBackdrop({ THREE, scene, renderer, mobile, reducedMotion, invalidate }) {
   const group = new THREE.Group();
   group.name = 'Taku optical sections';
   scene.add(group);
   const controller = new AbortController();
   const geometries = [];
   const presetFrame = new THREE.Matrix4(), direction = new THREE.Vector3();
+  const nearQuat = new THREE.Quaternion(), presetQuat = new THREE.Quaternion();
+  const lastEye = new THREE.Vector3(), lastTarget = new THREE.Vector3();
   const common = {
     presetFrame: { value: presetFrame }, distanceToTarget: { value: 1 },
     pixelRatio: { value: 1 }, halfAngle: { value: 1 }, aspect: { value: 1 },
   };
-  let lastView, savedEye, savedTarget;
-  const dots = [0, 1].map(() => {
+  let lastView, previousView, changeTime = 0;
+  const dots = [0, 1, 2, 3].map(() => {
     const material = new THREE.ShaderMaterial({
       uniforms: { ...common, center: { value: new THREE.Vector2() }, radius: { value: 1 }, strength: { value: .8 } },
-      vertexShader, fragmentShader, transparent: true, depthWrite: false,
+      vertexShader, fragmentShader, transparent: true, depthWrite: false, ...preservePartMask(THREE),
     });
     const cloud = new THREE.Points(undefined, material);
     cloud.frustumCulled = false;
@@ -90,34 +94,49 @@ export function createTakuBackdrop({ THREE, scene, renderer, mobile, invalidate 
   });
   const emptyGeometries = dots.map(cloud => cloud.geometry);
 
-  function update(camera, viewId, preset) {
-    const specs = arrangements[viewId] || arrangements.overview;
+  function update(camera, viewId, preset, liveTarget) {
     if (preset?.position && preset?.target) {
-      savedEye = preset.position;
-      savedTarget = preset.target;
-    } else if (!savedEye || viewId !== lastView) {
-      savedEye = camera.position.clone();
-      savedTarget = camera.getWorldDirection(direction).add(savedEye).clone();
+      lastEye.copy(preset.position);
+      lastTarget.copy(preset.target);
+    } else if (!lastView || viewId !== lastView) {
+      lastEye.copy(camera.position);
+      lastTarget.copy(camera.getWorldDirection(direction)).add(lastEye);
     }
-    lastView = viewId;
-    presetFrame.lookAt(savedEye, savedTarget, camera.up).setPosition(savedEye);
-    common.distanceToTarget.value = Math.max(.01, savedEye.distanceTo(savedTarget));
+    if (viewId !== lastView) {
+      previousView = lastView;
+      lastView = viewId;
+      changeTime = performance.now();
+    }
+    const instant = reducedMotion?.matches ?? reducedMotion;
+    const progress = previousView && !instant ? Math.min(1,(performance.now()-changeTime)/340) : 1;
+    const mix = progress*progress*(3-2*progress);
+    // Keep the five sheets behind the object throughout a free orbit. A small
+    // angular offset retains their optical parallax but never sweeps them past the eye.
+    presetFrame.lookAt(lastEye,lastTarget,camera.up);
+    presetQuat.setFromRotationMatrix(presetFrame);
+    camera.getWorldQuaternion(nearQuat).slerp(presetQuat,.105);
+    presetFrame.makeRotationFromQuaternion(nearQuat).setPosition(camera.position);
+    common.distanceToTarget.value = Math.max(.01,camera.position.distanceTo(liveTarget||lastTarget));
     common.aspect.value = camera.aspect;
     common.halfAngle.value = Math.tan(THREE.MathUtils.degToRad(camera.getEffectiveFOV()) * .5);
     common.pixelRatio.value = renderer.getPixelRatio() * (mobile ? .88 : 1);
     dots.forEach((cloud, i) => {
-      const [shape, x, y, radius, strength] = specs[i];
+      const outgoing = i >= 2;
+      if (outgoing && mix >= 1) { cloud.visible = false; return; }
+      const specs = arrangements[outgoing ? previousView : viewId] || arrangements.overview;
+      const [shape, x, y, radius, strength] = specs[i%2];
       const uniforms = cloud.material.uniforms;
       const narrow = camera.aspect < 1.12;
       const horizontal = narrow ? x * .93 : x;
-      uniforms.center.value.set(horizontal, narrow ? y + (i ? -.27 : .30) : y);
+      uniforms.center.value.set(horizontal, narrow ? y + (i%2 ? -.27 : .30) : y);
       uniforms.radius.value = Math.min(radius, camera.aspect * (1 - Math.abs(horizontal) - .045));
-      uniforms.strength.value = strength;
+      uniforms.strength.value = strength*(outgoing ? 1-mix : mix);
       if (geometries.length) {
         cloud.geometry = geometries[shape];
         cloud.visible = true;
       }
     });
+    if (mix < 1) invalidate();
   }
   const ready = fetch('assets/taku-dots.bin', { signal: controller.signal })
     .then(response => {

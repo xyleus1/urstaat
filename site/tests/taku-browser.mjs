@@ -27,10 +27,23 @@ try {
     await page.goto(origin + mount + 'research/part-2/#elbow', { waitUntil: 'domcontentloaded' });
     await page.waitForSelector('.taku-stage[data-mode="live"]', { timeout: 60000 });
     assert.equal(await page.$eval('.taku-stage', el => el.dataset.settled), 'elbow');
-    assert.deepEqual(models, [mount + 'research/part-2/assets/taku-' + (mobile ? 'mobile' : 'desktop') + '.glb']);
+    const tier=await page.$eval('.taku-stage',stage=>stage.dataset.tier);
+    assert.ok(mobile ? tier==='mobile' : ['software','desktop'].includes(tier));
+    assert.deepEqual(models, [mount + 'research/part-2/assets/taku-' + tier + '.glb']);
     assert.deepEqual(await page.$$eval('[data-shot]', links => links.map(link => link.dataset.shot)), shots);
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
     await page.setOfflineMode(true);
+    // Previously an orbit immediately substituted a lower-DPR buffer and mesh.
+    const orbitSizes=await page.$eval('#taku-canvas',async canvas=>{
+      const measure=()=>[canvas.width,canvas.height];
+      const before=measure();
+      canvas.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowRight',bubbles:true,cancelable:true}));
+      const during=measure();
+      await new Promise(resolve=>setTimeout(resolve,320));
+      return [before,during,measure()];
+    });
+    assert.deepEqual(orbitSizes[0],orbitSizes[1],'Orbit preserves full drawing resolution');
+    assert.deepEqual(orbitSizes[0],orbitSizes[2],'Stopping preserves the same resolution');
     const seen = new Set();
     for (const id of shots) {
       if (mobile) await page.tap(buttonFor(id));

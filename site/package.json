@@ -10,9 +10,12 @@
     "test:browser": "node tests/graph-browser.mjs",
     "test:part-2": "node tests/part-2-browser.mjs",
     "test:taku": "node tests/taku-browser.mjs",
+    "test:atlas": "node tests/taku-atlas-browser.mjs",
+    "build:taku-globe": "node scripts/build-taku-globe.mjs",
     "render:taku-stills": "node scripts/render-taku-stills.mjs"
   },
   "dependencies": {
+    "d3-geo": "3.1.1",
     "d3-scale": "4.0.2",
     "echarts": "6.1.0",
     "motion": "14.14.0"

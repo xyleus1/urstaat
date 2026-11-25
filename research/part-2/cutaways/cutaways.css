@@ -1,0 +1,235 @@
+.cutaway-study {
+  color: #d8dcda;
+  background: #101617;
+  font-family: var(--site-sans, system-ui, sans-serif);
+  --cutaway-key: #dfa68c;
+  --cutaway-line: #354042;
+}
+.cutaway-study [hidden] {
+  display: none !important;
+}
+.cutaway-scene {
+  position: relative;
+  width: 100%;
+  height: clamp(230px, 47svh, 490px);
+  overflow: hidden;
+  background: radial-gradient(ellipse at 46% 48%, #232a2b 0%, #192021 46%, #0e1314 100%);
+  isolation: isolate;
+}
+.cutaway-canvas,
+.cutaway-poster {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.cutaway-poster {
+  object-fit: contain;
+}
+.cutaway-canvas {
+  touch-action: none;
+  cursor: grab;
+}
+.cutaway-canvas:active {
+  cursor: grabbing;
+}
+.cutaway-hint,
+.cutaway-index,
+.cutaway-value {
+  font: 400 11px/1.35 var(--site-mono, ui-monospace, monospace);
+  font-variant-numeric: tabular-nums;
+}
+.cutaway-hint {
+  position: absolute;
+  left: 18px;
+  bottom: 13px;
+  color: #b5bdb9;
+  pointer-events: none;
+}
+.cutaway-tag,
+.cutaway-wire {
+  position: absolute;
+  pointer-events: none;
+}
+.cutaway-tag {
+  padding: 4px 7px;
+  border: 1px solid #a88f80;
+  color: #ffdfcc;
+  background: #111b1cef;
+  font: 500 11px/1.3 var(--site-mono, ui-monospace, monospace);
+}
+.cutaway-wire {
+  height: 1px;
+  background: #dbab8e;
+  transform-origin: left center;
+}
+.cutaway-wire::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #ffd5b6;
+}
+.cutaway-camera-tools {
+  position: absolute;
+  bottom: 6px;
+  right: 10px;
+  display: flex;
+}
+.cutaway-study button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.cutaway-study button:disabled {
+  cursor: default;
+}
+.cutaway-zoom,
+.cutaway-reset {
+  background: none;
+  border: 0;
+  min-height: 44px;
+  min-width: 44px;
+}
+.cutaway-study .cutaway-zoom {
+  color: #dae1df;
+  font-size: 21px;
+}
+.cutaway-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 0 18px;
+  border-block: 1px solid var(--cutaway-line);
+  color: #c6ceca;
+}
+.cutaway-slider-label {
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+  gap: 15px;
+  font-size: 13px;
+}
+.cutaway-slider {
+  width: min(22vw, 175px);
+  min-height: 44px;
+  margin: 0;
+  accent-color: var(--cutaway-key);
+  cursor: pointer;
+}
+.cutaway-value {
+  color: #c4cdca;
+  min-width: 3.65ch;
+}
+.cutaway-study .cutaway-reset {
+  font-size: 13px;
+}
+.cutaway-key {
+  padding: 11px 18px 13px;
+}
+.cutaway-parts {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+}
+.cutaway-study .cutaway-part {
+  appearance: none;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  justify-content: flex-start;
+  min-height: 44px;
+  background: none;
+  border: 0;
+  padding: 3px 7px 3px 0;
+  text-align: left;
+  color: #ccd4cf;
+  font-size: 13px;
+}
+.cutaway-index {
+  color: #97a39f;
+  border-bottom: 1px solid #52605e;
+}
+.cutaway-part[aria-pressed='true'],
+.cutaway-part[aria-pressed='true'] .cutaway-index,
+.cutaway-study button:hover:enabled {
+  color: var(--cutaway-key);
+}
+.cutaway-part[aria-pressed='true'] .cutaway-index {
+  border-color: currentColor;
+}
+.cutaway-study .cutaway-detail,
+.cutaway-study .cutaway-caption {
+  max-width: none;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+}
+.cutaway-study .cutaway-detail {
+  margin-top: 5px;
+  color: #d3dad4;
+}
+.cutaway-study .cutaway-caption {
+  color: #a9b4ae;
+  border-top: 1px solid var(--cutaway-line);
+  padding-top: 9px;
+  margin-top: 9px;
+}
+.cutaway-caption a {
+  color: #d2d9d3;
+  white-space: nowrap;
+  text-underline-offset: 3px;
+}
+.cutaway-caption a + a::before {
+  content: '\00b7';
+  display: inline-block;
+  margin-inline: 0.5em;
+  color: #798780;
+}
+.cutaway-study[data-mode='poster'] .cutaway-controls {
+  display: none;
+}
+.cutaway-study :focus-visible {
+  outline: 2px solid var(--cutaway-key);
+  outline-offset: -2px;
+}
+@media (max-width: 560px) {
+  .cutaway-scene {
+    height: clamp(225px, 38svh, 330px);
+  }
+  .cutaway-key {
+    padding: 7px 12px 12px;
+  }
+  .cutaway-controls {
+    padding: 0 10px;
+    gap: 5px;
+  }
+  .cutaway-parts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .cutaway-hint {
+    left: 12px;
+    bottom: 10px;
+    font-size: 10px;
+  }
+  .cutaway-camera-tools {
+    right: 3px;
+    bottom: 1px;
+  }
+  .cutaway-slider-label {
+    gap: 8px;
+  }
+}
+.cutaway-study .cutaway-trace {
+  margin: 2px 0 0;
+  padding: 0;
+  min-height: 40px;
+  background: transparent;
+  border: 0;
+  color: #efb59b;
+  font-size: 14px;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}

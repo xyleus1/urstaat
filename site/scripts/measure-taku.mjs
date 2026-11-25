@@ -47,9 +47,17 @@ try {
         const gl = canvas.getContext('webgl2');
         const device = gl.getExtension('WEBGL_debug_renderer_info');
         const samples = [];
+        const resolutions = new Set();
+        let submittedFrames = 0;
+        const draw = gl.drawArrays;
+        gl.drawArrays = function(mode, first, count) {
+          if (mode === gl.TRIANGLES && count === 3) submittedFrames++;
+          return draw.call(this, mode, first, count);
+        };
         let prev;
         await new Promise(resolve => {
           function orbit(now) {
+            resolutions.add(canvas.width + '×' + canvas.height);
             if (prev !== undefined) samples.push(now - prev);
             prev = now;
             canvas.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true, cancelable: true }));
@@ -58,14 +66,18 @@ try {
           }
           requestAnimationFrame(orbit);
         });
+        gl.drawArrays = draw;
         return {
           readyMs, posterPaintMs: window.takuPosterPaint ? Math.round(window.takuPosterPaint) : null,
-          orbitFps: Math.round(1000 * samples.length / samples.reduce((sum, n) => sum + n, 0)),
+          submittedFrames, resolutions: [...resolutions],
+          orbitFps: Math.round(1000 * Math.min(samples.length,submittedFrames) / samples.reduce((sum, n) => sum + n, 0)),
           p95FrameMs: Math.round(samples.sort((a, b) => a - b)[Math.ceil(samples.length * .95) - 1]),
           renderer: device ? gl.getParameter(device.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER),
         };
       }, process.argv.includes('--quick') ? 40 : 100);
       const assets = [...requests.values()].filter(request => request.url.startsWith('http'));
+      assert.ok(result.submittedFrames > 0, 'The measured orbit must submit visible frames');
+      assert.equal(result.resolutions.length, 1, 'The drawing buffer must remain constant during the orbit');
       assert.equal(assets.filter(a => a.url.split('?')[0].endsWith('.glb')).length, 1);
       result.transferMiB = +(assets.reduce((sum, a) => sum + a.bytes, 0) / 1048576).toFixed(2);
       trials.push(result);
