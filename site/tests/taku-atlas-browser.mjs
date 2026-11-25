@@ -195,15 +195,21 @@ try {
         if (noWebGL) assert.equal(await page.$eval('#cutaway-host', (e) => e.dataset.cutawayRenderer), 'canvas2d');
         await page.focus('.cutaway-slider');
         await page.keyboard.press('Home');
+        await page.waitForSelector('.cutaway-study[data-explode="0"]');
+        const model = await page.$('.cutaway-canvas');
+        await model.scrollIntoView();
         await frame(page);
-        const closed = await (await page.$('.cutaway-canvas')).screenshot();
+        const closed = await model.screenshot();
         await page.keyboard.press('End');
-        await frame(page);
-        assert.notDeepEqual(
-          await (await page.$('.cutaway-canvas')).screenshot(),
-          closed,
-          'Exploding changes the model',
-        );
+        await page.waitForSelector('.cutaway-study[data-explode="100"]');
+        // Input and compositor updates can arrive on different frames on a software GPU.
+        let same = true;
+        const deadline = Date.now() + 3500;
+        while (same && Date.now() < deadline) {
+          await frame(page);
+          same = Buffer.from(await model.screenshot()).equals(closed);
+        }
+        assert.equal(same, false, type + ' changes visibly between assembled and exploded');
       }
       await page.keyboard.press('Escape');
       await page.waitForSelector('#cutaway-dialog:not([open])');
