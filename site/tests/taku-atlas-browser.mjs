@@ -44,6 +44,19 @@ try {
     assert.match(await page.$eval('#focused-part', (e) => e.textContent), /right elbow/i);
     await page.waitForSelector('#supply-map[data-part="elbow"]:not([hidden]) .index-step');
     assert.equal(await page.$('#trace-part, #close-map, #instructions'), null);
+    const widthCheck = await page.evaluate(() => {
+      const canvas = document.querySelector('#taku-canvas').getBoundingClientRect();
+      const heading = document.querySelector('.taku-heading').getBoundingClientRect();
+      const inputs = document.querySelector('#supply-map').getBoundingClientRect();
+      return {
+        left: canvas.left, right: canvas.right, viewport: document.documentElement.clientWidth,
+        headingLeft: heading.left, inputsLeft: inputs.left,
+      };
+    });
+    assert.ok(Math.abs(widthCheck.left) < 1 && Math.abs(widthCheck.right - widthCheck.viewport) < 1,
+      'The robot canvas reaches both edges of the viewport');
+    assert.ok(widthCheck.headingLeft > 0 && Math.abs(widthCheck.inputsLeft - widthCheck.headingLeft) < 1,
+      'Inputs and headings share the reading column');
     if (width < 500) {
       assert.ok(await page.evaluate(() => {
         const canvas = document.querySelector('#taku-canvas').getBoundingClientRect();
@@ -104,13 +117,8 @@ try {
       for (let y = 4; y < h - 4; y += 2)
         for (let x = 4; x < w - 4; x += 2) {
           const k = 4 * (y * w + x);
-          if (
-            data[k] > 235 &&
-            data[k + 1] >= 135 &&
-            data[k + 1] <= 165 &&
-            data[k + 2] >= 100 &&
-            data[k + 2] <= 135
-          ) {
+          // Bright neutral ink is reserved for the active routes, arrows and selected pin.
+          if (data[k] >= 248 && data[k + 1] >= 248 && data[k + 2] >= 248) {
             const cell = (x >> 5) + ',' + (y >> 5);
             if (!tiles.has(cell))
               tiles.set(cell, [
@@ -135,12 +143,21 @@ try {
     await page.click('[data-projection="globe"]');
     await frame(page);
     assert.notEqual(await page.$eval('#supply-globe', (c) => c.toDataURL()), flat);
+    const grayscale = await page.$eval('#supply-globe', (canvas) => {
+      const { data } = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height);
+      for (let i = 0; i < data.length; i += 4) {
+        if (data[i] !== data[i + 1] || data[i + 1] !== data[i + 2]) return false;
+      }
+      return true;
+    });
+    assert.ok(grayscale, 'Land, routes, labels and the selected site stay grayscale');
     await page.focus('#supply-globe');
     await page.keyboard.press('ArrowRight');
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
     for (const [shot, type] of [
       ['overview', 'panel'],
       ['wrist', 'wrist'],
+      ['face', 'optics'],
       ['elbow', 'actuator'],
     ]) {
       await page.click('[data-shot="' + shot + '"]');
@@ -156,6 +173,10 @@ try {
       assert.equal(await page.$eval('.cutaway-spin', (b) => b.getAttribute('aria-pressed')), String(spinning));
       if (spinning) {
         const model = await page.$('.cutaway-canvas');
+        await page.click('.cutaway-part:nth-child(2)');
+        await page.click('.cutaway-part:nth-child(2)');
+        assert.equal(await page.$eval('.cutaway-spin', (b) => b.getAttribute('aria-pressed')), 'true',
+          'Releasing a part restores automatic rotation');
         const initial = await model.screenshot();
         await new Promise((resolve) => setTimeout(resolve, 400));
         assert.notDeepEqual(await model.screenshot(), initial, 'The exploded assembly turns on its own');
@@ -188,7 +209,7 @@ try {
       await page.waitForSelector('#cutaway-dialog:not([open])');
       await page.waitForSelector('#cutaway-host:empty');
       assert.ok(await page.$eval('#show-cutaway', (e) => e === document.activeElement));
-      const [piece, node] = { panel: [4, 'al-sheet'], wrist: [3, 'rollers'], actuator: [2, 'wire'] }[type];
+      const [piece, node] = { panel: [4, 'al-sheet'], wrist: [3, 'rollers'], actuator: [2, 'wire'], optics: [2, 'imager'] }[type];
       await page.click('#show-cutaway');
       await page.waitForSelector(
         '#cutaway-dialog[open] #cutaway-host[data-cutaway-mode="live"]',
@@ -202,7 +223,7 @@ try {
     await page.close();
     await browser.close();
     browser = null;
-    console.log(width + 'px passed nine supply maps, full process diagrams and three exploded assemblies');
+    console.log(width + 'px passed nine supply maps, full process diagrams and four exploded assemblies');
   }
 } finally {
   await browser?.close();

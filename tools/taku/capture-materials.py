@@ -1,4 +1,4 @@
-"""Bake the viewer's GGX studio into finish captures for software WebGL."""
+"""Bake the main robot's exploded-study lighting into software material captures."""
 import io
 import json
 import struct
@@ -13,10 +13,6 @@ SIZE, COLS, YAWS = 80, 16, 8
 PITCH = [-55, 0, 55]
 NAMES = ["satin porcelain shell", "graphite", "bead-blasted alloy", "elastomer", "smoke optical glass",
          "optical surround", "satin joint cap", "DynaClaw grip surface", "chest print"]
-LAMP = [([2.3, 4.5, -2.5], [2.16, 2.04, 1.88]), ([1.7, .45, 2.1], [.32, .38, .45]),
-        ([-2.1, 1.8, 1.4], [2.05, 2.3, 2.6])]
-
-
 def linear(v):
     v = np.asarray(v, dtype=float)
     return np.where(v <= .04045, v/12.92, ((v+.055)/1.055)**2.4)
@@ -30,21 +26,13 @@ def dot(a, b):
     return np.maximum(np.sum(a*b, axis=-1, keepdims=True), 0.)
 
 
-def display(rgb):
-    # Exact ACES matrix and fit from Three r182 with the viewer's .99 exposure.
-    rgb = (.99/.6)*rgb @ np.array([[.59719,.07600,.02840],[.35458,.90834,.13383],[.04823,.01566,.83777]])
-    rgb = (rgb*(rgb+.0245786)-.000090537)/(rgb*(.983729*rgb+.432951)+.238081)
-    rgb = np.clip(rgb @ np.array([[1.60475,-.10208,-.00327],[-.53108,1.10813,-.07276],
-                                  [-.07367,-.00605,1.07602]]), 0., 1.)
-    return np.where(rgb <= .0031308, 12.92*rgb, 1.055*rgb**(1/2.4)-.055)
-
-
 def read_finishes():
     raw = (ASSETS/"taku-desktop.glb").read_bytes()
     n = struct.unpack_from("<I", raw, 12)[0]
     doc = json.loads(raw[20:20+n])
     binary = raw[28+n:]
     by_name = {m["name"].split(" · ")[-1]:m for m in doc["materials"]}
+    overrides=json.loads((ASSETS.parents[2]/"hero/taku-finishes.json").read_text())
     out = []
     for name in NAMES:
         source = by_name[name]
@@ -59,65 +47,55 @@ def read_finishes():
             pixels = linear(pixels/255)
             chroma = pixels[:,:,0]-pixels[:,:,2]
             paint = paint*pixels[chroma > .85*chroma.max()].mean(axis=0)
-        out.append((paint,p.get("roughnessFactor",1),p.get("metallicFactor",1),
+        finish = overrides.get(name,{})
+        paint *= finish.get("tint",1)
+        out.append((paint,finish.get("roughness",p.get("roughnessFactor",1)),finish.get("metalness",p.get("metallicFactor",1)),
                     coat.get("clearcoatFactor",0),coat.get("clearcoatRoughnessFactor",.28)))
     for color, metal, rough in [(0x768185,.72,.34),(0xa8b0af,.72,.25),(0x30393b,.16,.57),(0x495153,.54,.36)]:
         out.append((linear(np.array([(color>>16)&255,(color>>8)&255,color&255])/255),rough,metal,0,.28))
     return out
 
 
-def reflection(studio, d, rough):
-    # Inverse of the CubeUV lookup used by the hardware renderer.
-    if rough >= .8: mip = (1-rough)*5-2
-    elif rough >= .4: mip = (.8-rough)*7.5-1
-    elif rough >= .305: mip = (.4-rough)/.095+2
-    elif rough >= .21: mip = (.305-rough)/.095+3
-    else: mip = -2*np.log2(1.16*rough)
-    mip = np.clip(mip,-2,6)
-    x,y,z = np.moveaxis(d,-1,0)
-    axis = np.argmax(np.abs(d),axis=-1)
-    face = np.choose(axis,[np.where(x>0,0,3),np.where(y>0,1,4),np.where(z>0,2,5)])
-    major = np.max(abs(d),axis=-1)
-    u = .5+.5*np.choose(face,[z,-x,-x,-z,-x,x])/major
-    v = .5+.5*np.choose(face,[y,-z,y,y,z,y])/major
-
-    def level(k):
-        size=2**max(4,k)
-        a = u*(size-2)+.5+(face%3)*size+max(4-k,0)*48
-        b = v*(size-2)+.5+(face//3)*size+4*(64-size)
-        i=a.astype(int); j=b.astype(int); ax=(a-i)[...,None];by=(b-j)[...,None]
-        return ((1-by)*((1-ax)*studio[j,i]+ax*studio[j,i+1]) +
-                by*((1-ax)*studio[j+1,i]+ax*studio[j+1,i+1]))
-    lo=int(np.floor(mip)); f=mip-lo
-    return level(lo)*(1-f)+level(min(6,lo+1))*f
+def softbox(reflected, center, extents, rough):
+    center = norm(np.array(center))
+    x = norm(np.cross(center, [0, 0, 1]))
+    y = np.cross(x, center)
+    facing = np.sum(reflected * center, axis=-1)
+    q = np.abs(np.stack((reflected @ x, reflected @ y), axis=-1)) / np.maximum(facing[..., None], 1e-8) - extents
+    edge = np.max(q, axis=-1)
+    t = np.clip((edge + .08 + rough*.65) / (.16 + rough*1.45), 0, 1)
+    return ((1-t*t*(3-2*t))*(facing>0))[..., None]
 
 
-def capture(studio, finish, normal, view, reflected):
-    p,r,m,coat,cr=finish
-    r=np.clip(r,.11,1); cr=np.clip(cr,.12,1)
-    a=max(r**4,.00015); ca=max(cr**4,.0002)
-    nv=np.maximum(dot(normal,view),.002)
-    f0=.04*(1-m)+p*m
-    rgb=np.zeros_like(normal)
-    for pos,power in LAMP:
-        light=norm(np.array(pos)); half=norm(light+view)
-        nl=dot(normal,light); nh=dot(normal,half); vh=dot(view,half)
-        f=f0+(1-f0)*(1-vh)**5; cf=coat*(.04+.96*(1-vh)**5)
-        vis=.5/np.maximum(nl*np.sqrt(nv*nv*(1-a)+a)+nv*np.sqrt(nl*nl*(1-a)+a),.004)
-        d=a/np.maximum(np.pi*(nh*nh*(a-1)+1)**2,.000015)
-        cd=ca/np.maximum(np.pi*(nh*nh*(ca-1)+1)**2,.000015)
-        rgb += np.array(power)*nl*((p*(1-m)*(1-f)*.31831+f*d*vis)*(1-cf)+cf*cd*vis)
-    hemi=.5+.5*normal[...,1:2]
-    rgb += ((1-hemi)*[.055,.060,.062]+hemi*[.23,.26,.29])*p*(1-m)
-    env_f=f0+(1-f0)*(1-nv)**5; cf=coat*(.04+.96*(1-nv)**5)
-    rgb += .78*reflection(studio,reflected,r)*env_f*(1-.42*r)*(1-cf)
-    if coat: rgb += .78*reflection(studio,reflected,cr)*cf
-    return np.rint(255*display(rgb)).astype("uint8")
+def strips(reflected, rough):
+    return (.044+.09*(.5+.5*reflected[..., 2:3])
+            +2.05*softbox(reflected, [-.28,-.70,.89], [.73,.29], rough)
+            +1.56*softbox(reflected, [.87,.46,.41], [.195,.81], rough)
+            +1.12*softbox(reflected, [-.90,.31,-.16], [.16,.61], rough*.72))
+
+
+def capture(finish, normal, view, reflected):
+    paint, rough, metal, coat, coat_rough = finish
+    def studio(vec):
+        return np.stack((vec[...,2], -vec[...,0], vec[...,1]), axis=-1)
+    n, v, r = studio(normal), studio(view), studio(reflected)
+    sky = .062+.16*(.5+.5*n[...,2:3])+.04*np.maximum(0, -n[...,0:1])
+    key = dot(n,norm(np.array([-.62,-.5,.76])))
+    fill = dot(n,norm(np.array([.9,.2,.3])))
+    rim = (1-dot(n,v))**3
+    diffuse = paint*(sky+1.08*key*[1.025,1.,.965]+.16*fill*[.95,1.,1.07])*(1-.78*metal)
+    spec = (1-metal)*.045+paint*metal
+    radiance = diffuse+spec*strips(r,rough)*(.92-.35*rough)+.046*rim
+    if coat:
+        radiance += coat*(.027+.12*rim)*strips(r,coat_rough)
+    t=np.clip(radiance/.13,0,1)
+    radiance *= .53+.47*t*t*(3-2*t)
+    color = (1.24*radiance/(radiance+.72))**(1/2.2)
+    return np.rint(255*np.clip(color,0,1)).astype('uint8')
 
 
 def main():
     finishes=read_finishes()
-    studio=linear(np.asarray(Image.open(ASSETS/"taku-studio.png").convert("RGB"))[::-1]/255)*6
     tile_count=len(finishes)*len(PITCH)*YAWS
     result=np.zeros((SIZE*((tile_count+COLS-1)//COLS),SIZE*COLS,3),dtype="uint8")
     # Stereographic parameterization retains resolution at the outline of a
@@ -136,7 +114,7 @@ def main():
             for material,finish in enumerate(finishes):
                 tile=material*YAWS*len(PITCH)+j*YAWS+i
                 row,col=divmod(tile,COLS)
-                result[row*SIZE:(row+1)*SIZE,col*SIZE:(col+1)*SIZE]=capture(studio,finish,normal,view,reflected)
+                result[row*SIZE:(row+1)*SIZE,col*SIZE:(col+1)*SIZE]=capture(finish,normal,view,reflected)
     output=ASSETS/"taku-finishes.webp"
     Image.fromarray(result).save(output,quality=96,method=4)
     print(f"{output.name}: {output.stat().st_size:,} bytes, {result.shape[1]} × {result.shape[0]}")

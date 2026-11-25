@@ -67,7 +67,7 @@ export function createAtlas(root) {
   let selectionFocus = 'opening';
   async function mountGlobe() {
     try {
-      const { createGlobe } = await import('./supply-globe.min.js');
+      const { createGlobe } = await import('./supply-globe.min.js?v=studio-3');
       if (disposed) return;
       globe = createGlobe(canvas, (item) => pick(item, false));
       if (sites.length) globe.setData(sites, network);
@@ -233,7 +233,7 @@ export function createAtlas(root) {
     arrow.setAttribute('orient', 'auto');
     const head = document.createElementNS(ns, 'polygon');
     head.setAttribute('points', '0,0 6,3 0,6');
-    head.setAttribute('fill', '#a9bab4');
+    head.setAttribute('fill', '#b3b3b3');
     arrow.append(head);
     defs.append(arrow);
     fragment.append(defs);

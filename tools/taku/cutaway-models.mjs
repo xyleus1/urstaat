@@ -18,7 +18,12 @@ const shell = 0,
   copper = 4,
   steel = 5,
   gasket = 6,
-  brass = 7;
+  brass = 7,
+  filterGlass = 8,
+  lensGlass = 9,
+  solderMask = 10,
+  silicon = 11,
+  smokedWindow = 12;
 const batches = new Map();
 function add(group, material, geo) {
   const id = group + '/' + material;
@@ -482,9 +487,228 @@ function panel() {
   }
   screws(4, fasteners, 7, 1.65);
 }
+// Preserve the left face aperture and the cover from the site model in the same
+// head-local frame. Head CAD axes are forward/up/right. Study axes are left/up/forward.
+async function opticalWindow() {
+  await MeshoptDecoder.ready;
+  const path = fileURLToPath(new URL('../../research/part-2/assets/taku-desktop.glb', import.meta.url));
+  const doc = await new NodeIO()
+    .registerExtensions(ALL_EXTENSIONS)
+    .registerDependencies({ 'meshopt.decoder': MeshoptDecoder })
+    .read(path);
+  const nodes = doc.getRoot().listNodes();
+  const head = nodes.find((node) => node.getName() === 'head_roll_link');
+  const relative = new T.Matrix4().fromArray(head.getWorldMatrix()).invert();
+  const transform = new T.Matrix4()
+    .set(0, 0, -1000, -29.75, 0, 1000, 0, -38.03, 1000, 0, 0, -81.59, 0, 0, 0, 1)
+    .multiply(relative);
+  for (const [name, finish] of [
+    ['head_roll_link_surface_3', black],
+    ['head_optical_cover_left', smokedWindow],
+  ]) {
+    const source = nodes.find((node) => node.getName() === name);
+    source.traverse((node) => {
+      if (!node.getMesh()) return;
+      const matrix = transform.clone().multiply(new T.Matrix4().fromArray(node.getWorldMatrix()));
+      const normalMatrix = new T.Matrix3().getNormalMatrix(matrix);
+      for (const primitive of node.getMesh().listPrimitives()) {
+        const p = primitive.getAttribute('POSITION'),
+          n = primitive.getAttribute('NORMAL');
+        const pos = [],
+          normals = [],
+          indices = [];
+        const point = new T.Vector3(),
+          normal = new T.Vector3();
+        for (let i = 0; i < p.getCount(); i++) {
+          point.fromArray(p.getElement(i, [])).applyMatrix4(matrix);
+          normal.fromArray(n.getElement(i, [])).applyNormalMatrix(normalMatrix);
+          pos.push(point.x, point.y, point.z);
+          normals.push(normal.x, normal.y, normal.z);
+        }
+        const faces = primitive.getIndices().getArray();
+        for (let i = 0; i < faces.length; i += 3) {
+          // The source surround mesh contains both apertures, 60 mm apart.
+          if (pos[3 * faces[i]] > -28) indices.push(faces[i], faces[i + 1], faces[i + 2]);
+        }
+        if (!indices.length) continue;
+        const geometry = new T.BufferGeometry();
+        geometry.setAttribute('position', new T.Float32BufferAttribute(pos, 3));
+        geometry.setAttribute('normal', new T.Float32BufferAttribute(normals, 3));
+        geometry.setIndex(indices);
+        add(5, finish, geometry);
+      }
+    });
+  }
+}
+
+async function optics() {
+  const posts = [
+    [-8.6, -12],
+    [8.6, -12],
+    [-8.6, 12],
+    [8.6, 12],
+  ];
+  const plate = (g, mat, w, h, r, depth, z, x = 0, y = 0) =>
+    add(g, mat, extrusion(roundPath(w, h, r), depth, 0.11, 8).translate(x, y, z));
+  const block = (g, mat, w, h, d, x, y, z) => add(g, mat, new T.BoxGeometry(w, h, d).translate(x, y, z));
+  const ring = (g, mat, outer, inner, depth, z, x = 0, y = 0) =>
+    add(
+      g,
+      mat,
+      lathe(
+        [
+          [inner, -depth / 2],
+          [outer - 0.16, -depth / 2],
+          [outer, -depth / 2 + 0.16],
+          [outer, depth / 2 - 0.16],
+          [outer - 0.16, depth / 2],
+          [inner, depth / 2],
+          [inner, -depth / 2],
+        ],
+        56,
+      ).translate(x, y, z),
+    );
+  const carrier = roundPath(23, 32, 3);
+  carrier.holes.push(roundPath(16, 21, 2, T.Path));
+  add(0, alloy, extrusion(carrier, 4.2, 0.28, 10));
+  const back = roundPath(22, 31, 3);
+  for (const x of [-5, 0, 5]) back.holes.push(circ(x, 0, 1.45));
+  add(0, alloy, extrusion(back, 1.2, 0.15, 9).translate(0, 0, -2.5));
+  for (const [x, y] of posts) ring(0, brass, 1.57, 0.85, 3.7, 1, x, y);
+  for (const sign of [-1, 1]) {
+    for (let i = -2; i <= 2; i++) block(0, machined, 0.9, 1.1, 3.1, sign * 11.45, i * 3.2, -0.5);
+  }
+
+  const pcb = roundPath(21, 29, 2.2);
+  for (const [x, y] of posts) pcb.holes.push(circ(x, y, 0.95));
+  add(1, solderMask, extrusion(pcb, 0.85, 0.12, 10));
+  for (const [x, y] of posts) ring(1, brass, 1.5, 0.95, 0.42, 0.37, x, y);
+  plate(1, black, 12.3, 10.6, 0.55, 1.45, 1.1);
+  plate(1, shell, 10.3, 8.7, 0.3, 0.38, 1.91);
+  plate(1, brass, 9.0, 7.45, 0.2, 0.2, 2.12);
+  plate(1, silicon, 8.5, 6.95, 0.14, 0.2, 2.32);
+  for (const side of [-1, 1]) {
+    for (let i = 0; i < 11; i++) {
+      const y = -4.1 + i * 0.82;
+      block(1, brass, 1.05, 0.32, 0.25, side * 6.23, y, 0.64);
+      const x = 6.74 + (i % 3) * 0.66;
+      block(1, brass, x - 6.3, 0.13, 0.1, (side * (x + 6.3)) / 2, y, 0.51);
+      block(1, brass, 0.13, 0.72, 0.1, side * x, y + 0.29, 0.51);
+    }
+    for (let i = 0; i < 4; i++) {
+      const x = -6.3 + 3.85 * i,
+        y = side * (7.6 + (i % 2));
+      block(1, steel, 2.05, 1.14, 0.64, x, y, 0.78);
+      block(1, black, 1.31, 1.18, 0.76, x, y, 0.82);
+    }
+  }
+  plate(1, shell, 7.2, 2.2, 0.2, 1.25, 1.0, 0, -12);
+  for (let i = 0; i < 8; i++) block(1, brass, 0.33, 1.5, 0.35, -2.65 + i * 0.75, -11.3, 1.5);
+
+  const filter = roundPath(18, 19.4, 2);
+  filter.holes.push(roundPath(13.6, 14.9, 1, T.Path));
+  add(2, black, extrusion(filter, 1.15, 0.16, 12));
+  plate(2, filterGlass, 14.3, 15.7, 1.2, 0.83, 0);
+  for (const sign of [-1, 1]) block(2, machined, 3.7, 1.15, 0.42, 0, sign * 7.75, 0.66);
+
+  // Forward-facing iris, a stepped retaining shoulder, external grip flutes and two end notches.
+  add(
+    3,
+    black,
+    lathe(
+      [
+        [4.3, -5.1],
+        [7.15, -5.1],
+        [7.7, -4.5],
+        [7.7, -2.2],
+        [9.0, -2.2],
+        [9.45, -1.7],
+        [9.45, 3.0],
+        [8.75, 3.6],
+        [8.75, 5.3],
+        [7.95, 5.5],
+        [7.95, 4.0],
+        [6.85, 4.0],
+        [6.85, -1.2],
+        [4.3, -2.8],
+        [4.3, -5.1],
+      ],
+      96,
+    ),
+  );
+  for (let i = 0; i < 36; i++) {
+    const angle = (i * tau) / 36;
+    add(
+      3,
+      alloy,
+      new T.BoxGeometry(0.35, 0.48, 3.35)
+        .rotateZ(angle)
+        .translate(9.42 * Math.cos(angle), 9.42 * Math.sin(angle), 0.8),
+    );
+  }
+  for (const z of [-4.05, -3.2, 4.2, 4.9]) ring(3, alloy, z < 0 ? 7.84 : 8.87, z < 0 ? 7.58 : 8.6, 0.39, z);
+  for (const sign of [-1, 1]) block(3, machined, 0.65, 1.03, 0.22, 0, sign * 8.17, 5.49);
+
+  // Revolved optical sections. Vertex normals follow each convex crown into its ground perimeter.
+  add(
+    4,
+    lensGlass,
+    lathe(
+      [
+        [0, -3.2],
+        [2.7, -3.0],
+        [5.2, -2.65],
+        [6.8, -2.25],
+        [7.08, -2.0],
+        [7.08, -1.25],
+        [6.8, -1.02],
+        [5.1, -0.74],
+        [2.7, -0.52],
+        [0, -0.45],
+      ],
+      80,
+    ),
+  );
+  ring(4, black, 7.75, 6.82, 1.14, -0.36);
+  add(
+    4,
+    lensGlass,
+    lathe(
+      [
+        [0, 0.16],
+        [3, 0.32],
+        [5.4, 0.55],
+        [6.9, 0.84],
+        [7.35, 1.12],
+        [7.35, 1.8],
+        [7.12, 2.07],
+        [6.2, 2.51],
+        [4.9, 2.98],
+        [3.15, 3.36],
+        [1.55, 3.53],
+        [0, 3.6],
+      ],
+      96,
+    ),
+  );
+  ring(4, machined, 7.73, 7.25, 0.58, 1.6);
+  await opticalWindow();
+  await save('optics');
+}
+
 await mkdir(out, { recursive: true });
-await actuator();
-wrist();
-await save('wrist');
-panel();
-await save('panel');
+const recipes = {
+  actuator,
+  wrist: async () => {
+    wrist();
+    await save('wrist');
+  },
+  panel: async () => {
+    panel();
+    await save('panel');
+  },
+  optics,
+};
+const requested = process.argv[2];
+if (requested && !Object.hasOwn(recipes, requested)) throw Error('Unknown study ' + requested);
+for (const run of requested ? [recipes[requested]] : Object.values(recipes)) await run();

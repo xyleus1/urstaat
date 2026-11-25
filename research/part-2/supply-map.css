@@ -52,7 +52,7 @@
   #part-inspector #show-cutaway {
     position: absolute;
     top: 16px;
-    left: 16px;
+    left: var(--viewer-inset);
     display: grid;
     width: 142px;
     gap: 0;
@@ -125,9 +125,12 @@
   background: #253033;
 }
 .part-actions button:focus-visible,
-.supply-map :is(button, a, summary, canvas):focus-visible,
 #cutaway-dialog :focus-visible {
   outline: 2px solid #f9a68c;
+  outline-offset: 2px;
+}
+.supply-map :is(button, a, summary, canvas):focus-visible {
+  outline: 2px solid #ededed;
   outline-offset: 2px;
 }
 .supply-map {
@@ -214,7 +217,7 @@
 .projection-switch,
 .globe-controls {
   display: flex;
-  border: 1px solid #485253;
+  border: 1px solid #4d4d4d;
 }
 .globe-controls button {
   width: 44px;
@@ -222,7 +225,7 @@
   font-size: 18px;
 }
 .globe-controls button + button {
-  border-left: 1px solid #344044;
+  border-left: 1px solid #3b3b3b;
 }
 #supply-globe {
   display: block;
@@ -256,10 +259,10 @@
 }
 .atlas-legend i {
   width: 24px;
-  border-top: 2px solid #b6c8c0;
+  border-top: 2px solid #d4d4d4;
 }
 .atlas-legend span + span i {
-  border-top: 1px dashed #b0c4c5;
+  border-top: 1px dashed #adadad;
 }
 #map-use {
   font-size: 12px;
@@ -494,7 +497,7 @@
   border-block: 1px solid var(--line);
 }
 .sequence-window:focus-visible {
-  outline: 2px solid #e9a286;
+  outline: 2px solid #ededed;
   outline-offset: 2px;
 }
 .index-tools, .sequence-nav {
@@ -543,19 +546,19 @@
 }
 .stage-index > svg path {
   fill: none;
-  stroke: #758583;
+  stroke: #909090;
   stroke-width: 1.1;
   stroke-dasharray: 3 3;
   opacity: 0.62;
 }
 .stage-index > svg path.is-recorded {
-  stroke: #b7cbc2;
+  stroke: #d4d4d4;
   stroke-width: 1.35;
   stroke-dasharray: none;
   opacity: 0.83;
 }
 .stage-index > svg path.is-selected {
-  stroke: #ffa380;
+  stroke: #fff;
   stroke-width: 2;
   opacity: 1;
 }
@@ -586,8 +589,8 @@
 }
 .atlas-body .index-step[aria-current='true'],
 .atlas-body .index-step.is-endpoint {
-  border-color: var(--accent);
-  box-shadow: inset 2px 0 var(--accent);
+  border-color: #dedede;
+  box-shadow: inset 2px 0 #dedede;
 }
 .atlas-body .index-step:hover {
   border-color: var(--ink);

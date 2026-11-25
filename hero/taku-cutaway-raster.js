@@ -84,10 +84,18 @@ function makeModel(packed, finishes) {
         0.6 * Math.pow(Math.max(0, side * dot(normal, halfRim)), 12);
       const light = (0.07 + 0.17 * (0.5 + nz * 0.5) + 0.86 * diffuse + 0.18 * fill) * (1 - 0.77 * metal),
         rim = 0.045 * (1 - Math.abs(dot(normal, eye))) ** 3;
+      let glassStrip = 0;
+      if (finish[5]) {
+        const incidence = 2 * dot(normal, eye);
+        const dx = (incidence * normal[0] - eye[0] + 0.36) / 0.11;
+        const dy = (incidence * normal[1] - eye[1] - 0.69) / 0.42;
+        const z = Math.max(0, Math.min(1, (incidence * normal[2] - eye[2] - 0.12) / 0.36));
+        glassStrip = finish[5] * Math.exp(-dx * dx - dy * dy) * z * z * (3 - 2 * z);
+      }
       let packedColor = 0;
       for (let k = 0; k < 3; k++) {
         const reflectance = 0.055 * (1 - metal) + finish[k] * metal,
-          linear = finish[k] * light + reflectance * reflection + rim;
+          linear = finish[k] * light + reflectance * reflection + rim + glassStrip * (0.145 + k * 0.0175);
         const channel = Math.min(255, Math.round(255 * Math.pow((1.24 * linear) / (linear + 0.72), 1 / 2.2)));
         packedColor |= channel << (8 * k);
       }
@@ -254,7 +262,7 @@ export function createCutawayRaster(canvas, packed, finishes, onPick, onError) {
     }
   }
   try {
-    worker = new Worker(new URL('./taku-cutaway-raster.js', import.meta.url), { type: 'module' });
+    worker = new Worker(new URL('./taku-cutaway-raster.js?v=studio-3', import.meta.url), { type: 'module' });
     worker.onmessage = ({ data }) => {
       if (dead) return;
       if (data.type === 'pick') {

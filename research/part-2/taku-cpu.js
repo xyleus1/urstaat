@@ -1,3 +1,4 @@
+import { zoomRange, zoomAvailability } from './taku-composition.js?v=studio-3';
 const views = ['overview', 'side', 'face', 'shoulder', 'elbow', 'wrist', 'claw', 'waist', 'base'];
 const arms = new Set(['shoulder', 'elbow', 'wrist', 'claw']);
 const directions = [
@@ -53,7 +54,7 @@ async function modelBytes(signal) {
   if (typeof DecompressionStream === 'function') {
     return new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer();
   }
-  const { gunzipSync } = await import('./taku-inflate.min.js?v=orbit-2');
+  const { gunzipSync } = await import('./taku-inflate.min.js?v=studio-3');
   return gunzipSync(new Uint8Array(bytes)).buffer;
 }
 
@@ -66,6 +67,7 @@ export async function mountCpu({
   onSettled,
   onInspect,
   onProjection,
+  onZoomChange,
   onError,
 }) {
   const events = new AbortController(),
@@ -95,6 +97,8 @@ export async function mountCpu({
     tween = null,
     pickRequest = 0,
     lastFrame = 0;
+  let registration, limits;
+  const mobileTier = matchMedia('(max-width: 760px), (pointer: coarse) and (max-width: 1100px)').matches;
   let hoverRequest = 0,
     hoverFrame = 0,
     hoverPoint = null,
@@ -134,6 +138,8 @@ export async function mountCpu({
       width: canvas.width,
       height: canvas.height,
       cssWidth,
+      preset: registration,
+      mobile: mobileTier,
     };
     const message = { type: 'render', pose, revision };
     if (worker) {
@@ -179,6 +185,7 @@ export async function mountCpu({
       submitted = data.submitted;
       cost = data.cost;
       onProjection?.(data.projection);
+      if (limits) onZoomChange?.(zoomAvailability(limits, orbit[2]));
       if (!ready) {
         ready = true;
         firstResolve();
@@ -208,7 +215,11 @@ export async function mountCpu({
         const delta = previous.camera.map((v, i) => v - target[i]),
           distance = Math.hypot(...delta);
         if (distance)
-          orbit = [Math.atan2(delta[0], delta[2]), Math.asin(clamp(delta[1] / distance, -1, 1)), distance];
+          orbit = [
+            Math.atan2(delta[0], delta[2]),
+            Math.asin(clamp(delta[1] / distance, -1, 1)),
+            clamp(distance, limits.min, limits.max),
+          ];
       }
     } else if (data.type === 'frame') framePresented(data);
     else if (data.type === 'error') {
@@ -249,6 +260,8 @@ export async function mountCpu({
     side = arms.has(next) && which === 'right' ? 'right' : 'left';
     if (!meta || !cssWidth) return;
     const desired = preset();
+    registration = desired;
+    limits = zoomRange(id, desired.orbit[2]);
     revision++;
     pickRequest++;
     settle = true;
@@ -258,6 +271,7 @@ export async function mountCpu({
       tween = null;
     } else {
       const delta = desired.orbit[0] - orbit[0];
+      desired.orbit = desired.orbit.slice();
       desired.orbit[0] = orbit[0] + Math.atan2(Math.sin(delta), Math.cos(delta));
       tween = {
         start: performance.now(),
@@ -273,19 +287,29 @@ export async function mountCpu({
   function resize() {
     const rect = canvas.getBoundingClientRect();
     if (!rect.width || !rect.height || (rect.width === cssWidth && rect.height === cssHeight)) return;
+    const oldDefault = registration?.orbit[2];
     cssWidth = rect.width;
     cssHeight = rect.height;
     // One fixed viewport for every frame, with a bounded pixel budget on large screens.
     const ratio = Math.min(devicePixelRatio || 1, 1.35, Math.sqrt(600000 / (cssWidth * cssHeight)));
     canvas.width = Math.max(1, Math.round(cssWidth * ratio));
     canvas.height = Math.max(1, Math.round(cssHeight * ratio));
+    if (meta && oldDefault) {
+      registration = preset();
+      limits = zoomRange(id, registration.orbit[2]);
+      orbit[2] = clamp((orbit[2] * registration.orbit[2]) / oldDefault, limits.min, limits.max);
+    }
     revision++;
     invalidate();
   }
   function adjust(yaw, pitch, scale = 1) {
     tween = null;
     pickRequest++;
-    orbit = [orbit[0] + yaw, clamp(orbit[1] + pitch, -1.2, 1.54), clamp(orbit[2] / scale, 0.085, 5.5)];
+    orbit = [
+      orbit[0] + yaw,
+      clamp(orbit[1] + pitch, -1.2, 1.54),
+      clamp(orbit[2] / scale, limits.min, limits.max),
+    ];
     invalidate();
   }
   function zoom(factor) {
@@ -453,7 +477,7 @@ export async function mountCpu({
   try {
     const [model, lights, ink, dots, kernel] = await Promise.all([
       modelBytes(signal),
-      imagePixels('taku-finishes.webp', 0, signal),
+      imagePixels('taku-finishes.webp?v=studio-3', 0, signal),
       imagePixels('taku-ink.png', 256, signal),
       fetch(new URL('taku-dots.bin', assets), { signal })
         .then((r) => (r.ok ? r.arrayBuffer() : null))
@@ -468,7 +492,7 @@ export async function mountCpu({
     const payload = { model, lights, ink, inkSize: 256, dots, kernel };
     if (window.Worker) {
       try {
-        worker = new Worker(new URL('taku-cpu-worker.js?v=orbit-2', import.meta.url), { type: 'module' });
+        worker = new Worker(new URL('taku-cpu-worker.js?v=studio-3', import.meta.url), { type: 'module' });
       } catch {
         /* Main-thread Canvas 2D is also supported. */
       }
@@ -479,7 +503,7 @@ export async function mountCpu({
       worker = null;
       busy = false;
       try {
-        const { createRaster } = await import('./taku-raster.js?v=orbit-2');
+        const { createRaster } = await import('./taku-raster.js?v=studio-3');
         const instance = kernel ? await WebAssembly.instantiate(kernel).catch(() => null) : null;
         if (dead) return;
         raster = createRaster(payload, instance);
@@ -516,6 +540,8 @@ export async function mountCpu({
         renderedFrames,
         submitted,
         lastFrameMs: cost,
+        distance: orbit[2],
+        zoomLimits: { ...limits },
         renderer: 'canvas2d',
       }),
     };

@@ -1,5 +1,6 @@
-// All opaque CAD surfaces use one shader program. The source glTF supplies
-// their paint color, roughness, metalness, optical coating and chest print.
+import finishes from './taku-finishes.json';
+// The studio uses the CAD paint and chest artwork, with finish overrides
+// shared with the baked material captures used by the software renderer.
 const vertexShader = /* glsl */ `
   uniform mat3 printTransform;
   attribute float partTag;
@@ -21,52 +22,27 @@ const vertexShader = /* glsl */ `
 `;
 
 const fragmentShader = /* glsl */ `
-  // The supplied CubeUV atlas contains 64px cube faces in a 336x256 image.
-  #define ENVMAP_TYPE_CUBE_UV
-  #define CUBEUV_MAX_MIP 6.0
-  #define CUBEUV_TEXEL_WIDTH (1.0 / 336.0)
-  #define CUBEUV_TEXEL_HEIGHT (1.0 / 256.0)
-  #include <cube_uv_reflection_fragment>
-  #include <tonemapping_pars_fragment>
   varying float partMask;
-  uniform sampler2D studioAtlas, printMap;
+  uniform sampler2D printMap;
   uniform vec3 paint;
-  uniform float hasAtlas, metalness, roughness, coat, coatRoughness, chestPrint;
+  uniform float metalness, roughness, coat, coatRoughness, chestPrint;
   varying vec2 printUv;
   varying vec3 surfacePosition;
   varying vec3 surfaceNormal;
 
-  vec3 schlick(vec3 f0, float cosine) {
-    float q = 1. - clamp(cosine, 0., 1.);
-    return f0 + (1. - f0) * (q*q*q*q*q);
+  // The same rectangular softboxes and display curve as the exploded studies.
+  float softbox(vec3 r, vec3 center, vec2 extents, float rough) {
+    vec3 c=normalize(center), x=normalize(cross(c,vec3(0,0,1))), y=cross(x,c);
+    float facing=dot(r,c);
+    if(facing<=0.)return 0.;
+    vec2 q=abs(vec2(dot(r,x),dot(r,y)))/facing-extents;
+    return 1.-smoothstep(-.08-rough*.65,.08+rough*.8,max(q.x,q.y));
   }
-  float ggx(float ndh, float alpha2) {
-    float d = ndh*ndh*(alpha2 - 1.) + 1.;
-    return alpha2 / max(3.141593*d*d, .000015);
-  }
-  vec3 lamp(vec3 n, vec3 v, vec3 l, vec3 radiance, vec3 albedo, vec3 f0,
-            float ndv, float alpha2, float coatAlpha2) {
-    float ndl = max(dot(n, l), 0.);
-    vec3 h = normalize(l + v);
-    float ndh = max(dot(n, h), 0.);
-    float vdh = max(dot(v, h), 0.);
-    vec3 fresnel = schlick(f0, vdh);
-    // Height-correlated Smith visibility with the GGX normal distribution.
-    float vis = .5 / max(ndl*sqrt(ndv*ndv*(1.-alpha2)+alpha2) +
-                           ndv*sqrt(ndl*ndl*(1.-alpha2)+alpha2), .004);
-    float coatF = schlick(vec3(.04), vdh).r * coat;
-    vec3 diffuse = albedo * (1.-metalness) * (1.-fresnel) * .31831;
-    vec3 base = diffuse + fresnel * ggx(ndh, alpha2) * vis;
-    float clear = coatF * ggx(ndh, coatAlpha2) * vis;
-    return radiance * ndl * (base*(1.-coatF) + clear);
-  }
-  vec3 reflection(vec3 dir, float blur) {
-    if (hasAtlas > .5) {
-      // The atlas is an sRGB texture; sampling returns linear radiance / 6.
-      return 6. * textureCubeUV(studioAtlas, dir, blur).rgb;
-    }
-    float sky = smoothstep(-.25, .95, dir.y);
-    return mix(vec3(.045,.047,.048), vec3(.65,.72,.8), sky);
+  float strips(vec3 reflected,float rough){
+    return .044+.09*(.5+.5*reflected.z)
+      +2.05*softbox(reflected,vec3(-.28,-.70,.89),vec2(.73,.29),rough)
+      +1.56*softbox(reflected,vec3(.87,.46,.41),vec2(.195,.81),rough)
+      +1.12*softbox(reflected,vec3(-.90,.31,-.16),vec2(.16,.61),rough*.72);
   }
   void main() {
     vec3 ink = texture2D(printMap, printUv).rgb;
@@ -76,34 +52,33 @@ const fragmentShader = /* glsl */ `
     vec3 albedo = paint * ink;
     vec3 n = normalize(surfaceNormal) * (gl_FrontFacing ? 1. : -1.);
     vec3 v = normalize(cameraPosition - surfacePosition);
-    float ndv = max(dot(n, v), .002);
-    float r = clamp(roughness, .11, 1.);
-    float a2 = max(r*r*r*r, .00015);
-    float cr = clamp(coatRoughness, .12, 1.);
-    float ca2 = max(cr*cr*cr*cr, .0002);
-    vec3 f0 = mix(vec3(.04), albedo, metalness);
-    vec3 color = lamp(n, v, normalize(vec3(2.3,4.5,-2.5)), vec3(2.16,2.04,1.88),
-                      albedo, f0, ndv, a2, ca2);
-    color += lamp(n, v, normalize(vec3(1.7,.45,2.1)), vec3(.32,.38,.45),
-                  albedo, f0, ndv, a2, ca2);
-    color += lamp(n, v, normalize(vec3(-2.1,1.8,1.4)), vec3(2.05,2.3,2.6),
-                  albedo, f0, ndv, a2, ca2);
-    vec3 bounced = mix(vec3(.055,.060,.062), vec3(.23,.26,.29), .5+.5*n.y);
-    color += bounced * albedo * (1.-metalness);
-    vec3 reflected = reflect(-v, n);
-    vec3 envF = schlick(f0, ndv);
-    float coatF = coat * schlick(vec3(.04), ndv).r;
-    color += .78 * reflection(reflected, r) * envF * (1.-.42*r) * (1.-coatF);
-    if (coat > .001) color += .78 * reflection(reflected, cr) * coatF;
-    // Keep the studio's HDR rolloff when writing to the display-encoded
-    // texture sampled by the contour pass.
-    gl_FragColor = sRGBTransferOETF(vec4(ACESFilmicToneMapping(color),partMask));
+    // The cutaway studio is Z-up. Map Taku's forward (+X) into its lit front quarter.
+    n=vec3(n.z,-n.x,n.y); v=vec3(v.z,-v.x,v.y);
+    if(dot(n,v)<0.)n=-n;
+    vec3 r=reflect(-v,n);
+    float key=max(0.,dot(n,normalize(vec3(-.62,-.5,.76))));
+    float fill=max(0.,dot(n,normalize(vec3(.9,.2,.3))));
+    float sky=.062+.16*(n.z*.5+.5)+.04*max(0.,-n.x);
+    float rim=pow(1.-max(dot(n,v),0.),3.);
+    vec3 diffuse=albedo*(sky+1.08*key*vec3(1.025,1.,.965)+.16*fill*vec3(.95,1.,1.07))*(1.-.78*metalness);
+    vec3 spec=mix(vec3(.045),albedo,metalness);
+    vec3 radiance=diffuse+spec*strips(r,roughness)*(.92-.35*roughness)+.046*rim;
+    if(coat>.001)radiance+=coat*(.027+.12*rim)*strips(r,coatRoughness);
+    // Retain the dark optical glass and graphite under the broad studio strips.
+    radiance*=mix(vec3(.53),vec3(1.),smoothstep(vec3(0.),vec3(.13),radiance));
+    gl_FragColor=vec4(pow(1.24*radiance/(radiance+.72),vec3(1./2.2)),partMask);
   }
 `;
 
-export function applyTakuMaterials(THREE, robot, atlas, activePart = {value: -1}, softwareStudio, softwareAA = false) {
+export function applyTakuMaterials(
+  THREE,
+  robot,
+  activePart = { value: -1 },
+  softwareStudio,
+  softwareAA = false,
+) {
   // The single-sampled composite distinguishes robot surfaces from background dots.
-  const unselectedAlpha = {value: softwareAA ? 1/255 : 0};
+  const unselectedAlpha = { value: softwareAA ? 1 / 255 : 0 };
   const white = new THREE.DataTexture(new Uint8Array([255, 255, 255, 255]), 1, 1);
   white.colorSpace = THREE.SRGBColorSpace;
   white.needsUpdate = true;
@@ -120,35 +95,44 @@ export function applyTakuMaterials(THREE, robot, atlas, activePart = {value: -1}
       materials.set(source, captured);
       return captured;
     }
+    const name = source.name
+      .toLowerCase()
+      .split(/\s+\u00b7\s+/)
+      .pop();
+    const finish = finishes[name] || {};
     const replacement = new THREE.ShaderMaterial({
       name: source.name,
-      vertexShader, fragmentShader,
+      vertexShader,
+      fragmentShader,
       side: THREE.DoubleSide,
       toneMapped: false,
-      polygonOffset: !!source.map, polygonOffsetFactor: -1, polygonOffsetUnits: -1,
+      polygonOffset: !!source.map,
+      polygonOffsetFactor: -1,
+      polygonOffsetUnits: -1,
       uniforms: {
-        activePart, unselectedAlpha, toneMappingExposure: {value: .99},
-        studioAtlas: { value: atlas || white },
-        hasAtlas: { value: atlas ? 1 : 0 },
+        activePart,
+        unselectedAlpha,
         printMap: { value: map },
         chestPrint: { value: source.map ? 1 : 0 },
         printTransform: { value: map.matrix.clone() },
-        paint: { value: source.color?.clone() || new THREE.Color(1, 1, 1) },
-        roughness: { value: source.roughness ?? .45 },
-        metalness: { value: source.metalness ?? 0 },
+        paint: { value: (source.color?.clone() || new THREE.Color(1, 1, 1)).multiplyScalar(finish.tint ?? 1) },
+        roughness: { value: finish.roughness ?? source.roughness ?? 0.45 },
+        metalness: { value: finish.metalness ?? source.metalness ?? 0 },
         coat: { value: source.clearcoat ?? 0 },
-        coatRoughness: { value: source.clearcoatRoughness ?? .28 },
+        coatRoughness: { value: source.clearcoatRoughness ?? 0.28 },
       },
     });
     materials.set(source, replacement);
     return replacement;
   }
-  robot.traverse(node => {
+  robot.traverse((node) => {
     if (node.isMesh) {
       node.material = Array.isArray(node.material) ? node.material.map(adapt) : adapt(node.material);
     }
   });
   for (const source of materials.keys()) source.dispose();
-  // releaseRobot owns the shader materials. The caller owns the studio atlas.
-  return () => { for (const texture of textures) texture.dispose(); };
+  // releaseRobot owns the shader materials.
+  return () => {
+    for (const texture of textures) texture.dispose();
+  };
 }

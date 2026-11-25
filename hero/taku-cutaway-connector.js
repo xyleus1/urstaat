@@ -33,7 +33,7 @@ export function mountCutawayConnector() {
     if (!still.currentSrc || !still.complete || !still.naturalWidth) return;
     if (!loading) {
       loading = true;
-      fetch(new URL('../research/part-2/assets/still-regions.json', import.meta.url), {
+      fetch(new URL('../research/part-2/assets/still-regions.json?v=studio-3', import.meta.url), {
         signal: abort.signal,
       })
         .then((r) => (r.ok ? r.json() : null))

@@ -1,21 +1,9 @@
 import { preservePartMask } from './taku-outline.js';
+import { arrangements, layoutSculpture } from '../research/part-2/taku-composition.js';
 
 // A contour is split over five physical planes. Its samples land on the
 // intended outline from one camera pose; orbiting reveals their separation.
-const arrangements = {
-  // [shape, horizontal position, vertical position, radius, ink]
-  overview: [[0, -.52, .09, .67, .94], [1, .56, -.11, .62, .76]],
-  side:     [[2, -.52, .03, .75, .96], [1, .55, .13, .59, .71]],
-  face:     [[0, -.54, .08, .83, 1], [2, .59, -.12, .63, .69]],
-  shoulder: [[0, -.56, .15, .70, .90], [1, .58, -.10, .59, .73]],
-  elbow:    [[1, .57, -.05, .76, .97], [2, -.58, .13, .62, .72]],
-  wrist:    [[1, -.56, -.01, .76, .97], [0, .57, .16, .55, .72]],
-  claw:     [[1, -.56, -.01, .80, 1], [2, .59, .11, .64, .73]],
-  waist:    [[2, -.54, -.02, .80, .98], [0, .59, .16, .55, .75]],
-  base:     [[2, .55, .04, .72, .94], [1, -.56, .13, .57, .73]],
-};
-
-const vertexShader = /* glsl */`
+const vertexShader = /* glsl */ `
   uniform mat4 presetFrame;
   uniform vec2 center;
   uniform float aspect, radius, distanceToTarget, halfAngle, pixelRatio;
@@ -36,7 +24,7 @@ const vertexShader = /* glsl */`
   }
 `;
 
-const fragmentShader = /* glsl */`
+const fragmentShader = /* glsl */ `
   uniform float strength;
   varying float density;
   void main() {
@@ -50,13 +38,19 @@ function unpack(THREE, buffer, mobile) {
   const bytes = new DataView(buffer);
   if (bytes.getUint32(0) !== 0x544b4431) throw new Error('Unexpected Taku contour file');
   let cursor = 10;
-  return [0, 1, 2].map(shape => {
+  return [0, 1, 2].map((shape) => {
     const total = bytes.getUint16(4 + shape * 2, true);
-    const positions = [], tones = [];
+    const positions = [],
+      tones = [];
     for (let i = 0; i < total; i++, cursor += 3) {
       if (mobile && i % 2) continue;
-      const packed = bytes.getUint8(cursor + 2), plane = packed >> 5;
-      positions.push(bytes.getInt8(cursor) / 125, bytes.getInt8(cursor + 1) / 125, plane < 5 ? plane : (plane - 5) * 2);
+      const packed = bytes.getUint8(cursor + 2),
+        plane = packed >> 5;
+      positions.push(
+        bytes.getInt8(cursor) / 125,
+        bytes.getInt8(cursor + 1) / 125,
+        plane < 5 ? plane : (plane - 5) * 2,
+      );
       tones.push(plane < 5 ? (packed & 31) / 31 : 1.22);
     }
     const geo = new THREE.BufferGeometry();
@@ -66,24 +60,34 @@ function unpack(THREE, buffer, mobile) {
   });
 }
 
-export function createTakuBackdrop({ THREE, scene, renderer, mobile, reducedMotion, invalidate }) {
+export function createTakuBackdrop({ THREE, scene, renderer, mobile, invalidate }) {
   const group = new THREE.Group();
   group.name = 'Taku optical sections';
   scene.add(group);
   const controller = new AbortController();
   const geometries = [];
-  const presetFrame = new THREE.Matrix4(), direction = new THREE.Vector3();
-  const nearQuat = new THREE.Quaternion(), presetQuat = new THREE.Quaternion();
-  const lastEye = new THREE.Vector3(), lastTarget = new THREE.Vector3();
+  const presetFrame = new THREE.Matrix4();
   const common = {
-    presetFrame: { value: presetFrame }, distanceToTarget: { value: 1 },
-    pixelRatio: { value: 1 }, halfAngle: { value: 1 }, aspect: { value: 1 },
+    distanceToTarget: { value: 1 },
+    pixelRatio: { value: 1 },
+    halfAngle: { value: 1 },
+    aspect: { value: 1 },
   };
-  let lastView, previousView, changeTime = 0;
-  const dots = [0, 1, 2, 3].map(() => {
+  const dots = Array.from({ length: 2 }, (_, i) => {
+    const uniforms = {
+      ...common,
+      presetFrame: { value: presetFrame },
+      center: { value: new THREE.Vector2() },
+      radius: { value: 1 },
+      strength: { value: 1 },
+    };
     const material = new THREE.ShaderMaterial({
-      uniforms: { ...common, center: { value: new THREE.Vector2() }, radius: { value: 1 }, strength: { value: .8 } },
-      vertexShader, fragmentShader, transparent: true, depthWrite: false, ...preservePartMask(THREE),
+      uniforms,
+      vertexShader,
+      fragmentShader,
+      transparent: true,
+      depthWrite: false,
+      ...preservePartMask(THREE),
     });
     const cloud = new THREE.Points(undefined, material);
     cloud.frustumCulled = false;
@@ -92,63 +96,37 @@ export function createTakuBackdrop({ THREE, scene, renderer, mobile, reducedMoti
     group.add(cloud);
     return cloud;
   });
-  const emptyGeometries = dots.map(cloud => cloud.geometry);
-
-  function update(camera, viewId, preset, liveTarget) {
-    if (preset?.position && preset?.target) {
-      lastEye.copy(preset.position);
-      lastTarget.copy(preset.target);
-    } else if (!lastView || viewId !== lastView) {
-      lastEye.copy(camera.position);
-      lastTarget.copy(camera.getWorldDirection(direction)).add(lastEye);
-    }
-    if (viewId !== lastView) {
-      previousView = lastView;
-      lastView = viewId;
-      changeTime = performance.now();
-    }
-    const instant = reducedMotion?.matches ?? reducedMotion;
-    const progress = previousView && !instant ? Math.min(1,(performance.now()-changeTime)/340) : 1;
-    const mix = progress*progress*(3-2*progress);
-    // Keep the five sheets behind the object throughout a free orbit. A small
-    // angular offset retains their optical parallax but never sweeps them past the eye.
-    presetFrame.lookAt(lastEye,lastTarget,camera.up);
-    presetQuat.setFromRotationMatrix(presetFrame);
-    camera.getWorldQuaternion(nearQuat).slerp(presetQuat,.105);
-    presetFrame.makeRotationFromQuaternion(nearQuat).setPosition(camera.position);
-    common.distanceToTarget.value = Math.max(.01,camera.position.distanceTo(liveTarget||lastTarget));
+  const emptyGeometries = dots.map((cloud) => cloud.geometry);
+  function update(camera, id, preset) {
+    if (!preset?.position) return;
+    presetFrame.lookAt(preset.position, preset.target, camera.up).setPosition(preset.position);
+    common.distanceToTarget.value = preset.position.distanceTo(preset.target);
     common.aspect.value = camera.aspect;
-    common.halfAngle.value = Math.tan(THREE.MathUtils.degToRad(camera.getEffectiveFOV()) * .5);
-    common.pixelRatio.value = renderer.getPixelRatio() * (mobile ? .88 : 1);
+    common.halfAngle.value = Math.tan(THREE.MathUtils.degToRad(camera.getEffectiveFOV()) * 0.5);
+    common.pixelRatio.value = renderer.getPixelRatio() * (mobile ? 0.88 : 1);
     dots.forEach((cloud, i) => {
-      const outgoing = i >= 2;
-      if (outgoing && mix >= 1) { cloud.visible = false; return; }
-      const specs = arrangements[outgoing ? previousView : viewId] || arrangements.overview;
-      const [shape, x, y, radius, strength] = specs[i%2];
+      cloud.visible = geometries.length > 0;
+      if (!cloud.visible) return;
+      const item = layoutSculpture(arrangements[id][i], i, camera.aspect);
       const uniforms = cloud.material.uniforms;
-      const narrow = camera.aspect < 1.12;
-      const horizontal = narrow ? x * .93 : x;
-      uniforms.center.value.set(horizontal, narrow ? y + (i%2 ? -.27 : .30) : y);
-      uniforms.radius.value = Math.min(radius, camera.aspect * (1 - Math.abs(horizontal) - .045));
-      uniforms.strength.value = strength*(outgoing ? 1-mix : mix);
-      if (geometries.length) {
-        cloud.geometry = geometries[shape];
-        cloud.visible = true;
-      }
+      cloud.geometry = geometries[item.shape];
+      uniforms.center.value.set(item.x, item.y);
+      uniforms.radius.value = item.radius;
+      uniforms.strength.value = item.ink;
     });
-    if (mix < 1) invalidate();
   }
   const ready = fetch('assets/taku-dots.bin', { signal: controller.signal })
-    .then(response => {
+    .then((response) => {
       if (!response.ok) throw new Error(`Taku contours HTTP ${response.status}`);
       return response.arrayBuffer();
     })
-    .then(buffer => {
+    .then((buffer) => {
       if (controller.signal.aborted) return false;
       geometries.push(...unpack(THREE, buffer, mobile));
       invalidate();
       return true;
-    }).catch(error => {
+    })
+    .catch((error) => {
       if (!controller.signal.aborted) console.warn('Taku backdrop unavailable.', error);
       return false;
     });

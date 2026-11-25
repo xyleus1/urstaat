@@ -30,7 +30,10 @@ try {
     content:
       '.cutaway-scene {height:550px!important;} .cutaway-camera-tools,.cutaway-hint {visibility:hidden;}',
   });
-  for (const id of ['actuator', 'wrist', 'panel']) {
+  const studies = ['actuator', 'wrist', 'panel', 'optics'];
+  const requested = process.argv[2];
+  if (requested && !studies.includes(requested)) throw Error('Unknown study ' + requested);
+  for (const id of requested ? [requested] : studies) {
     const ok = await page.evaluate(async (id) => {
       window.study?.destroy();
       const { mountTakuCutaway } = await import('/hero/taku-cutaways.js');
