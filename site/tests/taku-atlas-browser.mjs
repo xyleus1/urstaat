@@ -8,6 +8,52 @@ const live = process.argv.find((arg) => /^https?:/.test(arg));
 let browser;
 const frame = (p) =>
   p.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+
+function trackCutawayFrames() {
+  const NativeWorker = window.Worker;
+  if (!NativeWorker) return;
+  window.Worker = class extends NativeWorker {
+    constructor(url, options) {
+      super(url, options);
+      if (!new URL(url, document.baseURI).pathname.endsWith('/taku-cutaway-raster.js')) return;
+      this.frames = { pending: 0, completed: 0 };
+      window.cutawayFrames = this.frames;
+      this.addEventListener('message', ({ data }) => {
+        if (data.type === 'frame') {
+          this.frames.pending--;
+          this.frames.completed++;
+        }
+      });
+    }
+
+    postMessage(message, ...args) {
+      super.postMessage(message, ...args);
+      if (this.frames && message.type === 'draw') this.frames.pending++;
+    }
+
+    terminate() {
+      if (this.frames && window.cutawayFrames === this.frames) window.cutawayFrames = null;
+      super.terminate();
+    }
+  };
+}
+
+async function captureExplosion(page, model, key, percent) {
+  const before = await page.evaluate(() => window.cutawayFrames?.completed ?? null);
+  await page.keyboard.press(key);
+  await page.waitForSelector(`.cutaway-study[data-explode="${percent}"]`);
+  await frame(page);
+  // The worker can still be painting the preceding slider value after two animation frames.
+  // Its message handler presents the image and submits any newer queued pose in the same task.
+  if (before !== null) {
+    await page.waitForFunction((previous) => {
+      const current = window.cutawayFrames;
+      return !current || (current.completed > previous && current.pending === 0);
+    }, { timeout: 15000 }, before);
+  }
+  return model.screenshot();
+}
+
 try {
   for (const [width, noWebGL] of [
     [390, true],
@@ -22,6 +68,7 @@ try {
     const page = await browser.newPage(),
       errors = [],
       requests = [];
+    await page.evaluateOnNewDocument(trackCutawayFrames);
     await page.bringToFront();
     page.on('pageerror', (e) => errors.push(e.message));
     page.on('response', (r) => {
@@ -194,22 +241,11 @@ try {
         assert.equal(await page.$eval('.cutaway-spin', (b) => b.disabled), false);
         if (noWebGL) assert.equal(await page.$eval('#cutaway-host', (e) => e.dataset.cutawayRenderer), 'canvas2d');
         await page.focus('.cutaway-slider');
-        await page.keyboard.press('Home');
-        await page.waitForSelector('.cutaway-study[data-explode="0"]');
         const model = await page.$('.cutaway-canvas');
         await model.scrollIntoView();
-        await frame(page);
-        const closed = await model.screenshot();
-        await page.keyboard.press('End');
-        await page.waitForSelector('.cutaway-study[data-explode="100"]');
-        // Input and compositor updates can arrive on different frames on a software GPU.
-        let same = true;
-        const deadline = Date.now() + 3500;
-        while (same && Date.now() < deadline) {
-          await frame(page);
-          same = Buffer.from(await model.screenshot()).equals(closed);
-        }
-        assert.equal(same, false, type + ' changes visibly between assembled and exploded');
+        const closed = await captureExplosion(page, model, 'Home', 0);
+        const open = await captureExplosion(page, model, 'End', 100);
+        assert.notDeepEqual(open, closed, type + ' changes visibly between assembled and exploded');
       }
       await page.keyboard.press('Escape');
       await page.waitForSelector('#cutaway-dialog:not([open])');

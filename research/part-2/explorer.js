@@ -1,4 +1,4 @@
-import { createInspector } from './part-inspector.js?v=studio-3';
+import { createInspector } from './part-inspector.js?v=studio-4';
 
 const stage = document.querySelector('.taku-stage');
 let canvas = stage.querySelector('canvas');

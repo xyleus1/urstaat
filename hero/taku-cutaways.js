@@ -489,8 +489,8 @@ export function mountTakuCutaway(host, { part = 'actuator', allow3D = true, onTr
   }
   const observer = new ResizeObserver(resize);
   observer.observe(stage);
-  const visibility = new IntersectionObserver(([entry]) => {
-    onscreen = entry.isIntersecting;
+  const visibility = new IntersectionObserver((entries) => {
+    onscreen = entries.at(-1).isIntersecting;
     lastTime = 0;
     if (onscreen) invalidate();
   });
@@ -516,19 +516,20 @@ export function mountTakuCutaway(host, { part = 'actuator', allow3D = true, onTr
   }
   listen(reduced, 'change', syncSpin);
   function invalidate() {
-    if (!dead && !request && !document.hidden && onscreen)
+    if (!dead && !request && !document.hidden)
       request = requestAnimationFrame((time) => {
         request = 0;
         if (!mesh) return;
-        if (spinning && lastTime) yaw -= (Math.min(64, time - lastTime) / 1000) * 0.28;
-        lastTime = time;
+        if (onscreen && spinning && lastTime) yaw -= (Math.min(64, time - lastTime) / 1000) * 0.28;
+        lastTime = onscreen ? time : 0;
         if (tween) {
           const f = Math.min(1, (time - tween.start) / 450);
           setExplode(mix(tween.from, tween.to, f * f * (3 - 2 * f)), false);
           if (f >= 1) tween = null;
         }
         draw(false);
-        if (spinning || tween) invalidate();
+        // A user edit gets one frame even while scrolling. Only repeat animation frames in view.
+        if (onscreen && (spinning || tween)) invalidate();
       });
   }
   function draw(picking) {
@@ -687,7 +688,7 @@ export function mountTakuCutaway(host, { part = 'actuator', allow3D = true, onTr
     percent.textContent = slider.value + '%';
     explode.textContent = amount > 0.5 ? 'Assemble' : 'Explode';
     wrapper.dataset.explode = slider.value;
-    invalidate();
+    if (manual) invalidate();
   }
   function resetView() {
     yaw = -0.98;

@@ -123,7 +123,7 @@ export function createInspector() {
     dialog.showModal();
     document.querySelector('#close-cutaway').focus({ preventScroll: true });
     try {
-      const { mountTakuCutaway } = await import('../../hero/taku-cutaways.js?v=studio-3');
+      const { mountTakuCutaway } = await import('../../hero/taku-cutaways.js?v=studio-4');
       if (request !== cutawayRequest || !dialog.open) return;
       assembly = mountTakuCutaway(host, {
         part: type,
