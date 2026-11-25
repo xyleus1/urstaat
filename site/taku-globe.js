@@ -50,7 +50,8 @@ function openingCenter(nodes, edges) {
 
 export function createGlobe(canvas, onPick) {
   // Keep the atlas on the 2D software surface so the main model retains GPU resources.
-  const ctx = canvas.getContext('2d', { alpha: false, willReadFrequently: true });
+  // An alpha-capable surface keeps Windows from adding colored subpixel fringes to the labels.
+  const ctx = canvas.getContext('2d', { alpha: true, willReadFrequently: true });
   if (!ctx) throw new Error('Canvas drawing unavailable');
   function stipple(size, color, points) {
     const tile = document.createElement('canvas');
