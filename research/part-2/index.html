@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#080A0B">
   <title>Run before you walk — Part 2</title>
-  <meta name="description" content="Explore Dyna Taku in 3D. Orbit the robot or inspect the face, DynaClaw, shoulder, elbow, wrist, folding waist and wheel base up close.">
+  <meta name="description" content="Explore Dyna Taku in 3D, open a joint or body-panel study, and trace the materials and manufacturing steps behind each component on a world map.">
   <link rel="canonical" href="https://runbeforeyouwalk.com/research/part-2/">
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="Run before you walk">
@@ -16,11 +16,13 @@
   <meta property="og:image:alt" content="Dyna Taku in three-quarter view against a gray dot sculpture.">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" href="../../site/media/cog.svg" type="image/svg+xml">
-  <link rel="modulepreload" href="taku-viewer.min.js">
+  <link rel="modulepreload" href="taku-viewer.min.js?v=components-1">
   <link rel="stylesheet" href="../../revision/styles.css?v=hero-refinement-20261118-1">
   <link rel="stylesheet" href="../../site/site.css?v=read-part-2-20261122-1">
   <link rel="stylesheet" href="explorer.css">
-  <script type="module" src="explorer.js"></script>
+  <link rel="stylesheet" href="supply-map.css">
+  <link rel="stylesheet" href="cutaways/cutaways.css">
+  <script type="module" src="explorer.js?v=components-1"></script>
 </head>
 <body>
   <a class="skip" href="#views">Skip to camera views</a>
@@ -35,19 +37,28 @@
           <h2 id="model-title">Dyna Taku</h2>
           <p id="instructions">Choose a view to inspect the robot.</p>
         </div>
+        <div class="taku-instrument">
         <div class="taku-stage" data-mode="stills" data-view="overview">
           <picture id="still">
             <source media="(max-width: 760px) and (orientation: portrait)" srcset="stills/overview-mobile.webp">
             <img src="stills/overview.webp" width="1440" height="702" fetchpriority="high" alt="Three-quarter view of the white Dyna Taku robot on its wheeled base.">
           </picture>
           <canvas id="taku-canvas" aria-label="Interactive Dyna Taku model" aria-describedby="keyboard-hint" aria-hidden="true"></canvas>
-          <span id="keyboard-hint" class="screen-reader">Use the arrow keys to orbit, plus and minus to zoom, and Home to reset.</span>
+          <span id="keyboard-hint" class="screen-reader">Use the arrow keys to orbit, plus and minus to zoom, and Home to reset. Use Trace inputs below to open the highlighted part’s map.</span>
           <div class="stage-status" role="status" aria-live="polite"></div>
           <div class="stage-tools" role="group" aria-label="View controls" hidden>
             <button type="button" data-zoom="1.25" aria-label="Zoom in">+</button>
             <button type="button" data-zoom="0.8" aria-label="Zoom out">−</button>
             <button type="button" id="reset">Reset view</button>
           </div>
+        </div>
+        <div class="part-inspector" id="part-inspector" hidden>
+          <div class="part-name"><span class="contour-key" aria-hidden="true"></span><span id="focused-part"></span></div>
+          <div class="part-actions">
+            <button type="button" id="show-cutaway" aria-haspopup="dialog"><img id="cutaway-preview" alt="" width="124" height="64"><span class="cutaway-label">Exploded view <span aria-hidden="true">⤢</span></span></button>
+            <button type="button" id="trace-part" aria-controls="supply-map" aria-expanded="false">Trace inputs <span aria-hidden="true">↓</span></button>
+          </div>
+        </div>
         </div>
         <div class="camera-views" id="views" role="group" aria-label="Camera views" tabindex="-1">
           <a href="stills/overview.webp" data-shot="overview" aria-current="true">Overview</a>
@@ -60,10 +71,72 @@
           <a href="stills/waist.webp" data-shot="waist">Folding waist</a>
           <a href="stills/base.webp" data-shot="base">Wheel base</a>
         </div>
+        <noscript><p class="static-studies">Exploded studies
+          <a href="cutaways/actuator.webp">Rotary actuator</a>
+          <a href="cutaways/wrist.webp">Wrist bearing</a>
+          <a href="cutaways/panel.webp">Enclosure panel</a>
+        </p></noscript>
       </section>
+      <section class="supply-map" id="supply-map" aria-labelledby="supply-title" hidden>
+        <div class="supply-heading">
+          <div><p class="map-kicker">Supply chain</p><h2 id="supply-title" tabindex="-1"></h2></div>
+          <button type="button" id="close-map" class="text-control" aria-label="Close supply chain">Close <span aria-hidden="true">×</span></button>
+        </div>
+        <p id="supply-summary" class="supply-summary"></p>
+        <p class="atlas-scope">The map follows published industrial examples. Dyna’s public model identifies the robot geometry and leaves its complete supplier network undisclosed.</p>
+        <p id="atlas-load" role="status" hidden></p>
+        <div class="atlas-body" hidden>
+          <div class="atlas-spread">
+            <div class="atlas-plate">
+              <div class="map-toolbar">
+                <div class="projection-switch" role="group" aria-label="Map projection">
+                  <button data-projection="globe" type="button" aria-pressed="true">Globe</button>
+                  <button data-projection="flat" type="button" aria-pressed="false">Flat map</button>
+                </div>
+                <div class="globe-controls" role="group" aria-label="Globe controls">
+                  <button data-map-command="out" type="button" aria-label="Zoom globe out">−</button>
+                  <button data-map-command="in" type="button" aria-label="Zoom globe in">+</button>
+                  <button data-map-command="reset" type="button" aria-label="Recenter globe">↺</button>
+                </div>
+              </div>
+              <canvas id="supply-globe" tabindex="0" aria-label="World map of component inputs" aria-describedby="map-use"></canvas>
+              <div class="atlas-legend">
+                <span><i></i>Documented relationship</span><span><i></i>Process connection</span>
+              </div>
+              <p id="map-use">Drag or use the arrow keys to rotate. Select a site or a line.</p>
+            </div>
+            <div class="site-file" id="site-file" aria-label="Selected supply step"><div id="step-detail" aria-live="polite"></div></div>
+          </div>
+          <div class="chain-index">
+            <div class="index-header"><h3>Manufacturing sequence</h3><span id="step-count"></span></div>
+            <div class="sequence-nav"><p>Scroll across to follow the branches.</p><div>
+              <button type="button" data-sequence-scroll="-1" aria-label="Scroll sequence left">←</button>
+              <button type="button" data-sequence-scroll="1" aria-label="Scroll sequence right">→</button>
+            </div></div>
+            <div class="sequence-window" tabindex="0" aria-label="Manufacturing sequence">
+              <div class="stage-index" id="stage-index"></div>
+            </div>
+          </div>
+          <details class="atlas-notes">
+            <summary>Sources and coverage</summary>
+            <div>
+              <p id="geometry-note"></p>
+              <p>Solid lines mark relationships a source identifies between companies, sites or products. Some sources name a manufacturer but leave its factory unspecified. Dashed lines show documented production steps and representative links between processes. Select a line to read its evidence and location notes.</p>
+              <p id="atlas-references"></p>
+            </div>
+          </details>
+        </div>
+      </section>
+      <dialog id="cutaway-dialog" aria-labelledby="cutaway-title">
+        <div class="cutaway-heading"><div><p class="map-kicker">Exploded view</p><h2 id="cutaway-title"></h2></div>
+          <button type="button" id="close-cutaway" class="text-control" aria-label="Close exploded view">Close <span aria-hidden="true">×</span></button>
+        </div>
+        <div id="cutaway-host"></div>
+      </dialog>
       <footer class="model-credit">
         <span>Model adapted from <a href="https://github.com/dyna-robotics/dyna_robot_description/tree/afa61685f434a9a2a61e255711788bcfe2f42f92/dyna_taku">Dyna Robotics</a>.</span>
         <a href="assets/LICENSE-Dyna.txt" rel="license">Apache 2.0</a>
+        <span>Joint retainers, seals and recessed fasteners are illustrative reconstructions.</span>
       </footer>
     </article>
   </main>

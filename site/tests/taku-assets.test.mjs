@@ -4,9 +4,9 @@ import test from 'node:test';
 
 const base = new URL('../../research/part-2/assets/', import.meta.url);
 
-test('both Taku exports are self-contained GLBs, within the transfer budget', async () => {
+test('the three fixed Taku exports are self-contained GLBs within their transfer budgets', async () => {
   const sizes = [];
-  for (const [tier, budgetMiB] of [['mobile', 3.5], ['desktop', 7]]) {
+  for (const [tier, budgetMiB] of [['mobile', 3.5], ['software', 2], ['desktop', 7]]) {
     const bytes = await readFile(new URL('taku-' + tier + '.glb', base));
     assert.equal(bytes.toString('ascii', 0, 4), 'glTF');
     assert.equal(bytes.readUInt32LE(4), 2);
@@ -25,15 +25,17 @@ test('both Taku exports are self-contained GLBs, within the transfer budget', as
     assert.ok(bytes.length < budgetMiB * 1048576, tier + ' model alone exceeds the entire viewer budget');
     sizes.push(bytes.length);
   }
-  assert.ok(sizes[0] < sizes[1], 'Mobile uses the smaller export');
+  assert.ok(sizes[0] < sizes[1] && sizes[1] < sizes[2], 'The three fixed exports have distinct budgets');
 });
 
-test('the in-motion mesh fits a single indexed draw', async () => {
-  const bytes = await readFile(new URL('taku-motion.bin', base));
-  assert.equal(bytes.toString('ascii', 0, 4), 'TKM1');
-  const vertices = bytes.readUInt32LE(4), indices = bytes.readUInt32LE(8);
-  assert.ok(vertices > 0 && vertices < 65536);
-  assert.ok(indices > 0 && indices % 3 === 0);
-  assert.equal(bytes.length, 36 + vertices * 12 + indices * 2);
-  for (let i = 36 + vertices * 12; i < bytes.length; i += 2) assert.ok(bytes.readUInt16LE(i) < vertices);
+test('each desktop and portrait still has a visible hit region for its selected CAD component',async()=>{
+  const regions=JSON.parse(await readFile(new URL('still-regions.json',base),'utf8'));
+  const shots=['overview','side','face','shoulder','elbow','wrist','claw','waist','base','right-shoulder','right-elbow','right-wrist','right-claw'];
+  assert.equal(Object.keys(regions).length,shots.length*2);
+  for(const shot of shots)for(const suffix of ['', '-mobile']){
+    const name=shot+suffix+'.webp';
+    const [width,height,encoded]=regions[name],bits=Buffer.from(encoded,'base64');
+    assert.equal(bits.length,Math.ceil(width*height/8));
+    assert.ok(bits.some(byte=>byte!==0)&&bits.some(byte=>byte!==255),name);
+  }
 });

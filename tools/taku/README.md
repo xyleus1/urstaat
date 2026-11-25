@@ -14,18 +14,23 @@ uv run --isolated --python 3.11 --with bpy==4.5.3 --with mujoco==3.4.0 python to
 
 `build.py` registers each of the 104 source visual meshes to its link using MuJoCo forward kinematics. It keeps both arms’ named links, adds named camera targets, packs the original chest texture, and saves a Blender scene with an editable camera and three area lights. The website receives the rig and materials. The full-precision intermediate is written to `.qa/taku-authoring.glb`.
 
-The web exports face +X, use metres and have +Y up. The anatomical left arm lies on the −Z side. Seven `view_*` anchors target the face, left shoulder, elbow, wrist, claw, waist and base. Four `view_right_*` anchors mirror the arm details. Both exports preserve the same 265 nodes. The viewer needs a meshopt decoder for the compressed geometry.
+The web exports face +X, use metres and have +Y up. The anatomical left arm lies on the −Z side. Seven `view_*` anchors target the face, left shoulder, elbow, wrist, claw, waist and base. Four `view_right_*` anchors mirror the arm details. All three exports preserve the same 265 nodes. The viewer needs a meshopt decoder for the compressed geometry.
 
 | Export | Triangles | File size |
 | --- | ---: | ---: |
 | `taku-mobile.glb` | 122,553 | 985,024 bytes |
+| `taku-software.glb` | 195,172 | 1,490,476 bytes |
 | `taku-desktop.glb` | 499,576 | 2,520,452 bytes |
 
-The triangle counts above count shared geometry once. The exporter pins `gltfpack@1.3.0`, preserves named nodes and materials, and uses mesh quantization and EXT meshopt compression. Its simplification targets are 12% for mobile and 74% for desktop. The maximum relative error settings are 0.0019 and 0.0008 respectively. At runtime the display pose uses nine material batches. The original assembly remains available for hit testing.
+These counts include shared geometry once and precede the additional joint details. The exporter pins `gltfpack@1.3.0`, preserves named nodes and materials, and uses mesh quantization and EXT meshopt compression. Its simplification targets are 12% for mobile and 74% for desktop. The maximum relative error settings are 0.0019 and 0.0008 respectively. At runtime, spatially grouped index ranges let close-up cameras skip surfaces outside the frame. Picking uses the original assembly.
+
+Desktop browsers reporting a software driver use a separate fixed export with tighter tolerances on joints and optics. With Node 22 and the locked dependencies from `npm ci --prefix hero`, run `node tools/taku/software-model.mjs` to regenerate it from the desktop GLB.
 
 ## Studio and stills
 
-The Blender build also calls `motion.py` to create the single-draw camera-motion mesh. To rebuild it independently, run `uv run --with numpy python tools/taku/motion.py .qa/taku-authoring.glb research/part-2/assets/taku-motion.bin`. It bakes the rig transforms into Y-up metres, retains the material IDs, and omits the duplicate chest decal surface.
+Camera movement uses the same device export, studio shading and pixel ratio as a stationary view. The selection pass uses the visible CAD surfaces to draw a double contour around the active part.
+
+Hardware uses multisampling and the studio material shader. Software renderers filter high-contrast edges at full resolution and interpolate local finish captures baked from that studio. Rebuild the finish texture with `uv run --with numpy --with pillow python tools/taku/capture-materials.py`. The reference stills use the hardware-quality lighting and multisampling on either backend.
 
 From the repository root, generate the environment texture, then render the viewer's stills after building the site. `studio.py` uses NumPy and Pillow to bake the softboxes into a CubeUV atlas for the viewer's physical materials.
 
@@ -38,6 +43,12 @@ npm --prefix site run render:taku-stills
 ```
 
 ## Adaptations and attribution
+
+The detailed exterior keeps Dyna’s elbow cap and smooths its rim from the source normals. Recessed fasteners, the elbow retainer and the wrist sleeve and seals illustrate the mating interfaces. The on-demand [exploded studies](cutaway-notes.md) have separate meshes, source notes and assembly controls. Regenerating the stills also captures the visible selection masks for clicking a part in the fallback renders.
+
+The supply atlas stores each site, operation and evidence link in `research/part-2/supply-data.js`. A part selects its relevant edges and opening site. The world map and manufacturing sequence use those same directed edges. Solid lines represent published relationships, including product-level evidence where a factory is unknown. Individual line records distinguish a documented process from a representative connection.
+
+To rebuild the local map renderer, run `npm --prefix site run build:taku-globe`. The bundled [Natural Earth land polygons](https://github.com/nvkelso/natural-earth-vector/blob/v5.1.2/geojson/ne_110m_land.geojson) are public-domain, 1:110m geometry rounded to hundredths of a degree.
 
 The inspection pose starts from Dyna’s home frame. To separate the wrist and hand from the waist in close-ups, the left arm uses shoulder pitch −0.14, shoulder roll +0.15 and elbow −1.02 radians. The right arm uses −0.09, −0.10 and −0.47 radians respectively. Each gripper’s opposing jaws move 12 mm apiece along their documented prismatic joints, opening the gap by 24 mm.
 

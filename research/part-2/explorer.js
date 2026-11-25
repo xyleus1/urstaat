@@ -1,3 +1,5 @@
+import { createInspector } from './part-inspector.js';
+
 const stage = document.querySelector('.taku-stage');
 const canvas = stage.querySelector('canvas');
 const still = stage.querySelector('picture');
@@ -15,12 +17,15 @@ function linkedView() {
 }
 let [current, side] = linkedView();
 let controller;
+let stillRegions;
 let disposed = false;
+const inspector = createInspector();
 
 function select(id, which = 'left', syncUrl = true) {
   if (!links.has(id)) return;
   current = id;
   side = which === 'right' && bilateral.has(id) ? 'right' : 'left';
+  inspector.select(id, side);
   stage.dataset.view = id;
   if (bilateral.has(id)) stage.dataset.side = side;
   else delete stage.dataset.side;
@@ -48,9 +53,35 @@ function useStills() {
   canvas.removeAttribute('tabindex');
   canvas.setAttribute('aria-hidden', 'true');
   status.textContent = '';
-  instructions.textContent = 'Choose a view to explore the still images.';
+  instructions.textContent = 'Explore the still images. Click the outlined part to trace its inputs.';
   showStill();
+  if (!stillRegions) {
+    fetch(new URL('assets/still-regions.json', import.meta.url)).then(async response => {
+      if (!response.ok || disposed) return;
+      const masks = await response.json();
+      stillRegions = new Map(Object.entries(masks).map(([key,[width,height,bits]]) =>
+        [key,{width,height,bits:atob(bits)}]));
+    }).catch(() => {});
+  }
 }
+
+function overStillPart(event) {
+  if (stage.dataset.mode !== 'stills' || !stillRegions) return false;
+  const image = still.querySelector('img');
+  if (!image.complete || !image.naturalWidth) return false;
+  const mask = stillRegions.get(new URL(image.currentSrc).pathname.split('/').pop());
+  if (!mask) return false;
+  const rect = image.getBoundingClientRect();
+  const scale = Math.min(rect.width/image.naturalWidth, rect.height/image.naturalHeight);
+  const width = image.naturalWidth*scale, height = image.naturalHeight*scale;
+  const x = Math.floor((event.clientX-rect.left-(rect.width-width)/2)*mask.width/width);
+  const y = Math.floor((event.clientY-rect.top-(rect.height-height)/2)*mask.height/height);
+  if (x<0 || x>=mask.width || y<0 || y>=mask.height) return false;
+  const bit=y*mask.width+x;
+  return !!(mask.bits.charCodeAt(bit>>3)&(1<<(bit&7)));
+}
+still.addEventListener('pointermove', event => { still.style.cursor=overStillPart(event)?'pointer':''; });
+still.addEventListener('click', event => { if (overStillPart(event)) inspector.inspect(current,side); });
 
 function goTo(id, which = 'left', syncUrl = true) {
   select(id, which, syncUrl);
@@ -84,7 +115,7 @@ tools.addEventListener('click', event => {
 function graphicsReady() {
   if (!window.Worker || !window.OffscreenCanvas) return Promise.resolve(true);
   return new Promise(resolve => {
-    const worker = new Worker(new URL('gpu-check.js', import.meta.url));
+    const worker = new Worker(new URL('gpu-check.js?v=components-1', import.meta.url));
     const finish = ok => { clearTimeout(timer); worker.terminate(); resolve(ok); };
     let timer = setTimeout(() => finish(false), 15000);
     worker.onmessage = ({ data }) => {
@@ -100,24 +131,31 @@ function graphicsReady() {
 async function start() {
   stage.dataset.mode = 'loading';
   status.textContent = 'Loading 3D…';
-  const tier = mobile.matches ? 'mobile' : 'desktop';
-  const assetUrl = new URL('assets/taku-' + tier + '.glb', import.meta.url).href;
   try {
-    if (!window.WebGL2RenderingContext) { useStills(); return; }
-    // Download the chosen model while the browser evaluates the renderer bundle.
+    if (!window.WebGL2RenderingContext) { stage.dataset.graphics = 'unavailable'; useStills(); return; }
+    const rendering = import('./taku-viewer.min.js?v=components-1');
+    rendering.catch(() => {});
+    const graphics = graphicsReady();
+    // Phones can start their single model request immediately. A desktop worker
+    // first determines whether the browser is drawing through a software driver.
+    const tier = mobile.matches ? 'mobile' : (await graphics === 'software' ? 'software' : 'desktop');
+    if (disposed) return;
+    const assetUrl = new URL('assets/taku-' + tier + '.glb', import.meta.url).href;
     const request = new AbortController();
     const assetData = fetch(assetUrl, { signal: request.signal }).then(response => {
       if (!response.ok) throw new Error('Model returned HTTP ' + response.status);
       return response.arrayBuffer();
     });
     assetData.catch(() => {}); // mountTaku reports a rejected model after import completes.
-    const [{ mountTaku }, canDraw] = await Promise.all([import('./taku-viewer.min.js'), graphicsReady()]);
+    const [{ mountTaku }, canDraw] = await Promise.all([rendering, graphics]);
     if (disposed || !canDraw) {
       request.abort();
+      if (!canDraw) stage.dataset.graphics = 'unavailable';
       if (!disposed) useStills();
       return;
     }
     const opening = current, openingSide = side;
+    stage.dataset.tier = tier;
     controller = await mountTaku({
       canvas, assetUrl, assetData, mobile: tier === 'mobile', initialView: opening, initialSide: openingSide,
       onViewChange(id, which) {
@@ -127,6 +165,7 @@ async function start() {
         }
       },
       onSettled(id) { stage.dataset.settled = id; },
+      onInspect(id, which) { inspector.inspect(id, which); },
       onError(error) {
         if (disposed) return;
         useStills();
@@ -140,7 +179,7 @@ async function start() {
     if (current !== opening || side !== openingSide) controller.setView(current, { immediate: true, side });
     stage.dataset.settled = current;
     status.textContent = '';
-    instructions.textContent = 'Drag to orbit. Select a part to look closer.';
+    instructions.textContent = 'Drag to orbit. Click the outlined part to trace its inputs.';
     tools.hidden = false;
     canvas.removeAttribute('aria-hidden');
     canvas.tabIndex = 0;
@@ -156,6 +195,7 @@ async function start() {
 addEventListener('pagehide', event => {
   if (event.persisted) return;
   disposed = true;
+  inspector.dispose();
   controller?.dispose();
 });
 

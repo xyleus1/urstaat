@@ -10,7 +10,6 @@ import xml.etree.ElementTree as ET
 import bpy
 import mujoco
 from mathutils import Matrix, Quaternion, Vector
-from motion import build_motion
 
 
 REVISION = "afa61685f434a9a2a61e255711788bcfe2f42f92"
@@ -252,7 +251,6 @@ for tier, ratio, max_error, budget in (("mobile", "0.12", "0.0019", 2.6), ("desk
     if dest.stat().st_size > budget * 1048576:
         raise ValueError(f"{tier} exceeds {budget} MiB")
     print(f"{tier}: {dest.stat().st_size:,} bytes", flush=True)
-build_motion(raw, args.output / "taku-motion.bin")
 print("Anchor positions in Y-up glTF metres:")
 for label, (link, xyz) in anchors.items():
     x, y, z = world_matrices[link] @ Vector(xyz)

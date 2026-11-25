@@ -2,6 +2,9 @@
 // their paint color, roughness, metalness, optical coating and chest print.
 const vertexShader = /* glsl */ `
   uniform mat3 printTransform;
+  attribute float partTag;
+  uniform float activePart, unselectedAlpha;
+  varying float partMask;
   varying vec2 printUv;
   varying vec3 surfacePosition;
   varying vec3 surfaceNormal;
@@ -12,6 +15,7 @@ const vertexShader = /* glsl */ `
     // viewing rotation to express the normal in the studio's world space.
     surfaceNormal = (vec4(normalMatrix * normal, 0.) * viewMatrix).xyz;
     printUv = (printTransform * vec3(uv, 1.)).xy;
+    partMask = mix(1.,unselectedAlpha,step(.5,abs(partTag-activePart)));
     gl_Position = projectionMatrix * viewMatrix * world;
   }
 `;
@@ -23,6 +27,8 @@ const fragmentShader = /* glsl */ `
   #define CUBEUV_TEXEL_WIDTH (1.0 / 336.0)
   #define CUBEUV_TEXEL_HEIGHT (1.0 / 256.0)
   #include <cube_uv_reflection_fragment>
+  #include <tonemapping_pars_fragment>
+  varying float partMask;
   uniform sampler2D studioAtlas, printMap;
   uniform vec3 paint;
   uniform float hasAtlas, metalness, roughness, coat, coatRoughness, chestPrint;
@@ -89,13 +95,15 @@ const fragmentShader = /* glsl */ `
     float coatF = coat * schlick(vec3(.04), ndv).r;
     color += .78 * reflection(reflected, r) * envF * (1.-.42*r) * (1.-coatF);
     if (coat > .001) color += .78 * reflection(reflected, cr) * coatF;
-    gl_FragColor = vec4(color, 1.);
-    #include <tonemapping_fragment>
-    #include <colorspace_fragment>
+    // Keep the studio's HDR rolloff when writing to the display-encoded
+    // texture sampled by the contour pass.
+    gl_FragColor = sRGBTransferOETF(vec4(ACESFilmicToneMapping(color),partMask));
   }
 `;
 
-export function applyTakuMaterials(THREE, robot, atlas) {
+export function applyTakuMaterials(THREE, robot, atlas, activePart = {value: -1}, softwareStudio, softwareAA = false) {
+  // The single-sampled composite distinguishes robot surfaces from background dots.
+  const unselectedAlpha = {value: softwareAA ? 1/255 : 0};
   const white = new THREE.DataTexture(new Uint8Array([255, 255, 255, 255]), 1, 1);
   white.colorSpace = THREE.SRGBColorSpace;
   white.needsUpdate = true;
@@ -107,12 +115,19 @@ export function applyTakuMaterials(THREE, robot, atlas) {
     const map = source.map || white;
     if (map.matrixAutoUpdate) map.updateMatrix();
     textures.add(map);
+    const captured = softwareStudio?.material(source, activePart, unselectedAlpha);
+    if (captured) {
+      materials.set(source, captured);
+      return captured;
+    }
     const replacement = new THREE.ShaderMaterial({
       name: source.name,
       vertexShader, fragmentShader,
       side: THREE.DoubleSide,
+      toneMapped: false,
       polygonOffset: !!source.map, polygonOffsetFactor: -1, polygonOffsetUnits: -1,
       uniforms: {
+        activePart, unselectedAlpha, toneMappingExposure: {value: .99},
         studioAtlas: { value: atlas || white },
         hasAtlas: { value: atlas ? 1 : 0 },
         printMap: { value: map },

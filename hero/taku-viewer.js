@@ -4,8 +4,10 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { createTakuBackdrop } from './taku-backdrop.js';
 import { applyTakuMaterials } from './taku-material.js';
+import { createSoftwareStudio, prefersSoftwareStudio } from './taku-software-studio.js';
 import { batchTakuMeshes } from './taku-draw.js';
-import { loadTakuMotion } from './taku-motion.js';
+import { bilateral, createTakuOutline, identifySurface, partCode, preservePartMask } from './taku-outline.js';
+import { dressTakuJoints } from './taku-joint-detail.js';
 
 // Target, eye direction, and vertical framing (metres) for the neutral CAD pose.
 // Each production model also carries camera anchors for its particular arm pose.
@@ -15,25 +17,20 @@ const shots = {
   face: [[.067, 1.262, 0], [1, .10, -.21], .29],
   shoulder: [[.015, 1.062, -.178], [.58, .20, -1], .265],
   elbow: [[-.033, .847, -.205], [.34, .09, -1], .195],
-  wrist: [[-.088, .593, -.197], [-.57, .19, -1], .192],
+  wrist: [[-.088, .593, -.197], [-.45, -.18, -1], .162],
   claw: [[-.137, .424, -.194], [-.66, -.12, -1], .242],
   waist: [[.025, .57, 0], [.12, .18, -1], .60],
-  base: [[.03, .165, 0], [.85, .40, -1], .72],
+  base: [[.26, .08, -.20], [.55,-.90,-1], .33],
 };
 export const TAKU_VIEWS = Object.freeze(Object.keys(shots));
-const armViews = new Set(['shoulder', 'elbow', 'wrist', 'claw']);
-const componentNames = [
-  ['claw', /claw|gripper|finger/], ['wrist', /wrist/], ['elbow', /elbow/],
-  ['shoulder', /shoulder/], ['face', /head|eye|camera|face/],
-  ['waist', /waist|fold|torso|trunk|lift/], ['base', /agv|wheel|base/],
-];
+const armViews = bilateral;
 
 function ground(scene, bounds) {
   const size = bounds.getSize(new THREE.Vector3());
   const center = bounds.getCenter(new THREE.Vector3());
   const geometry = new THREE.PlaneGeometry(size.x * 1.9, size.z * 1.9);
   const material = new THREE.ShaderMaterial({
-    transparent: true, depthWrite: false,
+    transparent: true, depthWrite: false, ...preservePartMask(THREE),
     vertexShader: 'varying vec2 p; void main(){p=uv*2.-1.;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
     fragmentShader: 'varying vec2 p; void main(){float r=dot(p,p);float a=.66*exp(-5.2*r)*(1.-smoothstep(.55,1.,r));gl_FragColor=vec4(.009,.011,.012,a);}',
   });
@@ -59,14 +56,19 @@ function releaseRobot(robot) {
 }
 
 export async function mountTaku({
-  canvas, assetUrl, assetData, mobile = false, initialView = 'overview', initialSide = 'left',
-  onViewChange, onSettled, onReady, onError,
+  canvas, assetUrl, assetData, mobile = false, initialView = 'overview', initialSide = 'left', lighting = 'auto',
+  antialiasing = 'auto',
+  onViewChange, onSettled, onReady, onError, onInspect,
 }) {
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+  // The scene's MSAA and depth buffer belong to the offscreen studio target.
+  // The visible framebuffer receives only the composited full-resolution image.
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, depth: false,
+    premultipliedAlpha: false, powerPreference: 'high-performance' });
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = .99;
-  renderer.setClearColor(0x101415);
+  // The render target contains display-encoded RGB and the visible selection mask.
+  renderer.setClearColor(new THREE.Color(16/255,20/255,21/255),0);
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(30, 1, .009, 22);
   const controls = new OrbitControls(camera, canvas);
@@ -81,10 +83,10 @@ export async function mountTaku({
   const fine = matchMedia('(hover: hover) and (pointer: fine)');
   const listeners = new AbortController();
   const { signal } = listeners;
-  let texture, freeMaterials, batches, motionModel;
-  const gl = renderer.getContext(), device = gl.getExtension('WEBGL_debug_renderer_info');
-  const softwareRendering = device && /swiftshader|llvmpipe|software|basic render/i.test(gl.getParameter(device.UNMASKED_RENDERER_WEBGL));
-  let useMotionModel = mobile || softwareRendering;
+  let texture, freeMaterials, batches, softwareStudio;
+  const softwareAA = antialiasing === 'software' || (antialiasing === 'auto' && prefersSoftwareStudio(renderer));
+  const outline = createTakuOutline(THREE,renderer,softwareAA);
+  const activePart = {value: -1}, partBoxes = new Map();
   const raycaster = new THREE.Raycaster(), pointer = new THREE.Vector2();
   const hitMetadata = new WeakMap(), anchors = new Map();
   const pickBounds = [];
@@ -94,25 +96,6 @@ export async function mountTaku({
   let side = initialSide === 'right' && armViews.has(id) ? 'right' : 'left';
   let desired, transition, frame = 0, dead = false, canRender = false, onscreen = true, userAdjusted = false;
   let width = 0, height = 0, renderedFrames = 0;
-  let fullRatio = 1, motionRatio = 1, lastMotionFrame = 0, restoreTimer = 0;
-
-  function fullResolution() {
-    clearTimeout(restoreTimer);
-    restoreTimer = 0;
-    lastMotionFrame = 0;
-    if (batches) batches.group.visible = true;
-    if (motionModel) motionModel.mesh.visible = false;
-    if (renderer.getPixelRatio() !== fullRatio) renderer.setPixelRatio(fullRatio);
-  }
-  function moving() {
-    clearTimeout(restoreTimer);
-    if (useMotionModel && motionModel) {
-      batches.group.visible = false;
-      motionModel.mesh.visible = true;
-    }
-    if (renderer.getPixelRatio() !== motionRatio) renderer.setPixelRatio(motionRatio);
-    restoreTimer = setTimeout(() => { fullResolution(); invalidate(); }, 240);
-  }
 
   function invalidate() {
     if (canRender && !dead && !frame && onscreen && !document.hidden) frame = requestAnimationFrame(draw);
@@ -121,17 +104,7 @@ export async function mountTaku({
     frame = 0;
     if (dead || !desired || document.hidden || !onscreen) return;
     let finished = false;
-    if (restoreTimer) {
-      const interval = now - lastMotionFrame;
-      if (lastMotionFrame && interval > 42 && motionRatio > .65) {
-        useMotionModel = true;
-        motionRatio = Math.max(.65, motionRatio * .78);
-        renderer.setPixelRatio(motionRatio);
-      }
-      lastMotionFrame = now;
-    }
     if (transition) {
-      moving();
       const t = Math.min(1, (now - transition.start) / 640);
       const ease = t * t * (3 - 2 * t);
       controls.target.lerpVectors(transition.target, desired.target, ease);
@@ -141,11 +114,13 @@ export async function mountTaku({
       camera.position.setFromSphericalCoords(radius, phi, theta).add(controls.target);
       controls.update();
       if (t < 1) invalidate();
-      else { transition = null; finished = true; fullResolution(); }
+      else { transition = null; finished = true; }
     }
     camera.updateMatrixWorld();
-    backdrop?.update(camera, id, desired);
-    renderer.render(scene, camera);
+    softwareStudio?.update(camera, controls.target);
+    backdrop?.update(camera,id,desired,controls.target);
+    batches?.updateVisible(camera);
+    outline.render(scene,camera,partBoxes.get(activePart.value),bounds);
     renderedFrames++;
     if (finished) onSettled?.(id, side);
   }
@@ -158,6 +133,11 @@ export async function mountTaku({
     if (anchor) {
       anchor.getWorldPosition(target);
       if (side === 'right' && !anchors.has(id + ':right')) target.z *= -1;
+    }
+    if (id==='wrist') {
+      robot.getObjectByName(side+'_wrist_inspection_interface')?.getWorldPosition(target);
+    } else if (id==='base') {
+      partBoxes.get(activePart.value)?.getCenter(target);
     }
     let viewSpan = span;
     if (id === 'overview' || id === 'side') {
@@ -173,16 +153,15 @@ export async function mountTaku({
     if (dead || !Object.hasOwn(shots, name)) return;
     id = name;
     side = nextSide === 'right' && armViews.has(name) ? 'right' : 'left';
+    activePart.value = partCode(id,side);
     desired = pose(); userAdjusted = false;
     onViewChange?.(id, armViews.has(id) ? side : undefined);
     if (immediate || reduced.matches) {
-      fullResolution();
       transition = null;
       controls.target.copy(desired.target);
       camera.position.copy(desired.position);
       controls.update(); invalidate(); onSettled?.(id, side);
     } else {
-      moving();
       const from = new THREE.Spherical().setFromVector3(camera.position.clone().sub(controls.target));
       const to = new THREE.Spherical().setFromVector3(desired.position.clone().sub(desired.target));
       const deltaTheta = Math.atan2(Math.sin(to.theta - from.theta), Math.cos(to.theta - from.theta));
@@ -195,11 +174,7 @@ export async function mountTaku({
     const box = canvas.getBoundingClientRect();
     if (!box.width || !box.height || (width === box.width && height === box.height)) return;
     width = box.width; height = box.height;
-    fullRatio = Math.min(devicePixelRatio || 1, mobile ? 1.5 : 1.75);
-    // Software rasterizers are fill-rate limited, especially on a wide stage.
-    // Apply the pixel budget only between poses; stopped views retain full detail.
-    motionRatio = softwareRendering ? Math.min(fullRatio, .72, Math.sqrt(80000 / (width * height))) : Math.min(fullRatio, 1);
-    fullResolution();
+    renderer.setPixelRatio(Math.min(devicePixelRatio || 1, mobile ? 1.5 : 1.75));
     renderer.setSize(width, height, false);
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
@@ -207,7 +182,10 @@ export async function mountTaku({
     else setView(id, { side, immediate: true });
   }
   function interrupt() {
-    transition = null; userAdjusted = true; moving();
+    transition = null; userAdjusted = true;
+  }
+  function inspect() {
+    if (!dead) onInspect?.(id,armViews.has(id) ? side : undefined);
   }
   function zoom(factor) {
     if (dead || !Number.isFinite(factor) || factor <= 0) return;
@@ -234,16 +212,16 @@ export async function mountTaku({
     const hit = raycaster.intersectObject(robot, true)[0];
     if (!hit) return null;
     const info = hitMetadata.get(hit.object);
-    if (info) return { id: info.id, side: info.side || (hit.point.z > 0 ? 'right' : 'left') };
+    if (info) return info;
     return null;
   }
   function dispose() {
     if (dead) return;
-    dead = true; cancelAnimationFrame(frame); clearTimeout(restoreTimer); listeners.abort();
+    dead = true; cancelAnimationFrame(frame); listeners.abort();
     resizeObserver?.disconnect(); visibilityObserver?.disconnect();
     controls.removeEventListener('change', invalidate);
-    controls.dispose(); backdrop?.dispose(); freeGround?.(); freeMaterials?.(); batches?.dispose(); motionModel?.dispose();
-    releaseRobot(robot); texture?.dispose(); renderer.dispose();
+    controls.dispose(); backdrop?.dispose(); freeGround?.(); freeMaterials?.(); batches?.dispose(); outline.dispose();
+    releaseRobot(robot); softwareStudio?.dispose(); texture?.dispose(); renderer.dispose();
     canvas.style.removeProperty('cursor');
   }
   function fail(error) { dispose(); onError?.(error); }
@@ -253,51 +231,56 @@ export async function mountTaku({
   }, { signal });
   try {
     const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
-    const motionData = fetch(new URL('taku-motion.bin', assetUrl), { signal }).then(response => {
-      if (!response.ok) throw new Error('Motion geometry unavailable');
-      return response.arrayBuffer();
-    });
-    motionData.catch(() => {});
-    const lighting = new THREE.TextureLoader().loadAsync(new URL('taku-studio.png', assetUrl).href).then(atlas => {
-      if (dead) { atlas.dispose(); return; }
-      texture = atlas;
-      texture.colorSpace = THREE.SRGBColorSpace;
-      texture.generateMipmaps = false;
-      texture.minFilter = texture.magFilter = THREE.LinearFilter;
-    }).catch(() => {}); // The directional studio lights also work on their own.
+    async function loadStudio() {
+      const images = new THREE.TextureLoader();
+      if (prefersSoftwareStudio(renderer,lighting)) {
+        try {
+          const captures = await images.loadAsync(new URL('taku-finishes.webp',assetUrl).href);
+          if (dead) captures.dispose();
+          else softwareStudio=createSoftwareStudio(THREE,captures);
+          return;
+        } catch { /* The regular studio also supports software WebGL. */ }
+      }
+      try {
+        const atlas = await images.loadAsync(new URL('taku-studio.png',assetUrl).href);
+        if (dead) { atlas.dispose(); return; }
+        texture = atlas;
+        texture.colorSpace = THREE.SRGBColorSpace;
+        texture.generateMipmaps = false;
+        texture.minFilter = texture.magFilter = THREE.LinearFilter;
+      } catch { /* The directional lights work without the reflection map. */ }
+    }
     const model = assetData
       ? assetData.then(buffer => loader.parseAsync(buffer, new URL('.', assetUrl).href))
       : loader.loadAsync(assetUrl);
-    const [gltf] = await Promise.all([model, lighting]);
+    const [gltf] = await Promise.all([model, loadStudio()]);
     if (dead) { releaseRobot(gltf.scene); throw new Error('Model loading was interrupted.'); }
     robot = gltf.scene;
-    freeMaterials = applyTakuMaterials(THREE, robot, texture);
-    batches = batchTakuMeshes(THREE, robot);
-    scene.add(batches.group);
-    const loadMotion = loadTakuMotion(THREE, assetUrl, robot, texture, motionData).then(model => {
-      if (dead) { model.dispose(); return; }
-      motionModel = model;
-      motionModel.mesh.visible = false;
-      scene.add(motionModel.mesh);
-    }).catch(() => {}); // The full model can also serve every interaction.
+    robot.updateWorldMatrix(true,true);
+    dressTakuJoints(THREE,robot,mobile);
+    robot.updateWorldMatrix(true,true);
     bounds = new THREE.Box3().setFromObject(robot);
     robot.traverse(node => {
       const name = node.name.toLowerCase();
       const anchorName = /^view_(?:(right)_)?(face|shoulder|elbow|wrist|claw|waist|base)$/.exec(name);
       if (anchorName) anchors.set(anchorName[2] + (anchorName[1] ? ':right' : ''), node);
       if (!node.isMesh) return;
-      for (let part = node; part; part = part.parent) {
-        const label = part.name.toLowerCase();
-        const component = componentNames.find(([, pattern]) => pattern.test(label));
-        if (!component) continue;
-        hitMetadata.set(node, { id: component[0], side: /right/.test(label) ? 'right' : /left/.test(label) ? 'left' : undefined });
-        if (!node.geometry.boundingBox) node.geometry.computeBoundingBox();
-        pickBounds.push(node.geometry.boundingBox.clone().applyMatrix4(node.matrixWorld));
-        break;
+      const info = identifySurface(node);
+      if (!info) return;
+      hitMetadata.set(node,info);
+      if (!node.geometry.boundingBox) node.geometry.computeBoundingBox();
+      const box = node.geometry.boundingBox.clone().applyMatrix4(node.matrixWorld);
+      pickBounds.push(box);
+      if (info.code) {
+        if (!partBoxes.has(info.code)) partBoxes.set(info.code,new THREE.Box3());
+        partBoxes.get(info.code).union(box);
       }
     });
+    freeMaterials = applyTakuMaterials(THREE,robot,texture,activePart,softwareStudio,softwareAA);
+    batches = batchTakuMeshes(THREE,robot,hitMetadata);
+    scene.add(batches.group);
     freeGround = ground(scene, bounds);
-    backdrop = createTakuBackdrop({ THREE, scene, renderer, bounds, modelRoot: robot, mobile, reducedMotion: reduced.matches, invalidate });
+    backdrop = createTakuBackdrop({ THREE, scene, renderer, mobile, reducedMotion: reduced, invalidate });
     controls.addEventListener('change', invalidate);
     canvas.addEventListener('wheel', interrupt, { signal, passive: true });
     resizeObserver = new ResizeObserver(resize); resizeObserver.observe(canvas);
@@ -315,16 +298,21 @@ export async function mountTaku({
     }, { signal });
     canvas.addEventListener('pointermove', event => {
       if (down && Math.hypot(event.clientX - down.x, event.clientY - down.y) > 5) { down = null; interrupt(); }
-      else if (!down && activePointers.size) moving();
       if (fine.matches && !activePointers.size && event.pointerType === 'mouse') {
         pointRay(event);
-        canvas.style.cursor = pickBounds.some(box => raycaster.ray.intersectsBox(box)) ? 'zoom-in' : 'grab';
+        const activeBox=partBoxes.get(activePart.value);
+        if (activeBox && raycaster.ray.intersectsBox(activeBox)) canvas.style.cursor='pointer';
+        else canvas.style.cursor = pickBounds.some(box => raycaster.ray.intersectsBox(box)) ? 'zoom-in' : 'grab';
       }
     }, { signal });
     canvas.addEventListener('pointerup', event => {
       activePointers.delete(event.pointerId);
       if (down?.id === event.pointerId && !activePointers.size && Math.hypot(event.clientX - down.x, event.clientY - down.y) <= 5) {
-        const hit = pick(event); if (hit) setView(hit.id, { side: hit.side });
+        const hit = pick(event);
+        const onOutline = onInspect && (hit?.code === activePart.value ||
+          outline.containsVisibleEdge((pointer.x+1)*.5,(pointer.y+1)*.5));
+        if (onOutline) inspect();
+        else if (hit) setView(hit.id, { side: hit.side });
       }
       down = null;
     }, { signal });
@@ -332,6 +320,7 @@ export async function mountTaku({
     canvas.addEventListener('keydown', event => {
       if (event.ctrlKey || event.metaKey || event.altKey) return;
       switch (event.key) {
+        case 'Enter': case ' ': if (onInspect) inspect(); else return; break;
         case 'Home': setView('overview'); break;
         case '+': case '=': zoom(1.2); break;
         case '-': zoom(1 / 1.2); break;
@@ -344,14 +333,17 @@ export async function mountTaku({
       event.preventDefault();
     }, { signal });
     resize();
-    await Promise.all([backdrop.ready, loadMotion]);
+    await backdrop.ready;
     if (dead) throw new Error('Viewer initialization was interrupted.');
     canRender = true;
     draw(performance.now());
     const controller = {
-      setView, zoom, orbitStep, reset: () => setView('overview'), dispose,
+      setView, zoom, orbitStep, inspect, reset: () => setView('overview'), dispose,
       getState: () => ({ currentView: id, side, transitioning: !!transition, renderedFrames,
-        camera: camera.position.toArray(), target: controls.target.toArray(), dpr: renderer.getPixelRatio() }),
+        camera: camera.position.toArray(), target: controls.target.toArray(), dpr: renderer.getPixelRatio(),
+        selectedPart: activePart.value, lighting: softwareStudio ? 'software' : 'ggx',
+        antialiasing: softwareAA ? 'software' : 'msaa',
+        triangles: batches.group.children.reduce((sum,m)=>sum+m.geometry.index.count/3,0) }),
     };
     onReady?.(controller);
     return controller;
