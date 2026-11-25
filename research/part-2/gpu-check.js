@@ -2,10 +2,10 @@
 self.postMessage('probing');
 try {
   if (typeof OffscreenCanvas !== 'function') {
-    self.postMessage(true);
+    self.postMessage('unknown');
   } else {
     const gl = new OffscreenCanvas(1, 1).getContext('webgl2', { powerPreference: 'high-performance' });
-    if (!gl) self.postMessage(true); // Some browsers expose WebGL only on DOM canvases.
+    if (!gl) self.postMessage('unavailable');
     else {
       gl.clearColor(0, 1, 0, 1);
       gl.clear(gl.COLOR_BUFFER_BIT);
@@ -13,9 +13,14 @@ try {
       gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
       const debug = gl.getExtension('WEBGL_debug_renderer_info');
       const name = gl.getParameter(debug ? debug.UNMASKED_RENDERER_WEBGL : gl.RENDERER);
-      const software = /swiftshader|llvmpipe|softpipe|software rasterizer|microsoft basic render|gdi generic/i.test(name || '');
-      self.postMessage(pixel[1] !== 255 ? false : (software ? 'software' : true));
+      const software =
+        /swiftshader|llvmpipe|softpipe|software rasterizer|microsoft basic render|gdi generic/i.test(
+          name || '',
+        );
+      self.postMessage(pixel[1] !== 255 ? 'unavailable' : software ? 'software' : 'hardware');
       gl.getExtension('WEBGL_lose_context')?.loseContext();
     }
   }
-} catch { self.postMessage(false); }
+} catch {
+  self.postMessage('unavailable');
+}

@@ -1,0 +1,53 @@
+.supply-identity {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.supply-identity .identity-name {
+  min-width: 0;
+  color: var(--ink);
+  font: 500 13px/1.3 Geist, Arial, sans-serif;
+  overflow-wrap: anywhere;
+}
+
+.supply-identity .identity-logo {
+  position: relative;
+  display: block;
+  flex: 0 0 18px;
+  height: 18px;
+  overflow: hidden;
+  border-radius: 2px;
+}
+
+.supply-identity .identity-logo img {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: auto;
+  max-width: none;
+  display: block;
+}
+
+.supply-identity .identity-flag {
+  position: relative;
+  display: grid;
+  flex: 0 0 16px;
+  height: 12px;
+  place-items: center;
+  overflow: hidden;
+  outline: 1px solid var(--line);
+  outline-offset: -1px;
+  font: 600 8px/1 Geist, Arial, sans-serif;
+  color: var(--ink);
+}
+
+.supply-identity .identity-flag svg {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}

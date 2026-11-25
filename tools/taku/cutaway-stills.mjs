@@ -12,6 +12,7 @@ try {
     args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'],
   });
   const page = await browser.newPage();
+  await page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
   await page.setViewport({ width: 1080, height: 740, deviceScaleFactor: 1 });
   await page.goto(origin + '/hero/assets/LICENSE-MiniCheetah.txt');
   await page.evaluate(() => {

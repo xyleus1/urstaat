@@ -39,30 +39,41 @@ try {
     const url = live || preview.origin + (noWebGL ? '/urstaat/' : '/') + 'research/part-2/';
     console.log('Checking ' + width + 'px at ' + url);
     await page.goto(url + '#right-elbow', { waitUntil: 'domcontentloaded' });
-    await page.waitForSelector('.taku-stage[data-mode="' + (noWebGL ? 'stills' : 'live') + '"]');
+    await page.waitForSelector('.taku-stage[data-mode="live"]', { timeout: 60000 });
     await page.waitForSelector('#part-inspector:not([hidden])');
     assert.match(await page.$eval('#focused-part', (e) => e.textContent), /right elbow/i);
-    assert.ok(
-      !requests.some((url) => /supply-(globe|data)|\.bin\.gz/.test(url)),
-      'Map and cutaway meshes load on demand',
-    );
-    if (noWebGL) {
-      await page.waitForNetworkIdle();
-      await page.waitForFunction(() => document.querySelector('#still img').naturalWidth > 0);
+    await page.waitForSelector('#supply-map[data-part="elbow"]:not([hidden]) .index-step');
+    assert.equal(await page.$('#trace-part, #close-map, #instructions'), null);
+    if (width < 500) {
+      assert.ok(await page.evaluate(() => {
+        const canvas = document.querySelector('#taku-canvas').getBoundingClientRect();
+        const toolbar = document.querySelector('.stage-tools').getBoundingClientRect();
+        return toolbar.top >= canvas.bottom - 1;
+      }), 'Phone controls leave the model unobstructed');
     }
-    const box = await (await page.$(noWebGL ? '#still img' : '#taku-canvas')).boundingBox();
-    await page.mouse.click(box.x + box.width * 0.514, box.y + box.height * 0.48);
-    await page.waitForSelector('#supply-map[data-part="elbow"]:not([hidden])');
-    await page.click('#close-map');
-    await page.focus('#trace-part');
-    await page.keyboard.press('Enter');
-    await page.waitForSelector('#supply-map[data-part="elbow"]:not([hidden])');
+    assert.ok(!requests.some((u) => /cutaways\/[^/]+\.bin\.gz/.test(u)), 'Cutaway geometry loads when opened');
+    assert.equal(await page.evaluate(() => scrollY), 0, 'Automatic inputs preserve the opening camera position');
+    if (width >= 500) {
+      await page.hover('#show-cutaway');
+      await page.waitForSelector('.taku-cutaway-connector[data-visible] path[d]');
+      await page.mouse.move(0, 0);
+      await page.waitForSelector('.taku-cutaway-connector:not([data-visible])');
+    } else {
+      assert.equal(await page.$('.taku-cutaway-connector[data-visible]'), null);
+    }
     for (const [id, p] of Object.entries(parts)) {
       console.log('  ' + id + ' · ' + p.edgeIds.length + ' connections');
       await page.click('[data-shot="' + id + '"]');
       await page.waitForSelector('#supply-map[data-part="' + id + '"]');
       const first = await page.$('.index-step');
+      assert.ok(await page.$$eval('.index-step', (steps) => steps.every((step) =>
+        step.querySelector('.identity-name')?.textContent.trim() &&
+        step.querySelector('.identity-flag[aria-label]') &&
+        getComputedStyle(step).backgroundColor === getComputedStyle(document.body).backgroundColor &&
+        !getComputedStyle(step.querySelector('.sequence-stage')).fontFamily.toLowerCase().includes('mono')
+      )), 'Each stage shows a company and site flag on paper with a sans-serif category');
       await first.click();
+      assert.ok(await page.$eval('#step-detail .identity-name', (e) => e.textContent.trim()));
       assert.ok(await page.$eval('#step-detail .supply-sources a', (a) => a.href.startsWith('https://')));
       await page.click('#step-detail .connection-link');
       await page.waitForSelector('.edge-ends .connection-link');
@@ -127,22 +138,40 @@ try {
     await page.focus('#supply-globe');
     await page.keyboard.press('ArrowRight');
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
-    await page.click('#close-map');
-    await page.waitForSelector('#supply-map[hidden]');
     for (const [shot, type] of [
       ['overview', 'panel'],
       ['wrist', 'wrist'],
       ['elbow', 'actuator'],
     ]) {
       await page.click('[data-shot="' + shot + '"]');
+      if (type === 'panel') {
+        await page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'no-preference' }]);
+      }
       await page.click('#show-cutaway');
       await page.waitForSelector(
-        '#cutaway-dialog[open] #cutaway-host[data-cutaway-mode="' + (noWebGL ? 'poster' : 'live') + '"]',
+        '#cutaway-dialog[open] #cutaway-host[data-cutaway-mode="live"]',
       );
       assert.match(await page.$eval('.cutaway-poster', (e) => e.src), new RegExp(type + '\\.webp$'));
+      const spinning = type === 'panel';
+      assert.equal(await page.$eval('.cutaway-spin', (b) => b.getAttribute('aria-pressed')), String(spinning));
+      if (spinning) {
+        const model = await page.$('.cutaway-canvas');
+        const initial = await model.screenshot();
+        await new Promise((resolve) => setTimeout(resolve, 400));
+        assert.notDeepEqual(await model.screenshot(), initial, 'The exploded assembly turns on its own');
+        await page.click('.cutaway-spin');
+        assert.equal(await page.$eval('.cutaway-spin', (b) => b.getAttribute('aria-pressed')), 'false');
+        await page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
+        await page.click('.cutaway-explode');
+        await page.waitForFunction(() => document.querySelector('.cutaway-slider').value === '0');
+        await page.click('.cutaway-explode');
+        await page.waitForFunction(() => document.querySelector('.cutaway-slider').value === '100');
+      }
       await page.click('.cutaway-part:nth-child(2)');
       await page.waitForSelector('.cutaway-part[aria-pressed="true"]');
-      if (!noWebGL) {
+      {
+        assert.equal(await page.$eval('.cutaway-spin', (b) => b.disabled), false);
+        if (noWebGL) assert.equal(await page.$eval('#cutaway-host', (e) => e.dataset.cutawayRenderer), 'canvas2d');
         await page.focus('.cutaway-slider');
         await page.keyboard.press('Home');
         await frame(page);
@@ -162,13 +191,12 @@ try {
       const [piece, node] = { panel: [4, 'al-sheet'], wrist: [3, 'rollers'], actuator: [2, 'wire'] }[type];
       await page.click('#show-cutaway');
       await page.waitForSelector(
-        '#cutaway-dialog[open] #cutaway-host[data-cutaway-mode="' + (noWebGL ? 'poster' : 'live') + '"]',
+        '#cutaway-dialog[open] #cutaway-host[data-cutaway-mode="live"]',
       );
       await page.click('.cutaway-part:nth-child(' + piece + ')');
       await page.waitForSelector('.cutaway-trace:not([hidden])', { visible: true });
       await page.click('.cutaway-trace');
       await page.waitForSelector('#supply-map:not([hidden]) [data-site="' + node + '"][aria-current="true"]');
-      await page.click('#close-map');
     }
     assert.deepEqual(errors, []);
     await page.close();

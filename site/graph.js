@@ -170,7 +170,7 @@ export function mountGraph(element) {
   };
   element.classList.add('robotics-graph');
   element.innerHTML = `
-    <div class="graph-heading"><h2 id="trajectories-title">From intelligence to work.</h2></div>
+    <div class="graph-heading"><h2 id="trajectories-title">When does knowing become doing?</h2></div>
     <div class="graph-toolbar" role="group" aria-label="Highlight trajectories">
       ${graphViews.map(view => `<button type="button" data-graph-view="${view.id}" aria-pressed="${view.id === 'all'}">${view.label}</button>`).join('')}
       <span class="graph-status">Compressed index · 2025 = 100</span>

@@ -1,3 +1,5 @@
+import { mountCutawayConnector } from '../../hero/taku-cutaway-connector.js?v=orbit-2';
+
 const lenses = {
   overview: ['Torso enclosure panel', 'panel'],
   side: ['Lower support pivot'],
@@ -23,10 +25,9 @@ const cutawayDescriptions = {
 
 export function createInspector() {
   const panel = document.querySelector('#part-inspector');
-  const trace = document.querySelector('#trace-part'),
-    cutaway = document.querySelector('#show-cutaway');
-  const map = document.querySelector('#supply-map'),
-    closeMap = document.querySelector('#close-map');
+  const cutaway = document.querySelector('#show-cutaway');
+  const map = document.querySelector('#supply-map');
+  const connector = mountCutawayConnector();
   const dialog = document.querySelector('#cutaway-dialog'),
     host = document.querySelector('#cutaway-host');
   const status = document.querySelector('#atlas-load');
@@ -38,40 +39,40 @@ export function createInspector() {
     preview.hidden = false;
   });
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
-  let current = 'overview',
+  let current,
     side = 'left',
     atlas,
     assembly,
     loadingAtlas,
     session = 0,
     cutawayRequest = 0;
-  let returnTo = trace;
   const scrollTo = (el) =>
     el.scrollIntoView({ block: 'start', behavior: reduced.matches ? 'instant' : 'smooth' });
 
   let traceAfterClose;
   async function loadMap(focusNode) {
     const version = ++session;
-    status.textContent = 'Loading the supply map…';
+    map.hidden = false;
+    status.textContent = 'Loading inputs…';
     status.hidden = !!atlas;
-    document.querySelector('#supply-title').textContent = lenses[current][0];
+    if (!atlas) document.querySelector('#supply-title').textContent = lenses[current][0];
     try {
-      loadingAtlas ||= import('./supply-map.js')
+      loadingAtlas ||= import('./supply-map.js?v=orbit-2')
         .then((mod) => mod.createAtlas(map))
         .catch((err) => {
           loadingAtlas = null;
           throw err;
         });
       atlas = await loadingAtlas;
-      if (version !== session || map.hidden) return;
+      if (version !== session) return;
       atlas.setPart(current, focusNode);
       status.hidden = true;
       document.querySelector('.atlas-body').hidden = false;
       atlas.resize();
     } catch {
-      if (version !== session || map.hidden) return;
+      if (version !== session) return;
       status.hidden = false;
-      status.textContent = 'The supply map could not load. ';
+      status.textContent = 'Inputs could not load. ';
       const retry = document.createElement('button');
       retry.type = 'button';
       retry.className = 'text-control';
@@ -80,15 +81,9 @@ export function createInspector() {
       status.append(retry);
     }
   }
-  function showMap(source = trace, focusNode) {
-    returnTo = source;
-    if (map.hidden) {
-      map.hidden = false;
-      trace.setAttribute('aria-expanded', 'true');
-      loadMap(focusNode);
-    } else if (focusNode) loadMap(focusNode);
-    const title = document.querySelector('#supply-title');
-    title.focus({ preventScroll: true });
+  function focusInputs(focusNode) {
+    if (focusNode) loadMap(focusNode);
+    document.querySelector('#supply-title').focus({ preventScroll: true });
     scrollTo(map);
   }
   function select(id, which) {
@@ -103,7 +98,6 @@ export function createInspector() {
       ? (side === 'right' ? 'Right ' : 'Left ') + label[0].toLowerCase() + label.slice(1)
       : label;
     document.querySelector('#focused-part').textContent = sided;
-    trace.setAttribute('aria-label', 'Trace inputs for ' + sided);
     cutaway.hidden = !type;
     if (type) {
       cutaway.setAttribute('aria-label', 'Open exploded view of ' + cutawayTitles[type]);
@@ -112,18 +106,8 @@ export function createInspector() {
         preview.src = 'cutaways/' + type + '.webp';
       }
     }
-    if (!map.hidden && changed) loadMap();
+    if (changed) loadMap();
   }
-  function hideMap() {
-    ++session;
-    map.hidden = true;
-    trace.setAttribute('aria-expanded', 'false');
-    if (!returnTo?.isConnected || returnTo.tabIndex < 0) returnTo = trace;
-    returnTo.focus({ preventScroll: true });
-    scrollTo(document.querySelector('.taku-instrument'));
-  }
-  closeMap.addEventListener('click', hideMap);
-  trace.addEventListener('click', () => showMap(trace));
   async function openCutaway() {
     const type = lenses[current][1];
     if (!type || dialog.open) return;
@@ -137,11 +121,11 @@ export function createInspector() {
     dialog.showModal();
     document.querySelector('#close-cutaway').focus({ preventScroll: true });
     try {
-      const { mountTakuCutaway } = await import('../../hero/taku-cutaways.js');
+      const { mountTakuCutaway } = await import('../../hero/taku-cutaways.js?v=orbit-2');
       if (request !== cutawayRequest || !dialog.open) return;
       assembly = mountTakuCutaway(host, {
         part: type,
-        allow3D: document.querySelector('.taku-stage').dataset.graphics !== 'unavailable',
+        allow3D: document.querySelector('.taku-stage').dataset.graphics === 'hardware',
         onTrace(node) {
           traceAfterClose = node;
           dialog.close();
@@ -178,19 +162,20 @@ export function createInspector() {
     if (traceAfterClose) {
       const node = traceAfterClose;
       traceAfterClose = undefined;
-      showMap(cutaway, node);
+      focusInputs(node);
     } else cutaway.focus({ preventScroll: true });
   });
   return {
     select,
     inspect(id, which) {
       select(id, which);
-      showMap(document.querySelector('#taku-canvas'));
+      focusInputs();
     },
     dispose() {
       ++session;
       releaseCutaway();
       atlas?.destroy();
+      connector.dispose();
     },
   };
 }

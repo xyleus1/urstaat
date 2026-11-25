@@ -47,6 +47,7 @@ try {
     assert.deepEqual(await page.$eval('.footer-read', link => [link.textContent.trim(), link.href]), ['Read Part 1', part1]);
 
     await page.waitForSelector('.graph-open-year', { visible: true });
+    assert.equal(await label('#trajectories-title'), 'When does knowing become doing?');
     await checkGraphBar(false);
     await page.click('.graph-open-year');
     await page.click('.graph-popup-choice[data-series="data"]');

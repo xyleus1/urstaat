@@ -57,7 +57,7 @@
     width: 142px;
     gap: 0;
     padding: 3px;
-    background: #111718ec;
+    background: var(--paper);
     color: #dfe5e4;
     border: 1px solid #495454;
     text-align: left;
@@ -81,7 +81,7 @@
   }
 }
 .part-name {
-  font-size: clamp(15px, 1.55vw, 22px);
+  font-size: 16px;
   letter-spacing: -0.035em;
   color: var(--bright);
 }
@@ -119,17 +119,10 @@
 .part-actions button span {
   font-size: 17px;
 }
-.part-actions #trace-part {
-  background: #e0e5e1;
-  color: #111b1b;
-}
 .part-actions button:hover,
 .text-control:hover {
   color: white;
   background: #253033;
-}
-.part-actions #trace-part:hover {
-  background: white;
 }
 .part-actions button:focus-visible,
 .supply-map :is(button, a, summary, canvas):focus-visible,
@@ -159,13 +152,11 @@
 .scope-type,
 .connection-list h5 {
   color: var(--muted);
-  font: 500 11px/1.4 var(--site-mono, monospace);
-  letter-spacing: 0.065em;
-  text-transform: uppercase;
+  font: 500 13px/1.4 Geist, Arial, sans-serif;
   margin: 0;
 }
 .supply-heading h2 {
-  font-size: clamp(32px, 4.2vw, 62px);
+  font-size: clamp(30px, 3.2vw, 46px);
   letter-spacing: -0.058em;
   font-weight: 450;
   line-height: 1.06;
@@ -189,7 +180,7 @@
 .supply-summary {
   max-width: 82ch;
   margin: 14px 0 26px;
-  font-size: clamp(15px, 1.3vw, 18px);
+  font-size: 15px;
   line-height: 1.55;
   color: var(--ink);
 }
@@ -199,7 +190,7 @@
   grid-template-columns: minmax(0, 1.82fr) minmax(270px, 1fr);
 }
 .atlas-plate {
-  background: #0c1113;
+  background: var(--paper);
   border-inline-end: 1px solid var(--line);
   min-width: 0;
   align-self: start;
@@ -218,7 +209,7 @@
 .map-toolbar button:hover,
 .map-toolbar button[aria-pressed='true'] {
   color: var(--bright);
-  background: #2c3638;
+  box-shadow: inset 0 -2px currentColor;
 }
 .projection-switch,
 .globe-controls {
@@ -261,7 +252,7 @@
   align-items: center;
   gap: 8px;
   font-size: 12px;
-  color: #c2cdce;
+  color: var(--ink);
 }
 .atlas-legend i {
   width: 24px;
@@ -272,7 +263,7 @@
 }
 #map-use {
   font-size: 12px;
-  color: #9eabad;
+  color: var(--muted);
   margin: 8px 20px 18px;
   line-height: 1.4;
 }
@@ -287,14 +278,14 @@
 .site-file h3 {
   color: var(--bright);
   margin: 9px 0 6px;
-  font-size: clamp(24px, 2.65vw, 40px);
+  font-size: clamp(23px, 2vw, 30px);
   font-weight: 420;
   line-height: 1.06;
   letter-spacing: -0.055em;
 }
 .step-location {
   font-size: 14px;
-  color: #acb7ba;
+  color: var(--muted);
   margin: 5px 0;
 }
 .step-prose {
@@ -303,7 +294,7 @@
   margin: 17px 0;
 }
 .scope-type {
-  font-size: 10px;
+  margin-bottom: 4px;
 }
 .supply-sources {
   display: flex;
@@ -311,7 +302,7 @@
   gap: 5px 16px;
 }
 .supply-sources a {
-  color: #bfd0cf;
+  color: var(--ink);
   text-decoration: underline;
   text-underline-offset: 3px;
   line-height: 1.55;
@@ -331,7 +322,7 @@
 .index-step {
   width: 100%;
   display: flex;
-  align-items: baseline;
+  align-items: flex-start;
   text-align: left;
   border: 0;
   border-top: 1px solid var(--line);
@@ -342,10 +333,12 @@
   min-height: 40px;
 }
 .connection-link {
-  flex-flow: column;
+  flex-direction: column;
+  padding: 9px 11px;
+  margin-top: 5px;
+  border: 1px solid var(--line);
 }
-.atlas-body .connection-link span,
-.atlas-body .index-step span {
+.atlas-body .step-name {
   font-size: 14px;
   line-height: 1.3;
 }
@@ -353,26 +346,24 @@
 .index-step small {
   font-size: 12px;
   line-height: 1.35;
-  color: #a1adae;
+  color: var(--muted);
 }
-.connection-link:hover,
-.index-step:hover,
-.index-step:focus-visible {
-  color: white;
-  background: #172023;
+.connection-link:is(:hover, :focus-visible) {
+  border-color: var(--ink);
+  color: var(--bright);
 }
 .index-header {
   padding: 26px 0 15px;
 }
 .atlas-scope {
   font-size: 13px;
-  color: #a4afb0;
+  color: var(--muted);
   margin: -12px 0 20px;
   line-height: 1.55;
 }
 .index-header h3 {
   margin: 0;
-  font-size: clamp(22px, 2.25vw, 32px);
+  font-size: clamp(22px, 2vw, 30px);
   font-weight: 450;
   letter-spacing: -0.045em;
 }
@@ -384,33 +375,6 @@
   display: flex;
   align-items: center;
   gap: 8px;
-}
-[data-stage='raw'] {
-  --stage-color: #b4c8af;
-}
-[data-stage='refining'] {
-  --stage-color: #8bc4bf;
-}
-[data-stage='material'] {
-  --stage-color: #86b4d0;
-}
-[data-stage='component'] {
-  --stage-color: #c4a8cc;
-}
-[data-stage='assembly'] {
-  --stage-color: #f68a69;
-}
-.step-kicker[data-stage]::before {
-  content: '';
-  display: inline-block;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--stage-color);
-}
-.index-step[aria-current='true'],
-.index-step.is-endpoint {
-  box-shadow: inset 2px 0 #ed8a6b;
 }
 .atlas-notes {
   margin-block: 24px 12px;
@@ -449,7 +413,7 @@
 }
 .cutaway-heading h2 {
   margin: 4px 0 0;
-  font-size: clamp(25px, 3vw, 42px);
+  font-size: clamp(24px, 2.6vw, 34px);
   line-height: 1.06;
   letter-spacing: -0.055em;
   font-weight: 450;
@@ -482,13 +446,16 @@
 }
 @media (max-width: 600px) {
   .part-inspector {
-    flex-wrap: wrap;
-    gap: 3px 8px;
+    gap: 8px;
   }
   .part-name {
+    flex: 1;
+    min-width: 0;
     font-size: 16px;
+    line-height: 1.25;
     min-height: 32px;
   }
+  #show-cutaway .cutaway-label { gap: 5px; }
   .part-actions {
     gap: 4px;
     margin-left: auto;
@@ -519,11 +486,6 @@
     padding: 12px;
   }
 }
-@media (max-width: 370px) {
-  .part-actions {
-    margin-left: 0;
-  }
-}
 .sequence-window {
   overflow-x: auto;
   scrollbar-width: thin;
@@ -535,20 +497,24 @@
   outline: 2px solid #e9a286;
   outline-offset: 2px;
 }
+.index-tools, .sequence-nav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
 .sequence-nav {
   display: none;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin: -5px 0 8px;
+  gap: 0;
 }
 .chain-index[data-scrolls='true'] .sequence-nav {
   display: flex;
 }
-.sequence-nav p {
-  font-size: 12px;
-  color: #aab6b6;
-  margin: 0;
+.sequence-nav button + button {
+  border-inline-start: 0;
+}
+.sequence-nav button:hover {
+  color: var(--bright);
+  box-shadow: inset 0 -2px currentColor;
 }
 .sequence-nav button {
   background: transparent;
@@ -560,14 +526,14 @@
 .stage-index {
   position: relative;
   display: grid;
-  grid-template-columns: repeat(var(--columns), minmax(154px, 1fr));
-  width: max(100%, calc(var(--columns) * 190px - 32px));
+  grid-template-columns: repeat(var(--columns), minmax(185px, 1fr));
+  width: max(100%, calc(var(--columns) * 217px - 24px));
   gap: 32px;
   box-sizing: border-box;
   padding: 34px 4px 18px;
   align-items: stretch;
 }
-.stage-index svg {
+.stage-index > svg {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -575,25 +541,25 @@
   overflow: visible;
   pointer-events: none;
 }
-.stage-index path {
+.stage-index > svg path {
   fill: none;
   stroke: #758583;
   stroke-width: 1.1;
   stroke-dasharray: 3 3;
   opacity: 0.62;
 }
-.stage-index path.is-recorded {
+.stage-index > svg path.is-recorded {
   stroke: #b7cbc2;
   stroke-width: 1.35;
   stroke-dasharray: none;
   opacity: 0.83;
 }
-.stage-index path.is-selected {
+.stage-index > svg path.is-selected {
   stroke: #ffa380;
   stroke-width: 2;
   opacity: 1;
 }
-.stage-index path.wire-hit {
+.stage-index > svg path.wire-hit {
   stroke: transparent;
   stroke-width: 12;
   stroke-dasharray: none;
@@ -603,7 +569,7 @@
 .stage-column {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 8px;
   position: relative;
   z-index: 1;
@@ -613,24 +579,29 @@
   display: grid;
   gap: 4px;
   align-content: center;
-  padding: 9px 10px;
-  background: #11191b;
-  border: 1px solid #344444;
-  border-left: 2px solid var(--stage-color);
+  padding: 11px 12px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  color: var(--ink);
 }
 .atlas-body .index-step[aria-current='true'],
 .atlas-body .index-step.is-endpoint {
-  color: #ffb59b;
-  background: #281e1b;
-  border-color: #b67d67;
+  border-color: var(--accent);
+  box-shadow: inset 2px 0 var(--accent);
 }
 .atlas-body .index-step:hover {
-  background: #1d292b;
-  border-color: #adb8b5;
+  border-color: var(--ink);
 }
 .index-step .sequence-stage {
-  font: 500 9px/1.1 var(--site-mono, monospace);
-  text-transform: uppercase;
-  letter-spacing: 0.065em;
-  color: var(--stage-color);
+  font: 500 13px/1.35 Geist, Arial, sans-serif;
+  color: var(--muted);
+}
+.index-step .step-name {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--bright);
+}
+@media (max-width: 600px) {
+  .index-header { flex-wrap: wrap; gap: 8px; }
+  .index-tools { justify-content: space-between; width: 100%; }
 }

@@ -19,7 +19,7 @@ body { font-family: Geist, Arial, sans-serif; }
   min-height: 72px;
   border-bottom: 1px solid var(--line);
 }
-.reading-header h1, .back-link, .taku-heading p, .model-credit {
+.reading-header h1, .back-link, .model-credit {
   margin: 0;
   font-size: 13px;
   line-height: 1.45;
@@ -42,7 +42,6 @@ body { font-family: Geist, Arial, sans-serif; }
   font-weight: 400;
   letter-spacing: -.055em;
 }
-.taku-heading p { color: var(--muted); text-align: right; }
 .taku-stage {
   position: relative;
   isolation: isolate;
@@ -112,12 +111,34 @@ body { font-family: Geist, Arial, sans-serif; }
 @media (max-width: 760px) {
   .reading-header { min-height: 60px; gap: 12px; }
   .reading-header h1, .back-link { font-size: 12px; }
-  .taku-heading { display: grid; gap: 7px; padding-block: 18px 15px; }
-  .taku-heading p { text-align: left; }
+  .taku-heading { padding-block: 18px 15px; }
   .camera-views { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 2px 12px; }
   .camera-views a { font-size: 14px; }
   .stage-tools { bottom: 8px; right: 8px; }
 }
 @media (max-width: 760px) and (orientation: portrait) {
   .taku-stage { aspect-ratio: .86; }
+  .taku-stage:is([data-mode="loading"], [data-mode="live"]) {
+    aspect-ratio: auto;
+    max-height: none;
+    padding-bottom: 44px;
+    background: var(--paper);
+  }
+  .taku-stage:is([data-mode="loading"], [data-mode="live"])::before {
+    content: "";
+    display: block;
+    aspect-ratio: .86;
+    max-height: 74svh;
+    background: #101415;
+  }
+  .taku-stage:is([data-mode="loading"], [data-mode="live"]) :is(picture, canvas) {
+    height: calc(100% - 44px);
+    bottom: auto;
+  }
+  .stage-tools {
+    inset: auto 0 0;
+    justify-content: flex-end;
+    border-bottom: 1px solid var(--line);
+    background: var(--paper);
+  }
 }
