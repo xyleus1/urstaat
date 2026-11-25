@@ -1,7 +1,7 @@
 .cutaway-study {
   color: #d8dcda;
   background: #101617;
-  font-family: var(--site-sans, system-ui, sans-serif);
+  font-family: Geist, Arial, sans-serif;
   --cutaway-key: #dfa68c;
   --cutaway-line: #354042;
 }
@@ -35,7 +35,7 @@
 .cutaway-hint,
 .cutaway-index,
 .cutaway-value {
-  font: 400 11px/1.35 var(--site-mono, ui-monospace, monospace);
+  font: 400 12px/1.35 Geist, Arial, sans-serif;
   font-variant-numeric: tabular-nums;
 }
 .cutaway-hint {
@@ -55,11 +55,11 @@
   border: 1px solid #a88f80;
   color: #ffdfcc;
   background: #111b1cef;
-  font: 500 11px/1.3 var(--site-mono, ui-monospace, monospace);
+  font: 500 12px/1.3 Geist, Arial, sans-serif;
 }
 .cutaway-wire {
-  height: 1px;
-  background: #dbab8e;
+  height: 2px;
+  background: repeating-linear-gradient(to right, #dbab8e 0 2px, transparent 2px 6px);
   transform-origin: left center;
 }
 .cutaway-wire::before {
@@ -126,6 +126,66 @@
 }
 .cutaway-study .cutaway-reset {
   font-size: 13px;
+}
+.cutaway-switches {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.cutaway-study .cutaway-spin,
+.cutaway-study .cutaway-explode {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  min-height: 44px;
+  padding: 0 10px;
+  font-size: 13px;
+}
+.cutaway-study .cutaway-spin[aria-pressed='true'] {
+  color: var(--cutaway-key);
+}
+.taku-cutaway-connector {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0;
+}
+.taku-cutaway-connector[data-visible] {
+  opacity: 1;
+}
+.taku-cutaway-connector path {
+  stroke: #f5aa90;
+  stroke-width: 1.45;
+  stroke-dasharray: 1 5;
+  stroke-linecap: round;
+  fill: none;
+  vector-effect: non-scaling-stroke;
+}
+.taku-cutaway-connector circle {
+  fill: #ffc8a9;
+  stroke: #182122;
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+#part-inspector #show-cutaway {
+  z-index: 3;
+}
+@media (max-width: 900px) {
+  #part-inspector #cutaway-preview:not([hidden]) {
+    display: block;
+    width: 42px;
+    height: 36px;
+    object-fit: cover;
+  }
+  #part-inspector #show-cutaway {
+    position: relative;
+    gap: 6px;
+    padding-inline: 4px 8px;
+  }
 }
 .cutaway-key {
   padding: 11px 18px 13px;
@@ -204,7 +264,15 @@
   }
   .cutaway-controls {
     padding: 0 10px;
-    gap: 5px;
+    gap: 0 8px;
+    flex-wrap: wrap;
+  }
+  .cutaway-switches {
+    margin-left: auto;
+  }
+  .cutaway-study .cutaway-spin,
+  .cutaway-study .cutaway-explode {
+    padding: 0 6px;
   }
   .cutaway-parts {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -212,7 +280,6 @@
   .cutaway-hint {
     left: 12px;
     bottom: 10px;
-    font-size: 10px;
   }
   .cutaway-camera-tools {
     right: 3px;

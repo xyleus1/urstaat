@@ -1,5 +1,5 @@
-import { parts, nodes, edges } from './supply-data.js';
-import { createGlobe } from './supply-globe.min.js';
+import { parts, nodes, edges } from './supply-data.js?v=orbit-2';
+import { companyIdentity } from './supply-identity.js?v=orbit-2';
 
 const stages = {
   raw: 'Raw inputs',
@@ -63,14 +63,30 @@ export function createAtlas(root) {
     sites = [],
     selected;
   let diagramFrame = 0;
-  try {
-    globe = createGlobe(canvas, (item) => pick(item, false));
-  } catch {
-    canvas.hidden = true;
-    root.querySelector('.map-toolbar').hidden = true;
-    root.querySelector('.atlas-legend').hidden = true;
-    mapHint.textContent = 'Explore the sites and connections in the manufacturing sequence.';
+  let disposed = false;
+  let selectionFocus = 'opening';
+  async function mountGlobe() {
+    try {
+      const { createGlobe } = await import('./supply-globe.min.js');
+      if (disposed) return;
+      globe = createGlobe(canvas, (item) => pick(item, false));
+      if (sites.length) globe.setData(sites, network);
+      globe.setFlat(flat);
+      if (selected) globe.select(selected, selectionFocus);
+    } catch {
+      if (disposed) return;
+      canvas.hidden = true;
+      root.querySelector('.map-toolbar').hidden = true;
+      root.querySelector('.atlas-legend').hidden = true;
+      mapHint.textContent = 'Map unavailable. Each site and route is listed below.';
+    }
   }
+  const visibility = new IntersectionObserver((entries) => {
+    if (!entries.some((entry) => entry.isIntersecting)) return;
+    visibility.disconnect();
+    mountGlobe();
+  }, { rootMargin: '160px' });
+  visibility.observe(canvas);
   function projection(value) {
     flat = value;
     globe?.setFlat(value);
@@ -80,8 +96,8 @@ export function createAtlas(root) {
       b.setAttribute('aria-pressed', String((b.dataset.projection === 'flat') === value)),
     );
     mapHint.textContent = value
-      ? 'Select a site or a line. All hemispheres are visible.'
-      : 'Drag or use the arrow keys to rotate. Select a site or a line.';
+      ? 'Select a site or route.'
+      : 'Drag to rotate. Select a site or route.';
   }
   for (const b of flatButtons) b.onclick = () => projection(b.dataset.projection === 'flat');
   for (const b of mapButtons.querySelectorAll('button'))
@@ -101,7 +117,11 @@ export function createAtlas(root) {
     for (const e of paths) {
       const other = nodes[direction === 'input' ? e.from : e.to];
       const b = button('', () => pick({ kind: 'edge', id: e.id }, true, true), 'connection-link');
-      b.append(element('span', null, other.label), element('small', null, e.label));
+      b.append(
+        element('span', 'step-name', other.label),
+        companyIdentity(other),
+        element('small', null, e.label),
+      );
       wrap.append(b);
     }
     detail.append(wrap);
@@ -114,6 +134,7 @@ export function createAtlas(root) {
       detail.append(
         roleLabel(stages[node.stage], node.stage),
         element('h3', null, node.label),
+        companyIdentity(node),
         element(
           'p',
           'step-location',
@@ -152,7 +173,7 @@ export function createAtlas(root) {
       ]) {
         const n = nodes[id];
         const b = button('', () => pick({ kind: 'node', id }, true, true), 'connection-link');
-        b.append(element('small', null, word + ' · ' + n.place), element('span', null, n.label));
+        b.append(element('small', null, word + ' · ' + n.place), element('span', 'step-name', n.label), companyIdentity(n));
         ends.append(b);
       }
       detail.append(ends, sourceLinks(edge.sources));
@@ -160,6 +181,7 @@ export function createAtlas(root) {
   }
   function pick(item, focus, moveFocus = false) {
     selected = item;
+    selectionFocus = focus;
     renderDetail();
     root.querySelector('#site-file').scrollTop = 0;
     globe?.select(item, focus);
@@ -332,8 +354,9 @@ export function createAtlas(root) {
         rankOrder.set(n.id, group.indexOf(n));
         b.append(
           element('small', 'sequence-stage', stages[n.stage]),
-          element('span', null, n.label),
-          element('small', null, n.place),
+          element('span', 'step-name', n.label),
+          companyIdentity(n),
+          element('small', 'sequence-location', n.place),
         );
         section.append(b);
       }
@@ -344,6 +367,10 @@ export function createAtlas(root) {
   }
   return {
     setPart(id, focusNode) {
+      if (part === parts[id]) {
+        if (focusNode && sites.some((node) => node.id === focusNode)) pick({ kind: 'node', id: focusNode }, true);
+        return;
+      }
       part = parts[id];
       network = part.edgeIds.map((key) => edges[key]);
       sites = [...new Set(network.flatMap((e) => [e.from, e.to]))].map((key) => nodes[key]);
@@ -361,9 +388,10 @@ export function createAtlas(root) {
     },
     resize() {
       queueWires();
-      window.requestAnimationFrame(() => globe?.setFlat(flat));
     },
     destroy() {
+      disposed = true;
+      visibility.disconnect();
       globe?.destroy();
       observer.disconnect();
       cancelAnimationFrame(diagramFrame);

@@ -13,7 +13,7 @@ The motor housing, stator, rotor, sun gear, three planet gears, ring gear, carri
 
 The wrist cartridge is an independently drawn example of crossed rollers and two V-grooved races. The enclosure is an independently drawn aluminum sheet with radiused return bends, pierced louvers, a die-cut gasket and captive inserts. Both demonstrate possible mechanisms. Manufacturing route, suppliers, dimensions and materials in the illustrations are unconfirmed for Taku. [Crossed-roller bearing principle](https://www.thk.com/us/en/products/cross_roller_ring/cross_roller_ring/)
 
-The generator works in millimeters. Each gzip payload contains indexed, 1/160 mm quantized geometry with octahedral normals. Groups retain separate transforms so individual components remain selectable and their exploded spacing can change. The runtime draws on input, resize or selection. Static fallback images and the same labeled parts lists work when WebGL 2, decompression or the selected mesh is unavailable.
+The generator works in millimeters. Each gzip payload contains indexed, 1/160 mm quantized geometry with octahedral normals. WebGL and the worker-backed Canvas 2D renderer draw the same triangles and depth-pick the same component groups. Both support assembly spacing, orbit, zoom, selection and supply-step links. The assembly turns slowly until the reader pauses or selects a part. Reduced-motion preferences start it paused. A local still and the labeled parts list also work if the selected mesh cannot load.
 
 | Study | Triangles | Compressed geometry |
 |---|---:|---:|

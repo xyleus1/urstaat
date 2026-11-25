@@ -20,7 +20,7 @@ function startSections() {
   document.removeEventListener('click', onNavigation);
   const graphHost = document.querySelector('#robotics-graph');
   if (graphHost) {
-    import('./graph.js?v=sketch-context-20261118-1').then(({ mountGraph }) => {
+    import('./graph.js?v=orbit-2').then(({ mountGraph }) => {
       window.__researchGraph = mountGraph(graphHost);
     }).catch(error => { console.warn('Research trajectories could not start.', error); });
   }
