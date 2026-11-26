@@ -29,7 +29,8 @@ async function surfaceTouch(client, box, dx, dy) {
 }
 try {
   const requestedWidth = process.argv.find(arg => arg.startsWith('--width='))?.slice(8);
-  for (const width of requestedWidth ? [Number(requestedWidth)] : [320, 390, 1440]) {
+  const widths = requestedWidth ? [Number(requestedWidth)] : [320, 390, 1440];
+  for (const width of process.argv.includes('--posters-only') ? [] : widths) {
     const mobile = width < 500;
     const page = await browser.newPage();
     await page.bringToFront();
@@ -129,21 +130,28 @@ try {
     console.log(width + 'px: native scroll, orbit, limits, inline studies, source controls and deep links passed');
   }
 
-  // Force both engines to fail. The baked plates still expose independently selectable physical surfaces.
+  // A slow or failed renderer must leave both poster picking and evidence usable.
   const page = await browser.newPage();
+  await page.bringToFront();
   await page.setViewport({ width: 1200, height: 850 });
   await page.setRequestInterception(true);
+  let hold;
+  const blockedModel = new Promise(resolve => { hold = resolve; });
   page.on('request', r => /gpu-check\.js/.test(r.url())
     ? r.respond({ status: 200, contentType: 'text/javascript', body: "self.postMessage('unavailable');" })
-    : /taku-(cpu\.bin\.gz|desktop\.glb)/.test(r.url()) ? r.abort() : r.continue());
-  await page.goto(live || origin + '/research/part-2/');
-  await page.waitForSelector('.taku-stage[data-mode="stills"]');
+    : /taku-cpu\.bin\.gz/.test(r.url()) ? hold(r) : r.continue());
+  await page.goto(live || origin + '/research/part-2/', { waitUntil: 'domcontentloaded' });
   await page.waitForSelector(callout('face'));
+  assert.equal(await page.$eval('.taku-stage', e => e.dataset.mode), 'loading');
   await page.click(callout('face'));
   await page.waitForSelector('#part-study-host[data-part="face"] .study-piece');
   await page.click('.cutaway-trace');
   await page.waitForSelector('#supply-map[data-part="face"]');
   assert.equal(await page.$eval('#part-study', el => el.hidden), true);
+  await (await blockedModel).abort();
+  await page.waitForSelector('.taku-stage[data-mode="stills"]');
+  await page.click(callout('face'));
+  await page.waitForSelector('#part-study-host[data-part="face"] .study-piece');
   await page.close();
   console.log('Poster-only inspection and Trace passed');
 } finally {

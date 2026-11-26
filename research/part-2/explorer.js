@@ -32,7 +32,7 @@ const callouts = mountCallouts(stage.querySelector('.robot-callouts'), document.
 const inspector = createInspector({
   onAtlasSelect(id, side) {
     mark(id, side);
-    if (stage.dataset.mode === 'stills') showStill(id, normalizeSide(id, side));
+    if (stage.dataset.mode !== 'live') showStill(id, normalizeSide(id, side));
   },
   onCloseStudy() {
     openKey = undefined;
@@ -88,7 +88,7 @@ function showStill(id = cameraView, side = cameraSide) {
   still.querySelector('source').srcset = base + '-mobile.webp?v=field-1';
   image.src = base + '.webp?v=field-1';
   image.alt = 'Dyna Taku, ' + (robotParts[id].bilateral ? side + ' ' : '') + robotParts[id].label.toLowerCase() + ' view.';
-  if (stage.dataset.mode === 'stills' && image.complete) updatePosterLinks();
+  if (stage.dataset.mode !== 'live' && image.complete) updatePosterLinks();
 }
 function posterGeometry() {
   if (!image.naturalWidth || !image.naturalHeight) return;
@@ -98,7 +98,7 @@ function posterGeometry() {
   return { rect, width, height, left: (rect.width - width) / 2, top: (rect.height - height) / 2 };
 }
 function updatePosterLinks() {
-  if (stage.dataset.mode !== 'stills') return;
+  if (stage.dataset.mode === 'live' || disposed) return;
   const g = posterGeometry();
   if (!g || !g.rect.width || !image.currentSrc) return;
   const name = new URL(image.currentSrc).pathname.split('/').pop();
@@ -120,14 +120,17 @@ function useStills() {
   canvas.setAttribute('aria-hidden', 'true');
   status.textContent = '';
   showStill(selectedPart, selectedSide);
-  if (!posterAnchors) fetch(new URL('assets/still-anchors.json?v=field-1', import.meta.url))
+}
+function loadPosterPicking() {
+  // Let the printed plate work as soon as it appears, including during a slow first live frame.
+  fetch(new URL('assets/still-anchors.json?v=field-1', import.meta.url))
     .then(r => r.ok ? r.json() : {}).then(value => { posterAnchors = value; updatePosterLinks(); }).catch(() => {});
-  if (!posterSurfaces) fetch(new URL('assets/still-surfaces.json?v=field-1', import.meta.url))
+  fetch(new URL('assets/still-surfaces.json?v=field-1', import.meta.url))
     .then(r => r.ok ? r.json() : {}).then(value => { posterSurfaces = value; }).catch(() => {});
 }
 function posterHit(event) {
   const g = posterGeometry();
-  if (stage.dataset.mode !== 'stills' || !g || !image.currentSrc) return;
+  if (stage.dataset.mode === 'live' || !g || !image.currentSrc) return;
   const filename = new URL(image.currentSrc).pathname.split('/').pop();
   const plate = posterSurfaces?.[filename];
   if (!plate) return;
@@ -272,7 +275,7 @@ async function openRenderer(graphics) {
     stage.dataset.mode = 'loading';
     stage.dataset.tier = tier;
   } else delete stage.dataset.settled;
-  showStill();
+  if (!previous) showStill(selectedPart, selectedSide);
   status.textContent = previous ? '' : 'Loading model';
   const fresh = canvas.cloneNode(false);
   fresh.removeAttribute('style');
@@ -352,7 +355,7 @@ async function openRenderer(graphics) {
         },
       });
     } else {
-      const { mountCpu } = await import('./taku-cpu.js?v=field-1');
+      const { mountCpu } = await import('./taku-cpu.js?v=field-2');
       if (stale()) return;
       next = await mountCpu(callbacks);
     }
@@ -420,4 +423,5 @@ stage.dataset.view = cameraView;
 mark(selectedPart, selectedSide);
 inspector.init(cameraView, cameraSide);
 showStill();
+loadPosterPicking();
 start();
