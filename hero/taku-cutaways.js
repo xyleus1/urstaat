@@ -1,13 +1,8 @@
 // WebGL and Canvas 2D share the same camera, assemblies and interactive controls.
 const assetBase = new URL('../research/part-2/cutaways/', import.meta.url);
-const cad = 'https://github.com/SakethGG/Mini-Cheetah-Actuator/tree/b328c3cb0a57462f9913feda79b7f9047c63cd43';
-const studies = {
+import { studyCatalog } from '../research/part-2/robot-parts.js?v=inline-1';
+const studyLayouts = {
   optics: {
-    title: 'Head optical assembly',
-    closed: [-13, -10, -6, 0, 5, 14],
-    opened: [-57, -35, -17, 5, 26, 51],
-    summary:
-      'Light enters through the protective window and lens, passes a filter and reaches the CMOS sensor.',
     radii: [
       [12, 17, 4],
       [11, 15, 2],
@@ -16,48 +11,9 @@ const studies = {
       [8, 8, 2],
       [15, 24, 4],
     ],
-    parts: [
-      ['Camera carrier', 'A pocketed rear carrier locates the sensor board on four mounting posts.'],
-      [
-        'CMOS sensor board',
-        'A ceramic package surrounds the light-sensitive die. Gold contacts and board traces carry its signals.',
-      ],
-      [
-        'IR-cut filter',
-        'This plate sits ahead of the sensor. An IR-cut coating limits the infrared light reaching a color imager.',
-      ],
-      [
-        'Objective barrel',
-        'A stepped bore and retaining shoulders locate the lens elements along the optical axis.',
-      ],
-      [
-        'Lens elements',
-        'Curved glass surfaces focus light onto the sensor. A spacer sets the gap between the elements.',
-      ],
-      [
-        'Protective window',
-        'The tall optical surround comes from Taku’s published head geometry. The crowned window illustrates the cover over one aperture.',
-      ],
-    ],
-    caption:
-      'The surround comes from Dyna’s public head CAD. The camera inside is an illustrative optical stack. Its supplier and lens prescription are unconfirmed for Taku.',
-    links: [
-      [
-        'Dyna head CAD',
-        'https://github.com/dyna-robotics/dyna_robot_description/tree/afa61685f434a9a2a61e255711788bcfe2f42f92',
-      ],
-      ['Machine-vision camera example', 'https://docs.baslerweb.com/a2a2048-114mgc'],
-      [
-        'Polished protective windows',
-        'https://www.uqgoptics.com/catalogue/optical-windows/optical-glasses/bk7-windows/',
-      ],
-    ],
+    offsets: [-50.84, -31.5, -15.46, 4.3, 23.06, 45.82],
   },
   actuator: {
-    title: 'Rotary actuator',
-    closed: [-14, -4, -4, 7, 7, 15],
-    opened: [-111, -68, -19, 34, 75, 116],
-    summary: 'The electric motor turns the sun gear. Three planets transfer torque to the output carrier.',
     radii: [
       [47, 47, 8],
       [41, 41, 6],
@@ -66,36 +22,9 @@ const studies = {
       [35, 35, 4],
       [22, 22, 12],
     ],
-    parts: [
-      ['Rear housing', 'The casting supports the motor and provides a mounting face for the joint.'],
-      [
-        'Stator & windings',
-        'Copper windings surround the stationary teeth. Current in the windings creates a rotating magnetic field.',
-      ],
-      [
-        'Motor rotor',
-        'Magnet segments line the outer rotor. It turns around the stator and drives the central sun gear.',
-      ],
-      ['Sun & planet gears', 'The central sun drives three planet gears spaced around it.'],
-      ['Internal ring gear', 'In this example the planets mesh with a fixed, internally toothed ring.'],
-      [
-        'Output carrier',
-        'Two plates and three pins support the planet gears and carry their reduced-speed motion to the output.',
-      ],
-    ],
-    caption:
-      'Dyna documents low-ratio planetary arm actuators. This example uses Mini-Cheetah replica CAD by Saketh vegesna, with illustrative windings and magnets.',
-    links: [
-      ['Dyna’s hardware', 'https://www.dyna.co/dyna-2.1'],
-      ['Replica CAD', cad],
-      ['MIT license', new URL('./assets/LICENSE-MiniCheetah.txt', import.meta.url).href],
-    ],
+    offsets: [-97.42, -59.04, -16.9, 30.22, 65.48, 101.86],
   },
   wrist: {
-    title: 'Wrist bearing cartridge',
-    closed: [-6, 0, 0, 0, 6, 9],
-    opened: [-62, -37, -11, 14, 39, 64],
-    summary: 'Alternating roller axes allow one compact bearing to carry radial, axial and moment loads.',
     radii: [
       [37, 37, 7],
       [24, 24, 4],
@@ -104,37 +33,9 @@ const studies = {
       [32, 32, 5],
       [28, 28, 9],
     ],
-    parts: [
-      ['Mounting body', 'The base locates the bearing and connects its fixed side to the wrist housing.'],
-      ['Inner race', 'A ground V-shaped track guides one side of each cylindrical roller.'],
-      [
-        'Crossed rollers',
-        'Adjacent rollers alternate their axes by 90°. Small separators maintain their spacing.',
-      ],
-      [
-        'Outer race & seal',
-        'A second V-shaped track closes around the rollers. A seal protects the running surfaces.',
-      ],
-      [
-        'Tool flange',
-        'The output face centers a tool on a raised pilot. Its six through-holes form the mounting pattern.',
-      ],
-      [
-        'Socket screws',
-        'Six threaded screws secure the mating tool plate. Their recessed hex sockets accept a driver.',
-      ],
-    ],
-    caption:
-      'Illustrative wrist assembly. The crossed-roller arrangement follows a published bearing principle. Dyna has not identified Taku’s wrist-bearing design.',
-    links: [
-      ['Crossed-roller principle', 'https://www.thk.com/us/en/products/cross_roller_ring/cross_roller_ring/'],
-    ],
+    offsets: [-54.16, -31.82, -9.46, 12.04, 34.38, 56.3],
   },
   panel: {
-    title: 'Formed enclosure panel',
-    closed: [-4, -3, 0, 3, 5],
-    opened: [-52, -29, -7, 19, 48],
-    summary: 'The cover, gasket and inserts meet on the same four-hole pattern.',
     radii: [
       [42, 28, 2],
       [38, 26, 3],
@@ -142,31 +43,7 @@ const studies = {
       [44, 30, 7],
       [38, 24, 7],
     ],
-    parts: [
-      [
-        'Mounting frame',
-        'The open frame supports the cover and locates four fasteners around its perimeter.',
-      ],
-      [
-        'Threaded inserts',
-        'Four flanged inserts provide reusable threads in the frame. Their knurling resists rotation.',
-      ],
-      [
-        'Perimeter gasket',
-        'A thin, continuous gasket follows the cover perimeter; holes register it on the screw pattern.',
-      ],
-      [
-        'Formed cover',
-        'The constant-thickness aluminum sheet turns through four radiused bends. Three pressed louvers rise above pierced openings.',
-      ],
-      [
-        'Cover screws',
-        'The four socket screws pass through the formed cover and gasket into the captive inserts.',
-      ],
-    ],
-    caption:
-      'An original sheet-metal example shows how a service cover can be formed, sealed and fastened. Taku’s enclosure material and forming process are unconfirmed.',
-    links: [],
+    offsets: [-45.28, -25.36, -6.02, 16.76, 41.98],
   },
 };
 // Linear reflectance, metalness and roughness. The key and broad strip reflections are shared by all studies.
@@ -246,7 +123,6 @@ void main(){
  outColor=vec4(pow(linear,vec3(1./2.2)),1.);
 }`;
 const clamp = (n, min, max) => Math.min(max, Math.max(min, n));
-const mix = (a, b, f) => a + (b - a) * f;
 const normalize = (v) => {
   const l = Math.hypot(...v);
   return v.map((x) => x / l);
@@ -330,44 +206,12 @@ function button(label, cls) {
   return b;
 }
 
-const supplySteps = {
-  optics: [
-    ['camera', 'Trace the camera module'],
-    ['imager', 'Trace the CMOS image sensor'],
-    ['camera', 'Trace the camera module'],
-    ['camera', 'Trace the camera module'],
-    ['glass', 'Trace optical glass'],
-    ['window', 'Trace the polished optical window'],
-  ],
-  actuator: {
-    0: ['motor', 'Trace the motor assembly'],
-    1: ['wire', 'Trace winding wire'],
-    2: ['magnet', 'Trace rotor magnets'],
-    3: ['planetary', 'Trace planetary gearing'],
-    4: ['planetary', 'Trace planetary gearing'],
-    5: ['planetary', 'Trace the planetary assembly'],
-  },
-  wrist: {
-    0: ['bearing', 'Trace the bearing cartridge'],
-    1: ['race', 'Trace bearing races'],
-    2: ['rollers', 'Trace bearing rollers'],
-    3: ['race', 'Trace the outer race'],
-    4: ['sealed-joint', 'Trace the assembled joint'],
-    5: ['sealed-joint', 'Trace the assembled joint'],
-  },
-  panel: {
-    0: ['panel', 'Trace the enclosure assembly'],
-    1: ['panel', 'Trace the enclosure assembly'],
-    2: ['panel', 'Trace the enclosure assembly'],
-    3: ['al-sheet', 'Trace rolled aluminium sheet'],
-    4: ['panel', 'Trace the enclosure assembly'],
-  },
-};
-
-// A dialog may destroy its rendering context between studies. Keep the reader's explicit
-// preference with that host for its lifetime, independently of transient pointer holds.
+// Reopening the inline study preserves the reader's explicit spin preference.
 const spinPreferences = new WeakMap();
-export function mountTakuCutaway(host, { part = 'actuator', allow3D = true, onTrace } = {}) {
+export function mountTakuCutaway(
+  host,
+  { part = 'actuator', allow3D = true, onSelect, preferenceHost = host } = {},
+) {
   const events = new AbortController(),
     listen = (target, key, fn, opts = {}) =>
       target.addEventListener(key, fn, { ...opts, signal: events.signal });
@@ -376,33 +220,10 @@ export function mountTakuCutaway(host, { part = 'actuator', allow3D = true, onTr
     stage = el('div', 'cutaway-scene'),
     poster = el('img', 'cutaway-poster');
   let canvas = el('canvas', 'cutaway-canvas');
-  const controls = el('div', 'cutaway-controls'),
-    reset = button('Reset view', 'cutaway-reset');
-  const spin = button('Pause spin', 'cutaway-spin'),
-    explode = button('Assemble', 'cutaway-explode');
-  spin.setAttribute('aria-label', 'Auto-spin');
-  const sliderLabel = el('label', 'cutaway-slider-label'),
-    slider = el('input', 'cutaway-slider'),
-    percent = el('output', 'cutaway-value');
-  const zoomIn = button('+', 'cutaway-zoom'),
-    zoomOut = button('−', 'cutaway-zoom'),
-    cameraTools = el('div', 'cutaway-camera-tools');
-  zoomIn.setAttribute('aria-label', 'Zoom in');
-  zoomOut.setAttribute('aria-label', 'Zoom out');
-  slider.type = 'range';
-  slider.min = '0';
-  slider.max = '100';
-  slider.step = '1';
-  slider.setAttribute('aria-label', 'Exploded spacing');
-  sliderLabel.append(el('span', '', 'Spacing'), slider, percent);
-  const switches = el('div', 'cutaway-switches');
-  switches.append(explode, spin, reset);
-  controls.append(sliderLabel, switches);
-  const body = el('div', 'cutaway-key'),
-    items = el('div', 'cutaway-parts'),
-    desc = el('p', 'cutaway-detail'),
-    caption = el('p', 'cutaway-caption');
-  const hint = el('span', 'cutaway-hint', 'Drag to rotate · Select a part');
+  const spin = button('Pause spin', 'cutaway-spin');
+  spin.setAttribute('aria-label', 'Automatic rotation');
+  const cameraTools = el('div', 'cutaway-camera-tools');
+  cameraTools.append(spin);
   const tag = el('span', 'cutaway-tag'),
     wire = el('span', 'cutaway-wire');
   tag.hidden = wire.hidden = true;
@@ -410,19 +231,8 @@ export function mountTakuCutaway(host, { part = 'actuator', allow3D = true, onTr
   wire.setAttribute('aria-hidden', 'true');
   canvas.tabIndex = 0;
   canvas.setAttribute('role', 'img');
-  desc.setAttribute('aria-live', 'polite');
-  items.setAttribute('role', 'group');
-  items.setAttribute('aria-label', 'Assembly parts');
-  cameraTools.append(zoomOut, zoomIn);
-  stage.append(poster, canvas, wire, tag, hint, cameraTools);
-  const traceStep = button('', 'cutaway-trace');
-  traceStep.hidden = true;
-  listen(traceStep, 'click', () => {
-    const target = supplySteps[id]?.[selected];
-    if (target) onTrace?.(target[0]);
-  });
-  body.append(items, desc, traceStep, caption);
-  wrapper.append(stage, controls, body);
+  stage.append(poster, canvas, wire, tag, cameraTools);
+  wrapper.append(stage);
   host.replaceChildren(wrapper);
   let gl,
     prog,
@@ -439,20 +249,18 @@ export function mountTakuCutaway(host, { part = 'actuator', allow3D = true, onTr
     loader,
     dead = false,
     selected = -1,
+    previewed = -1,
     id,
     study,
-    amount = 0.86,
     raster,
-    spinOverride = spinPreferences.get(host) ?? null,
+    spinOverride = spinPreferences.get(preferenceHost) ?? null,
     spinning = false,
     lastTime = 0,
-    tween = null,
     onscreen = true;
   let yaw = -0.98,
     pitch = 0.56,
     zoom = 1,
     roll = 1.14,
-    buttons = [],
     moved = false,
     start = null,
     pinch = null;
@@ -465,10 +273,7 @@ export function mountTakuCutaway(host, { part = 'actuator', allow3D = true, onTr
     canvas.tabIndex = live ? 0 : -1;
     canvas.hidden = !live;
     poster.hidden = live;
-    slider.disabled = spin.disabled = explode.disabled = !live;
-    reset.disabled = !live;
-    zoomIn.disabled = zoomOut.disabled = !live;
-    hint.hidden = !live;
+    spin.disabled = !live;
     cameraTools.hidden = !live;
     if (!live) tag.hidden = wire.hidden = true;
   }
@@ -511,7 +316,7 @@ export function mountTakuCutaway(host, { part = 'actuator', allow3D = true, onTr
   }
   function toggleSpin() {
     spinOverride = !(spinOverride ?? !reduced.matches);
-    spinPreferences.set(host, spinOverride);
+    spinPreferences.set(preferenceHost, spinOverride);
     syncSpin();
   }
   listen(reduced, 'change', syncSpin);
@@ -522,18 +327,14 @@ export function mountTakuCutaway(host, { part = 'actuator', allow3D = true, onTr
         if (!mesh) return;
         if (onscreen && spinning && lastTime) yaw -= (Math.min(64, time - lastTime) / 1000) * 0.28;
         lastTime = onscreen ? time : 0;
-        if (tween) {
-          const f = Math.min(1, (time - tween.start) / 450);
-          setExplode(mix(tween.from, tween.to, f * f * (3 - 2 * f)), false);
-          if (f >= 1) tween = null;
-        }
         draw(false);
         // A user edit gets one frame even while scrolling. Only repeat animation frames in view.
-        if (onscreen && (spinning || tween)) invalidate();
+        if (onscreen && spinning) invalidate();
       });
   }
   function draw(picking) {
     if (!mesh || (!gl && !raster) || !stage.clientWidth) return;
+    const highlighted = previewed < 0 ? selected : previewed;
     const pixelScale = Math.min(
       window.devicePixelRatio || 1,
       720 / stage.clientWidth,
@@ -550,10 +351,10 @@ export function mountTakuCutaway(host, { part = 'actuator', allow3D = true, onTr
     const eye = [cp * cy, cp * sy, sp],
       right = [-sy * cr - cy * sp * sr, cy * cr - sy * sp * sr, cp * sr];
     const up = [sy * sr - cy * sp * cr, -cy * sr - sy * sp * cr, cp * cr];
-    const offsets = study.closed.map((v, i) => mix(v, study.opened[i], amount));
+    const { offsets, radii } = studyLayouts[id];
     if (gl) {
       gl.bindVertexArray(vao);
-      const sk = id + '/' + amount;
+      const sk = id;
       if (sk !== shadowKey) {
         gl.bindFramebuffer(gl.FRAMEBUFFER, shadowBuffer);
         gl.viewport(0, 0, 1024, 1024);
@@ -588,7 +389,7 @@ export function mountTakuCutaway(host, { part = 'actuator', allow3D = true, onTr
       y0 = Infinity,
       y1 = -Infinity;
     for (let i = 0; i < offsets.length; i++) {
-      const [rx, ry, rz] = study.radii[i],
+      const [rx, ry, rz] = radii[i],
         z = offsets[i];
       const support = (d) =>
         (id === 'panel' || (id === 'optics' && i < 3)
@@ -609,20 +410,20 @@ export function mountTakuCutaway(host, { part = 'actuator', allow3D = true, onTr
       gl.uniform2f(loc.Center, (x1 + x0) / 2, (y1 + y0) / 2);
       gl.uniform2f(loc.Scale, h / (w * units), 1 / units);
     }
-    if (!picking && selected >= 0) {
+    if (!picking && highlighted >= 0) {
       // A leader lands on a sampled surface vertex, including when the assembly is rotated.
       let score = -Infinity,
         point;
       const toward = eye.map((n, i) => n + 0.21 * up[i] - 0.3 * right[i]);
       const project = (p, b) => p[0] * b[0] + p[1] * b[1] + p[2] * b[2];
-      for (const p of mesh.anchors[selected]) {
+      for (const p of mesh.anchors[highlighted]) {
         const s = project(p, toward);
         if (s > score) {
           point = p;
           score = s;
         }
       }
-      const p = [point[0], point[1], point[2] + offsets[selected]],
+      const p = [point[0], point[1], point[2] + offsets[highlighted]],
         cw = stage.clientWidth,
         ch = stage.clientHeight;
       const px = cw / 2 + ((project(p, right) - (x1 + x0) / 2) * ch) / (2 * units),
@@ -654,7 +455,7 @@ export function mountTakuCutaway(host, { part = 'actuator', allow3D = true, onTr
         units,
         width: w,
         height: h,
-        selected,
+        selected: highlighted,
       });
       return;
     }
@@ -665,30 +466,25 @@ export function mountTakuCutaway(host, { part = 'actuator', allow3D = true, onTr
       gl.uniform3f(loc.Color, f[0], f[1], f[2]);
       gl.uniform2f(loc.Finish, f[3], f[4]);
       gl.uniform1f(loc.Glass, f[5] || 0);
-      gl.uniform1f(loc.Emphasis, selected < 0 || selected === group ? 1 : 0.3);
+      gl.uniform1f(loc.Emphasis, highlighted < 0 || highlighted === group ? 1 : 0.3);
       gl.drawElements(gl.TRIANGLES, count, gl.UNSIGNED_INT, first * 4);
     }
   }
   function choose(n) {
     selected = n;
     wrapper.dataset.selected = String(n);
-    buttons.forEach((b, i) => b.setAttribute('aria-pressed', String(i === n)));
-    desc.textContent = n < 0 ? study.summary : study.parts[n][1];
-    const target = supplySteps[id]?.[n];
-    traceStep.hidden = !target || !onTrace;
-    if (target) traceStep.textContent = target[1] + ' →';
-    if (n >= 0) tag.textContent = String(n + 1).padStart(2, '0') + '  ' + study.parts[n][0];
+    refreshLabel();
+  }
+  function preview(index) {
+    previewed = index;
+    refreshLabel();
+  }
+  function refreshLabel() {
+    const n = previewed < 0 ? selected : previewed;
+    wrapper.dataset.highlighted = String(n);
+    if (n >= 0) tag.textContent = study.parts[n].name;
     else tag.hidden = wire.hidden = true;
     invalidate();
-  }
-  function setExplode(fraction, manual = true) {
-    if (manual) tween = null;
-    amount = clamp(Number(fraction) || 0, 0, 1);
-    slider.value = String(Math.round(amount * 100));
-    percent.textContent = slider.value + '%';
-    explode.textContent = amount > 0.5 ? 'Assemble' : 'Explode';
-    wrapper.dataset.explode = slider.value;
-    if (manual) invalidate();
   }
   function resetView() {
     yaw = -0.98;
@@ -696,17 +492,17 @@ export function mountTakuCutaway(host, { part = 'actuator', allow3D = true, onTr
     roll = 1.14;
     zoom = 1;
     choose(-1);
-    setExplode(0.86);
   }
   async function setPart(next) {
-    if (!Object.hasOwn(studies, next)) throw Error('Unknown cutaway ' + next);
+    if (!Object.hasOwn(studyCatalog, next)) throw Error('Unknown cutaway ' + next);
     loader?.abort();
     loader = new AbortController();
     const token = loader;
     mesh = null;
     shadowKey = null;
     id = next;
-    study = studies[next];
+    study = studyCatalog[next];
+    previewed = -1;
     raster?.destroy();
     raster = null;
     mode('loading');
@@ -717,20 +513,6 @@ export function mountTakuCutaway(host, { part = 'actuator', allow3D = true, onTr
       'aria-label',
       study.title + '. Drag or use arrow keys to rotate. Use plus and minus to zoom. Home resets the view.',
     );
-    items.replaceChildren();
-    buttons = study.parts.map(([name], i) => {
-      const b = button('', 'cutaway-part');
-      b.append(el('span', 'cutaway-index', String(i + 1).padStart(2, '0')), el('span', '', name));
-      b.addEventListener('click', () => choose(i === selected ? -1 : i));
-      items.append(b);
-      return b;
-    });
-    caption.textContent = study.caption + ' ';
-    for (const [name, url] of study.links) {
-      const a = el('a', '', name);
-      a.href = url;
-      caption.append(a);
-    }
     resetView();
     syncSpin();
     try {
@@ -757,7 +539,9 @@ export function mountTakuCutaway(host, { part = 'actuator', allow3D = true, onTr
     }
   }
   function choosePicked(n) {
-    choose(n >= 0 && n < study.parts.length && n !== selected ? n : -1);
+    const index = n >= 0 && n < study.parts.length && n !== selected ? n : -1;
+    choose(index);
+    onSelect?.(index);
   }
   async function startRaster(packed, token) {
     const { createCutawayRaster } = await import('./taku-cutaway-raster.js?v=studio-3');
@@ -835,25 +619,11 @@ export function mountTakuCutaway(host, { part = 'actuator', allow3D = true, onTr
       startRaster(mesh, loader).catch(() => mode('poster'));
     }
   });
-  listen(slider, 'input', () => {
-    setExplode(Number(slider.value) / 100);
-  });
-  listen(reset, 'click', resetView);
   listen(spin, 'click', toggleSpin);
-  listen(explode, 'click', () => {
-    const target = amount > 0.5 ? 0 : 1;
-    if (reduced.matches) setExplode(target);
-    else {
-      tween = { start: performance.now(), from: amount, to: target };
-      invalidate();
-    }
-  });
   function changeZoom(factor) {
     zoom = clamp(zoom * factor, 0.67, 2.7);
     invalidate();
   }
-  listen(zoomIn, 'click', () => changeZoom(1.2));
-  listen(zoomOut, 'click', () => changeZoom(1 / 1.2));
   listen(stage, 'keydown', (e) => {
     if (e.target !== canvas) return;
     switch (e.key) {
@@ -878,6 +648,7 @@ export function mountTakuCutaway(host, { part = 'actuator', allow3D = true, onTr
         break;
       case 'Home':
         resetView();
+        onSelect?.(-1);
         break;
       case ' ':
         toggleSpin();
@@ -890,10 +661,10 @@ export function mountTakuCutaway(host, { part = 'actuator', allow3D = true, onTr
     invalidate();
   });
   listen(
-    wrapper,
+    preferenceHost,
     'pointerdown',
     (event) => {
-      if (event.button !== 0 || !event.target.closest('canvas, button, input')) return;
+      if (event.button !== 0 || !event.target.closest('canvas, button, select, summary')) return;
       heldPointers.add(event.pointerId);
       syncSpin();
     },
@@ -974,7 +745,12 @@ export function mountTakuCutaway(host, { part = 'actuator', allow3D = true, onTr
   return {
     ready,
     setPart,
-    setExplode,
+    previewPiece(index) {
+      preview(index >= 0 && index < study.parts.length ? index : -1);
+    },
+    selectPiece(index) {
+      choose(Number.isInteger(index) && index >= 0 && index < study.parts.length ? index : -1);
+    },
     destroy() {
       dead = true;
       loader?.abort();

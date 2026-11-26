@@ -1,10 +1,29 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { parts, nodes, edges } from '../../research/part-2/supply-data.js';
+import { robotParts, studyCatalog } from '../../research/part-2/robot-parts.js';
 
 const shots = ['overview', 'side', 'face', 'shoulder', 'elbow', 'wrist', 'claw', 'waist', 'base'];
 const stages = new Set(['raw', 'refining', 'material', 'component', 'assembly']);
 const scopes = new Set(['representative', 'documented-process', 'verified-relationship']);
+
+test('every assembly and all 23 exploded pieces lead to a sourced step in their own network', () => {
+  assert.deepEqual(Object.keys(robotParts), Object.keys(parts));
+  assert.equal(Object.values(studyCatalog).reduce((count, study) => count + study.parts.length, 0), 23);
+  for (const [id, entry] of Object.entries(robotParts)) {
+    const network = parts[id].edgeIds.map((key) => edges[key]);
+    const sites = new Set(network.flatMap((edge) => [edge.from, edge.to]));
+    assert.equal(entry.node, parts[id].focusNode);
+    if (!entry.study) {
+      assert.ok(entry.info && sites.has(entry.node));
+      continue;
+    }
+    for (const piece of studyCatalog[entry.study].parts) {
+      assert.ok(piece.name && piece.detail && piece.trace && sites.has(piece.node), id + ': ' + piece.name);
+      assert.ok(nodes[piece.node].sources.length);
+    }
+  }
+});
 function sourced(item) {
   assert.ok(item.sources.length, item.id + ' needs sources');
   for (const source of item.sources) {

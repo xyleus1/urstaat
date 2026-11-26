@@ -83,9 +83,11 @@ static void fill(const Vertex a, const Vertex b, const Vertex c, U16 tag,
   } else if (value < 0)                                                        \
     continue;
     BOUND(u, ux)
-    BOUND(v, vx) BOUND(w, wx)
+    BOUND(v, vx)
+    BOUND(w, wx)
 #undef BOUND
-        if (l > h) continue;
+    if (l > h)
+      continue;
     u += l * ux;
     v += l * vx;
     int index = y * width + x0 + l, end = index + h - l;
@@ -181,28 +183,41 @@ EXPORT void mesh(const Source *src, int count, const U16 *indices, int n,
       fill(clipped[0], clipped[k], clipped[k + 1], tag, printed);
   }
 }
-EXPORT int outline(int selected, int s, float px, float py) {
-  int d = s * width, wide = 2 * s, dd = d * 2, best = -1;
-  float closest = 1e20f;
-  for (int y = wide; y < height - wide; y++)
-    for (int x = wide, i = y * width + wide; x < width - wide; x++, i++) {
-      int on = (surface[i] & 31) == selected;
-      if (on) {
-        float dx = x - px, dy = y - py, distance = dx * dx + dy * dy;
-        if (distance < closest) {
-          closest = distance;
-          best = i;
+// One pass over the depth-tested ID buffer produces the etched contours and a
+// visible surface coordinate for each component. Centers are in raster pixels.
+EXPORT void outline(int selected, int s, const float *centers, int *nearest,
+                    int x0, int y0, int x1, int y1) {
+  float best[32];
+  for (int i = 0; i < 32; ++i) {
+    best[i] = 1e30f;
+    nearest[i] = -1;
+  }
+  int d = s * width, wide = 2 * s, dd = 2 * d;
+  for (int y = y0; y < y1; ++y) {
+    for (int x = x0, i = y * width + x0; x < x1; ++x, ++i) {
+      int code = surface[i] & 31;
+      int left = surface[i - s] & 31, right = surface[i + s] & 31,
+          top = surface[i - d] & 31, bottom = surface[i + d] & 31;
+      if (code) {
+        float dx = x - centers[code * 2], dy = y - centers[code * 2 + 1],
+              distance = dx * dx + dy * dy;
+        if (distance < best[code]) {
+          best[code] = distance;
+          nearest[code] = i;
         }
-        if ((surface[i - s] & 31) != selected ||
-            (surface[i + s] & 31) != selected ||
-            (surface[i - d] & 31) != selected ||
-            (surface[i + d] & 31) != selected)
-          pixels[i] =
-              (pixels[i] & 255) > 177 ? rgb(131, 64, 36) : rgb(244, 182, 116);
-      } else if ((surface[i - s] & 31) == selected ||
-                 (surface[i + s] & 31) == selected ||
-                 (surface[i - d] & 31) == selected ||
-                 (surface[i + d] & 31) == selected)
+        if (left != code || right != code || top != code || bottom != code) {
+          if (selected == code)
+            pixels[i] =
+                (pixels[i] & 255) > 177 ? rgb(131, 64, 36) : rgb(244, 182, 116);
+          else
+            pixels[i] =
+                (pixels[i] & 255) > 150 ? rgb(117, 97, 80) : rgb(185, 161, 134);
+        }
+      }
+      if (code == selected)
+        continue;
+      if (left == selected || right == selected || top == selected ||
+          bottom == selected)
         pixels[i] = rgb(54, 47, 40);
       else if ((surface[i - wide] & 31) == selected ||
                (surface[i + wide] & 31) == selected ||
@@ -210,5 +225,5 @@ EXPORT int outline(int selected, int s, float px, float py) {
                (surface[i + dd] & 31) == selected)
         pixels[i] = rgb(174, 99, 60);
     }
-  return best;
+  }
 }

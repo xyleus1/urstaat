@@ -23,7 +23,8 @@ const rows = Math.ceil((finishNames.length * viewCount) / columns);
 
 const vertexShader = /* glsl */ `
   attribute float partTag;
-  uniform float activePart, unselectedAlpha;
+  uniform float activePart;
+  varying float surfaceCode;
   varying float partMask;
   varying vec3 captureNormal;
   #ifdef CHEST_PRINT
@@ -37,7 +38,8 @@ const vertexShader = /* glsl */ `
     vec3 up = cross(facing,right);
     vec3 n = normalize(normalMatrix * normal);
     captureNormal = vec3(dot(n,right),dot(n,up),dot(n,facing));
-    partMask = mix(1.,unselectedAlpha,step(.5,abs(partTag-activePart)));
+    surfaceCode = partTag;
+    partMask = 1. - step(.5, abs(partTag - activePart));
     #ifdef CHEST_PRINT
       printUv = (printTransform*vec3(uv,1.)).xy;
     #endif
@@ -45,8 +47,10 @@ const vertexShader = /* glsl */ `
   }
 `;
 const fragmentShader = /* glsl */ `
+  layout(location=1) out highp vec4 partData;
   uniform sampler2D finishes;
   uniform vec2 origins[4], weights, tileScale, gutter;
+  varying float surfaceCode;
   varying float partMask;
   varying vec3 captureNormal;
   #ifdef CHEST_PRINT
@@ -75,7 +79,8 @@ const fragmentShader = /* glsl */ `
       // the lettering texture's antialiased edge through its saturation.
       color = mix(vec3(dot(color,vec3(.21,.72,.07))), color, smoothstep(.018,.30,chroma));
     #endif
-    gl_FragColor = vec4(color,partMask);
+    gl_FragColor = vec4(color,1.);
+    partData=vec4(surfaceCode*8./255.,mod(surfaceCode*47.,251.)/255.,step(.5,surfaceCode),partMask);
   }
 `;
 
@@ -105,7 +110,7 @@ export function createSoftwareStudio(THREE, texture) {
   const view = new THREE.Vector3();
   let previousKey = -1;
 
-  function material(source, activePart, unselectedAlpha) {
+  function material(source, activePart) {
     const name = source.name.toLowerCase().split(' · ').pop();
     const finish = finishNames.indexOf(name);
     // Future unknown finishes retain the full material shader.
@@ -118,7 +123,6 @@ export function createSoftwareStudio(THREE, texture) {
     }
     const uniforms = {
       activePart,
-      unselectedAlpha,
       finishes: { value: texture },
       origins: { value: origins },
       weights,

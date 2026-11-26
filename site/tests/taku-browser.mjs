@@ -1,237 +1,153 @@
 import assert from 'node:assert/strict';
-import { createHash } from 'node:crypto';
 import puppeteer from 'puppeteer';
 import { startPreviewServer } from './preview-server.mjs';
 
 const { server, origin } = await startPreviewServer();
-const shots = ['overview', 'side', 'face', 'shoulder', 'elbow', 'wrist', 'claw', 'waist', 'base'];
-const buttonFor = (id) => '[data-shot="' + id + '"]';
-let browser;
+const live = process.argv.find(arg => /^https?:/.test(arg));
+const software = process.argv.includes('--software');
+const browser = await puppeteer.launch({
+  headless: 'shell',
+  args: software ? ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'] : ['--disable-gpu', '--disable-webgl'],
+});
+const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
+const active = '.taku-stage[data-mode="live"]';
+const canvas = '#taku-canvas';
+const callout = (id, side = 'left') => `[data-callout][data-part="${id}"][data-side="${side}"]:not([hidden])`;
+const frame = page => page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+const pin = (page, id, side = 'left') => page.$eval(`.robot-callouts g[data-part="${id}"][data-side="${side}"] circle`, node => [
+  Number(node.getAttribute('cx')), Number(node.getAttribute('cy')),
+]);
+
+async function surfaceTouch(client, box, dx, dy) {
+  const x = box.x + box.width * .56, y = box.y + box.height * .76;
+  await client.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] });
+  for (let i = 1; i <= 5; i++)
+    await client.send('Input.dispatchTouchEvent', {
+      type: 'touchMove', touchPoints: [{ x: x + dx * i / 5, y: y + dy * i / 5 }],
+    });
+  await client.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+}
 try {
-  const args = process.argv.includes('--no-webgl')
-    ? ['--disable-webgl', '--disable-gpu']
-    : process.argv.includes('--software')
-      ? ['--use-angle=swiftshader', '--enable-unsafe-swiftshader']
-      : [];
-  browser = await puppeteer.launch({ headless: 'shell', args });
-  for (const width of [320, 390, 1440]) {
+  const requestedWidth = process.argv.find(arg => arg.startsWith('--width='))?.slice(8);
+  for (const width of requestedWidth ? [Number(requestedWidth)] : [320, 390, 1440]) {
     const mobile = width < 500;
     const page = await browser.newPage();
-    const errors = [],
-      models = [];
-    page.on('pageerror', (error) => errors.push(error.message));
-    page.on('console', (message) => {
-      if (message.type() === 'error' && message.text().includes('Shader Error')) errors.push(message.text());
-    });
-    page.on('response', (response) => {
-      const path = new URL(response.url()).pathname;
-      if (path.endsWith('.glb') || path.endsWith('taku-cpu.bin.gz')) models.push(path);
+    await page.bringToFront();
+    const errors = [];
+    page.on('pageerror', error => errors.push(error.message));
+    page.on('console', message => {
+      if (message.type() === 'warn' || message.type() === 'error') console.warn(message.text());
     });
     await page.setViewport({ width, height: mobile ? 844 : 900, isMobile: mobile, hasTouch: mobile });
     await page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
-    const mount = mobile ? '/urstaat/' : '/';
-    await page.goto(origin + mount + 'research/part-2/#elbow', { waitUntil: 'domcontentloaded' });
-    await page.waitForSelector('.taku-stage[data-mode="live"]', { timeout: 60000 });
-    assert.equal(await page.$eval('.taku-stage', (el) => el.dataset.settled), 'elbow');
-    const tier = await page.$eval('.taku-stage', (stage) => stage.dataset.tier);
-    assert.ok(tier === 'cpu' || tier === (mobile ? 'mobile' : 'desktop'));
-    assert.deepEqual(models, [
-      mount + 'research/part-2/assets/taku-' + (tier === 'cpu' ? 'cpu.bin.gz' : tier + '.glb'),
-    ]);
-    assert.deepEqual(
-      await page.$$eval('[data-shot]', (links) => links.map((link) => link.dataset.shot)),
-      shots,
-    );
+    if (software) {
+      await page.setRequestInterception(true);
+      page.on('request', r => r.url().includes('gpu-check.js')
+        ? r.respond({ status: 200, contentType: 'text/javascript', body: "self.postMessage('hardware');" })
+        : r.continue());
+    }
+    const url = live || origin + (mobile ? '/urstaat' : '') + '/research/part-2/';
+    await page.goto(url, { waitUntil: 'domcontentloaded' });
+    try {
+      await page.waitForSelector(active, { timeout: 60000 });
+    } catch (error) {
+      console.error('Viewer failed to start', width, errors, await page.$eval('.taku-stage', el => ({ ...el.dataset })));
+      throw error;
+    }
+    await page.waitForSelector(callout('face'), { visible: true });
+    assert.equal(await page.$$('[data-shot]').then(a => a.length), 0);
+    assert.equal(await page.$$('[data-atlas-part]').then(a => a.length), 9);
+    assert.equal(await page.$eval('.taku-stage', e => e.dataset.engaged), 'false');
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
-    await page.setOfflineMode(true);
-    // Previously an orbit immediately substituted a lower-DPR buffer and mesh.
-    const orbitSizes = await page.$eval('#taku-canvas', async (canvas) => {
-      const measure = () => [canvas.width, canvas.height];
-      const before = measure();
-      canvas.dispatchEvent(
-        new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true, cancelable: true }),
-      );
-      const during = measure();
-      await new Promise((resolve) => setTimeout(resolve, 320));
-      return [before, during, measure()];
+    const normal = await pin(page, 'elbow');
+    const initialBox = await (await page.$(canvas)).boundingBox();
+    const client = await page.createCDPSession();
+    if (mobile) await surfaceTouch(client, initialBox, 0, -105);
+    else {
+      await page.mouse.move(initialBox.x + 22, initialBox.y + 65);
+      await page.mouse.wheel({ deltaY: 180 });
+    }
+    await page.waitForFunction(() => scrollY > 18);
+    assert.equal(await page.$eval('.taku-stage', e => e.dataset.engaged), 'false', 'Page scrolling stays native');
+    await page.evaluate(() => scrollTo({ top: 0, behavior: 'instant' }));
+    await frame(page);
+    await page.click(callout('face'));
+    await page.waitForSelector('#part-study-host[data-part="face"]');
+    await page.waitForSelector('.study-piece');
+    assert.equal(await page.$$('.study-piece').then(a => a.length), 6);
+    assert.equal(await page.$eval('#supply-map', e => e.dataset.part), 'overview');
+    assert.deepEqual(await pin(page, 'elbow'), normal, 'Inspecting another surface preserves the camera');
+    await page.click('.study-close');
+    await page.click('[data-atlas-part="wrist"]');
+    await page.waitForSelector('#supply-map[data-part="wrist"]');
+    assert.equal(await page.$eval('.taku-stage', e => e.dataset.part), 'wrist');
+    assert.deepEqual(await pin(page, 'elbow'), normal, 'Atlas tabs preserve the orbit');
+    await page.evaluate(() => scrollTo({ top: 0, behavior: 'instant' }));
+    if (mobile) {
+      const b = await (await page.$(canvas)).boundingBox();
+      await page.touchscreen.tap(b.x + b.width * .08, b.y + b.height * .75);
+    } else {
+      await page.focus(canvas);
+      await page.keyboard.press('Enter');
+    }
+    await page.waitForSelector('[data-engaged="true"]');
+    const size = () => page.$eval(canvas, c => [c.width, c.height]);
+    const originalSize = await size();
+    const beforeOrbit = await (await page.$(canvas)).screenshot();
+    const b = await (await page.$(canvas)).boundingBox();
+    if (mobile) await surfaceTouch(client, b, 76, -23);
+    else {
+      await page.mouse.move(b.x + b.width * .34, b.y + b.height * .8);
+      await page.mouse.down(); await page.mouse.move(b.x + b.width * .58, b.y + b.height * .78, { steps: 8 }); await page.mouse.up();
+    }
+    await wait(250);
+    assert.notDeepEqual(await (await page.$(canvas)).screenshot(), beforeOrbit);
+    assert.deepEqual(await size(), originalSize, 'Moving keeps the full render resolution');
+    await page.click('#reset');
+    await page.focus(canvas);
+    for (let i = 0; i < 20; i++) await page.keyboard.press('+');
+    await page.waitForSelector('[data-zoom="1.25"]:disabled');
+    await page.$eval(canvas, el => {
+      for (let i = 0; i < 20; i++) el.dispatchEvent(new WheelEvent('wheel', { deltaY: 190, bubbles: true, cancelable: true }));
     });
-    assert.deepEqual(orbitSizes[0], orbitSizes[1], 'Orbit preserves full drawing resolution');
-    assert.deepEqual(orbitSizes[0], orbitSizes[2], 'Stopping preserves the same resolution');
-    // Every component has its own working distances. All zoom inputs must meet
-    // the same endpoint and surface that endpoint through the visible controls.
-    for (const id of ['overview', 'face', 'wrist', 'base']) {
-      await page.click(buttonFor(id));
-      await page.waitForSelector('.taku-stage[data-settled="' + id + '"]');
-      const canvas = await page.$('#taku-canvas');
-      await canvas.focus();
-      await canvas.evaluate((el) => {
-        for (let i = 0; i < 16; i++)
-          el.dispatchEvent(new KeyboardEvent('keydown', { key: '+', bubbles: true, cancelable: true }));
-      });
-      await page.waitForSelector('[data-zoom="1.25"]:disabled');
-      assert.equal(await page.$eval('[data-zoom="0.8"]', (el) => el.disabled), false);
-      await canvas.evaluate((el) => {
-        for (let i = 0; i < 16; i++)
-          el.dispatchEvent(new WheelEvent('wheel', { deltaY: 140, bubbles: true, cancelable: true }));
-      });
-      await page.waitForSelector('[data-zoom="0.8"]:disabled');
-      assert.equal(await page.$eval('[data-zoom="1.25"]', (el) => el.disabled), false);
-      await page.click('[data-zoom="1.25"]');
-      await page.waitForSelector('[data-zoom="0.8"]:enabled');
-    }
-    await page.click('#reset');
-    await page.waitForSelector('.taku-stage[data-settled="overview"]');
-    assert.equal(await page.$$eval('[data-zoom]:disabled', (b) => b.length), 0);
-    const seen = new Set();
-    for (const id of shots) {
-      if (mobile) await page.tap(buttonFor(id));
-      else {
-        await page.focus(buttonFor(id));
-        await page.keyboard.press('Enter');
-      }
-      await page.waitForFunction(
-        (shot) => document.querySelector('.taku-stage').dataset.settled === shot,
-        {},
-        id,
-      );
-      assert.equal(await page.$eval('.camera-views [aria-current]', (link) => link.dataset.shot), id);
-      assert.equal(new URL(page.url()).hash, id === 'overview' ? '' : '#' + id);
-      assert.equal(await page.$$eval('.camera-views [aria-current]', (elements) => elements.length), 1);
-      await page.evaluate(
-        () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))),
-      );
-      const screenshot = await (await page.$('#taku-canvas')).screenshot();
-      seen.add(createHash('sha256').update(screenshot).digest('hex'));
-    }
-    assert.equal(seen.size, shots.length, 'Every preset shows a different composition');
-    await page.click('[data-zoom="1.25"]');
-    await page.click('#reset');
-    await page.waitForSelector('.taku-stage[data-settled="overview"]');
-    if (!mobile) {
-      const rect = await (await page.$('#taku-canvas')).boundingBox();
-      // The two end plates visible in the three-quarter overview.
-      for (const [side, x, y] of [
-        ['left', 0.568, 0.416],
-        ['right', 0.455, 0.392],
-      ]) {
-        await page.mouse.click(
-          rect.x + rect.width * 0.5 + (x - 0.5) * 2.05 * rect.height,
-          rect.y + y * rect.height,
-        );
-        await page.waitForFunction(
-          (which) => {
-            const state = document.querySelector('.taku-stage').dataset;
-            return state.settled === 'elbow' && state.side === which;
-          },
-          {},
-          side,
-        );
-        assert.equal(new URL(page.url()).hash, side === 'left' ? '#elbow' : '#right-elbow');
-        await page.click('#reset');
-        await page.waitForSelector('.taku-stage[data-settled="overview"]');
-      }
-      await page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'no-preference' }]);
-      await page.click(buttonFor('face'));
-      await page.click(buttonFor('wrist'));
-      await page.waitForSelector('.taku-stage[data-settled="wrist"]');
-      const canvas = await page.$('#taku-canvas');
-      const before = await canvas.screenshot();
-      await page.mouse.move(rect.x + 0.5 * rect.width, rect.y + 0.5 * rect.height);
-      await page.mouse.down();
-      await page.mouse.move(rect.x + 0.59 * rect.width, rect.y + 0.51 * rect.height, { steps: 5 });
-      await page.mouse.up();
-      await new Promise((resolve) => setTimeout(resolve, 450));
-      assert.notDeepEqual(await canvas.screenshot(), before, 'Dragging orbits the settled close-up');
-      assert.equal(new URL(page.url()).hash, '#wrist', 'Dragging is distinct from tapping another part');
-    }
-    if (width === 390) {
-      await page.setOfflineMode(false);
-      await page.tap(buttonFor('wrist'));
-      await page.waitForSelector('[data-settled="wrist"]');
-      const client = await page.createCDPSession();
-      const box = await (await page.$('#taku-canvas')).boundingBox();
-      const start = { x: box.x + box.width * 0.45, y: box.y + box.height * 0.5 };
-      const capture = () => page.$('#taku-canvas').then((canvas) => canvas.screenshot());
-      for (const [dx, dy] of [
-        [64, 0],
-        [0, 70],
-      ]) {
-        const before = await capture();
-        await client.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [start] });
-        for (let i = 1; i <= 5; i++)
-          await client.send('Input.dispatchTouchEvent', {
-            type: 'touchMove',
-            touchPoints: [{ x: start.x + (dx * i) / 5, y: start.y + (dy * i) / 5 }],
-          });
-        await client.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
-        await new Promise((resolve) => setTimeout(resolve, 300));
-        assert.notDeepEqual(await capture(), before, 'Touch can orbit horizontally and vertically');
-      }
-      if (tier !== 'cpu') {
-        await page.evaluate(() =>
-          document
-            .querySelector('#taku-canvas')
-            .getContext('webgl2')
-            .getExtension('WEBGL_lose_context')
-            .loseContext(),
-        );
-        await page.waitForSelector('.taku-stage[data-mode="live"][data-tier="cpu"][data-settled="wrist"]');
-      }
+    await page.waitForSelector('[data-zoom="0.8"]:disabled');
+    await page.keyboard.press('Escape');
+    await page.waitForSelector('[data-engaged="false"]');
+    await page.evaluate(() => { location.hash = 'right-elbow'; });
+    await page.waitForSelector('[data-settled="elbow"][data-part="elbow"][data-side="right"]');
+    await page.waitForSelector(callout('elbow', 'right'));
+    await page.click(callout('elbow', 'right'));
+    await page.waitForSelector('#part-study-host[data-part="elbow"][data-side="right"]');
+    await page.keyboard.press('Escape');
+    if (software && width === 390 && await page.$eval('.taku-stage', el => el.dataset.tier === 'mobile')) {
+      await page.$eval(canvas, el => el.getContext('webgl2').getExtension('WEBGL_lose_context').loseContext());
+      await page.waitForSelector('[data-mode="live"][data-tier="cpu"][data-part="elbow"][data-side="right"]');
+      await page.waitForSelector(callout('elbow', 'right'));
     }
     assert.deepEqual(errors, []);
     await page.close();
-    console.log('All nine offline views passed at ' + width + 'px.');
+    console.log(width + 'px: native scroll, orbit, limits, inline studies, source controls and deep links passed');
   }
 
-  const fallback = await browser.newPage();
-  await fallback.evaluateOnNewDocument(() => {
-    const original = HTMLCanvasElement.prototype.getContext;
-    HTMLCanvasElement.prototype.getContext = function (type, ...args) {
-      if (type.startsWith('webgl')) return null;
-      return original.call(this, type, ...args);
-    };
-  });
-  await fallback.goto(origin + '/research/part-2/');
-  await fallback.waitForSelector('.taku-stage[data-mode="live"][data-tier="cpu"]');
-  for (const id of shots) {
-    await fallback.click(buttonFor(id));
-    await fallback.waitForSelector('.taku-stage[data-settled="' + id + '"]');
-  }
-  assert.equal(await fallback.$eval('.stage-tools', (el) => el.hidden), false);
-  await fallback.close();
-
-  const stalled = await browser.newPage();
-  await stalled.evaluateOnNewDocument(() => {
-    const Native = window.Worker;
-    window.Worker = class extends Native {
-      constructor(url, ...args) {
-        if (String(url).includes('gpu-check.js')) return { terminate() {} };
-        super(url, ...args);
-      }
-    };
-  });
-  await stalled.goto(origin + '/research/part-2/', { waitUntil: 'domcontentloaded' });
-  await stalled.click(buttonFor('shoulder'));
-  await stalled.waitForSelector('.taku-stage[data-mode="live"][data-tier="cpu"][data-settled="shoulder"]');
-  await stalled.close();
-
-  const noWorker = await browser.newPage();
-  await noWorker.evaluateOnNewDocument(() => {
-    window.Worker = undefined;
-    window.WebGL2RenderingContext = undefined;
-  });
-  await noWorker.goto(origin + '/research/part-2/#face', { waitUntil: 'domcontentloaded' });
-  await noWorker.waitForSelector('.taku-stage[data-mode="live"][data-tier="cpu"][data-settled="face"]');
-  await noWorker.close();
-
-  const plain = await browser.newPage();
-  await plain.setJavaScriptEnabled(false);
-  await plain.goto(origin + '/research/part-2/');
-  const links = await plain.$$eval('[data-shot]', (nodes) => nodes.map((node) => node.href));
-  for (const url of links) assert.equal((await fetch(url)).status, 200);
-  await plain.close();
-  console.log('WebGL fallback and JavaScript-free still links passed.');
+  // Force both engines to fail. The baked plates still expose independently selectable physical surfaces.
+  const page = await browser.newPage();
+  await page.setViewport({ width: 1200, height: 850 });
+  await page.setRequestInterception(true);
+  page.on('request', r => /gpu-check\.js/.test(r.url())
+    ? r.respond({ status: 200, contentType: 'text/javascript', body: "self.postMessage('unavailable');" })
+    : /taku-(cpu\.bin\.gz|desktop\.glb)/.test(r.url()) ? r.abort() : r.continue());
+  await page.goto(live || origin + '/research/part-2/');
+  await page.waitForSelector('.taku-stage[data-mode="stills"]');
+  await page.waitForSelector(callout('face'));
+  await page.click(callout('face'));
+  await page.waitForSelector('#part-study-host[data-part="face"] .study-piece');
+  await page.click('.cutaway-trace');
+  await page.waitForSelector('#supply-map[data-part="face"]');
+  assert.equal(await page.$eval('#part-study', el => el.hidden), true);
+  await page.close();
+  console.log('Poster-only inspection and Trace passed');
 } finally {
-  await browser?.close();
-  await new Promise((resolve) => server.close(resolve));
+  await browser.close();
+  server.closeAllConnections();
+  await new Promise(resolve => server.close(resolve));
 }

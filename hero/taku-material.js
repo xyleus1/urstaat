@@ -4,7 +4,8 @@ import finishes from './taku-finishes.json';
 const vertexShader = /* glsl */ `
   uniform mat3 printTransform;
   attribute float partTag;
-  uniform float activePart, unselectedAlpha;
+  uniform float activePart;
+  varying float surfaceCode;
   varying float partMask;
   varying vec2 printUv;
   varying vec3 surfacePosition;
@@ -16,12 +17,15 @@ const vertexShader = /* glsl */ `
     // viewing rotation to express the normal in the studio's world space.
     surfaceNormal = (vec4(normalMatrix * normal, 0.) * viewMatrix).xyz;
     printUv = (printTransform * vec3(uv, 1.)).xy;
-    partMask = mix(1.,unselectedAlpha,step(.5,abs(partTag-activePart)));
+    surfaceCode = partTag;
+    partMask = 1. - step(.5, abs(partTag - activePart));
     gl_Position = projectionMatrix * viewMatrix * world;
   }
 `;
 
 const fragmentShader = /* glsl */ `
+  layout(location=1) out highp vec4 partData;
+  varying float surfaceCode;
   varying float partMask;
   uniform sampler2D printMap;
   uniform vec3 paint;
@@ -66,19 +70,12 @@ const fragmentShader = /* glsl */ `
     if(coat>.001)radiance+=coat*(.027+.12*rim)*strips(r,coatRoughness);
     // Retain the dark optical glass and graphite under the broad studio strips.
     radiance*=mix(vec3(.53),vec3(1.),smoothstep(vec3(0.),vec3(.13),radiance));
-    gl_FragColor=vec4(pow(1.24*radiance/(radiance+.72),vec3(1./2.2)),partMask);
+    gl_FragColor=vec4(pow(1.24*radiance/(radiance+.72),vec3(1./2.2)),1.);
+    partData=vec4(surfaceCode*8./255.,mod(surfaceCode*47.,251.)/255.,step(.5,surfaceCode),partMask);
   }
 `;
 
-export function applyTakuMaterials(
-  THREE,
-  robot,
-  activePart = { value: -1 },
-  softwareStudio,
-  softwareAA = false,
-) {
-  // The single-sampled composite distinguishes robot surfaces from background dots.
-  const unselectedAlpha = { value: softwareAA ? 1 / 255 : 0 };
+export function applyTakuMaterials(THREE, robot, activePart = { value: -1 }, softwareStudio) {
   const white = new THREE.DataTexture(new Uint8Array([255, 255, 255, 255]), 1, 1);
   white.colorSpace = THREE.SRGBColorSpace;
   white.needsUpdate = true;
@@ -90,7 +87,7 @@ export function applyTakuMaterials(
     const map = source.map || white;
     if (map.matrixAutoUpdate) map.updateMatrix();
     textures.add(map);
-    const captured = softwareStudio?.material(source, activePart, unselectedAlpha);
+    const captured = softwareStudio?.material(source, activePart);
     if (captured) {
       materials.set(source, captured);
       return captured;
@@ -111,11 +108,12 @@ export function applyTakuMaterials(
       polygonOffsetUnits: -1,
       uniforms: {
         activePart,
-        unselectedAlpha,
         printMap: { value: map },
         chestPrint: { value: source.map ? 1 : 0 },
         printTransform: { value: map.matrix.clone() },
-        paint: { value: (source.color?.clone() || new THREE.Color(1, 1, 1)).multiplyScalar(finish.tint ?? 1) },
+        paint: {
+          value: (source.color?.clone() || new THREE.Color(1, 1, 1)).multiplyScalar(finish.tint ?? 1),
+        },
         roughness: { value: finish.roughness ?? source.roughness ?? 0.45 },
         metalness: { value: finish.metalness ?? source.metalness ?? 0 },
         coat: { value: source.clearcoat ?? 0 },

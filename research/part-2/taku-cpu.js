@@ -1,4 +1,5 @@
 import { zoomRange, zoomAvailability } from './taku-composition.js?v=studio-3';
+import { installZoomGestures } from './taku-gestures.js?v=field-1';
 const views = ['overview', 'side', 'face', 'shoulder', 'elbow', 'wrist', 'claw', 'waist', 'base'];
 const arms = new Set(['shoulder', 'elbow', 'wrist', 'claw']);
 const directions = [
@@ -52,7 +53,9 @@ async function modelBytes(signal) {
   // Hosts may apply content-encoding automatically to a .gz asset.
   if (new Uint8Array(bytes, 0, 2)[0] !== 31) return bytes;
   if (typeof DecompressionStream === 'function') {
-    return new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer();
+    return new Response(
+      new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip')),
+    ).arrayBuffer();
   }
   const { gunzipSync } = await import('./taku-inflate.min.js?v=studio-3');
   return gunzipSync(new Uint8Array(bytes)).buffer;
@@ -61,18 +64,21 @@ async function modelBytes(signal) {
 export async function mountCpu({
   canvas,
   initialView,
-  initialSide,
+  initialSide = 'left',
+  initialEngaged = false,
   previous,
   onViewChange,
   onSettled,
   onInspect,
   onProjection,
+  onAnchors,
+  onPick,
   onZoomChange,
   onError,
 }) {
   const events = new AbortController(),
     { signal } = events;
-  const ctx = canvas.getContext('2d', { alpha: false, desynchronized: true });
+  const ctx = canvas.getContext('2d', { alpha: true, desynchronized: true });
   if (!ctx) throw Error('Canvas 2D is unavailable');
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   let id = initialView,
@@ -98,6 +104,11 @@ export async function mountCpu({
     pickRequest = 0,
     lastFrame = 0;
   let registration, limits;
+  let selected = id,
+    selectedSide = side,
+    engaged = initialEngaged,
+    visibleAnchors = [];
+  const anchorWaiters = new Set();
   const mobileTier = matchMedia('(max-width: 760px), (pointer: coarse) and (max-width: 1100px)').matches;
   let hoverRequest = 0,
     hoverFrame = 0,
@@ -132,7 +143,7 @@ export async function mountCpu({
     dirty = false;
     const pose = {
       id,
-      code: partCode(id, side),
+      code: partCode(selected, selectedSide),
       orbit,
       target,
       width: canvas.width,
@@ -158,6 +169,8 @@ export async function mountCpu({
           buffer: out.pixels.buffer,
           byteOffset: out.pixels.byteOffset,
           projection: out.projection,
+          visible: out.visible,
+          orientation: { yaw: pose.orbit[0], pitch: pose.orbit[1] },
           submitted: out.submitted,
           cost: performance.now() - t,
         });
@@ -184,6 +197,15 @@ export async function mountCpu({
       renderedFrames++;
       submitted = data.submitted;
       cost = data.cost;
+      visibleAnchors = data.visible.map(({ code, x, y }) => ({
+        id: views[(code - 1) % 9],
+        side: code > 9 ? 'right' : 'left',
+        x,
+        y,
+      }));
+      onAnchors?.(visibleAnchors, data.orientation);
+      for (const resolve of anchorWaiters) resolve(visibleAnchors);
+      anchorWaiters.clear();
       onProjection?.(data.projection);
       if (limits) onZoomChange?.(zoomAvailability(limits, orbit[2]));
       if (!ready) {
@@ -203,14 +225,16 @@ export async function mountCpu({
   function messageReceived(data) {
     if (data.type === 'ready') {
       clearTimeout(workerTimer);
-      const restore = meta ? { orbit, target } : null;
+      const restore = meta ? { orbit, target, selected, selectedSide } : null;
       meta = data.meta;
       resize();
       setView(id, { immediate: true, side });
       if (restore) {
         orbit = restore.orbit;
         target = restore.target;
-      } else if (previous?.camera && previous.currentView === id && previous.side === side) {
+        selectPart(restore.selected, restore.selectedSide);
+      } else if (previous?.camera && previous.cameraSpace === 'world') {
+        if (previous.selectedId) selectPart(previous.selectedId, previous.selectedSide);
         target = [...previous.target];
         const delta = previous.camera.map((v, i) => v - target[i]),
           distance = Math.hypot(...delta);
@@ -226,16 +250,14 @@ export async function mountCpu({
       if (worker && recoverWorker) recoverWorker();
       else fail(Error(data.message));
     } else if (data.type === 'hover' && data.request === hoverRequest) {
-      const over = (data.tag & 31) === partCode(id, side);
+      const over = (data.tag & 31) === partCode(selected, selectedSide);
       canvas.dataset.partHovered = String(over);
-      canvas.style.cursor = over ? 'pointer' : data.tag >>> 5 ? 'zoom-in' : 'grab';
+      canvas.style.cursor = data.tag >>> 5 ? 'pointer' : engaged ? 'grab' : '';
     } else if (data.type === 'pick' && data.request === pickRequest && lastFrame === revision) {
-      const code = data.tag & 31,
-        group = data.tag >>> 5;
-      if (code === partCode(id, side)) onInspect?.(id, side);
-      else if (group) {
-        const right = group > 9;
-        setView(views[(group - 1) % 9], { side: right ? 'right' : 'left' });
+      const code = data.tag & 31 || data.tag >>> 5;
+      if (code) {
+        selectPart(views[(code - 1) % 9], code > 9 ? 'right' : 'left');
+        onPick?.(selected, selectedSide);
       }
     }
   }
@@ -254,10 +276,29 @@ export async function mountCpu({
       target: i < 2 ? meta.center : meta.anchors[code],
     };
   }
+  function selectPart(next, which = 'left') {
+    if (!views.includes(next) || dead) return;
+    selected = next;
+    selectedSide = arms.has(next) && which === 'right' ? 'right' : 'left';
+    revision++;
+    invalidate();
+  }
+  function setEngaged(value) {
+    engaged = Boolean(value);
+    canvas.style.touchAction = engaged ? 'none' : 'pan-y pinch-zoom';
+    canvas.style.cursor = engaged ? 'grab' : '';
+    if (!engaged) {
+      for (const id of pointers.keys()) if (canvas.hasPointerCapture(id)) canvas.releasePointerCapture(id);
+      pointers.clear();
+      click = null;
+      previousSpan = 0;
+    }
+  }
   function setView(next, { side: which = 'left', immediate = false } = {}) {
     if (!views.includes(next) || dead) return;
     id = next;
     side = arms.has(next) && which === 'right' ? 'right' : 'left';
+    selectPart(id, side);
     if (!meta || !cssWidth) return;
     const desired = preset();
     registration = desired;
@@ -315,19 +356,19 @@ export async function mountCpu({
   function zoom(factor) {
     if (factor > 0 && Number.isFinite(factor)) adjust(0, 0, factor);
   }
-  function tap(e) {
+  function pickAt(clientX, clientY) {
     const rect = canvas.getBoundingClientRect(),
-      x = (e.clientX - rect.left) / rect.width,
-      y = (e.clientY - rect.top) / rect.height;
+      x = (clientX - rect.left) / rect.width,
+      y = (clientY - rect.top) / rect.height;
     const request = ++pickRequest;
     if (worker) worker.postMessage({ type: 'pick', x, y, request });
     else if (raster) messageReceived({ type: 'pick', tag: raster.pick(x, y), request });
   }
-  canvas.style.touchAction = 'none';
+  setEngaged(initialEngaged);
   canvas.addEventListener(
     'pointerdown',
     (e) => {
-      if (e.button !== 0) return;
+      if (!engaged || e.button !== 0) return;
       canvas.setPointerCapture(e.pointerId);
       pointers.set(e.pointerId, [e.clientX, e.clientY]);
       click = pointers.size === 1 ? [e.clientX, e.clientY] : null;
@@ -341,6 +382,7 @@ export async function mountCpu({
   canvas.addEventListener(
     'pointermove',
     (e) => {
+      if (!engaged) return;
       const prev = pointers.get(e.pointerId);
       if (!prev) {
         if (e.pointerType === 'mouse' && ready) {
@@ -378,7 +420,7 @@ export async function mountCpu({
     'pointerup',
     (e) => {
       if (!pointers.has(e.pointerId)) return;
-      if (click && pointers.size === 1 && ready) tap(e);
+      if (click && pointers.size === 1 && ready) pickAt(e.clientX, e.clientY);
       pointers.delete(e.pointerId);
       click = null;
     },
@@ -398,22 +440,25 @@ export async function mountCpu({
       hoverPoint = null;
       hoverRequest++;
       canvas.dataset.partHovered = 'false';
-      canvas.style.cursor = 'grab';
+      canvas.style.cursor = engaged ? 'grab' : '';
+    },
+    { signal },
+  );
+  installZoomGestures(canvas, { engaged: () => engaged, hasPointers: () => pointers.size > 0, zoom, signal });
+  canvas.addEventListener(
+    'lostpointercapture',
+    (event) => {
+      if (pointers.delete(event.pointerId)) {
+        click = null;
+        previousSpan = 0;
+      }
     },
     { signal },
   );
   canvas.addEventListener(
-    'wheel',
-    (e) => {
-      e.preventDefault();
-      zoom(Math.exp(-clamp(e.deltaY, -300, 300) * 0.002));
-    },
-    { signal, passive: false },
-  );
-  canvas.addEventListener(
     'keydown',
     (e) => {
-      if (e.ctrlKey || e.altKey || e.metaKey) return;
+      if (!engaged || e.ctrlKey || e.altKey || e.metaKey) return;
       switch (e.key) {
         case 'ArrowLeft':
           adjust(-0.085, 0);
@@ -439,7 +484,7 @@ export async function mountCpu({
           break;
         case 'Enter':
         case ' ':
-          onInspect?.(id, side);
+          (onInspect || onPick)?.(selected, selectedSide);
           break;
         default:
           return;
@@ -467,6 +512,8 @@ export async function mountCpu({
     worker?.terminate();
     cancelAnimationFrame(raf);
     cancelAnimationFrame(hoverFrame);
+    for (const resolve of anchorWaiters) resolve([]);
+    anchorWaiters.clear();
   }
   function fail(error) {
     if (dead) return;
@@ -475,24 +522,21 @@ export async function mountCpu({
     if (ready) onError?.(error);
   }
   try {
-    const [model, lights, ink, dots, kernel] = await Promise.all([
+    const [model, lights, ink, kernel] = await Promise.all([
       modelBytes(signal),
       imagePixels('taku-finishes.webp?v=studio-3', 0, signal),
       imagePixels('taku-ink.png', 256, signal),
-      fetch(new URL('taku-dots.bin', assets), { signal })
-        .then((r) => (r.ok ? r.arrayBuffer() : null))
-        .catch(() => null),
       typeof WebAssembly === 'object'
-        ? fetch(new URL('taku-raster.wasm', assets), { signal })
+        ? fetch(new URL('taku-raster.wasm?v=field-1', assets), { signal })
             .then((r) => r.arrayBuffer())
             .then((r) => WebAssembly.compile(r))
             .catch(() => null)
         : null,
     ]);
-    const payload = { model, lights, ink, inkSize: 256, dots, kernel };
+    const payload = { model, lights, ink, inkSize: 256, kernel };
     if (window.Worker) {
       try {
-        worker = new Worker(new URL('taku-cpu-worker.js?v=studio-3', import.meta.url), { type: 'module' });
+        worker = new Worker(new URL('taku-cpu-worker.js?v=field-1', import.meta.url), { type: 'module' });
       } catch {
         /* Main-thread Canvas 2D is also supported. */
       }
@@ -503,7 +547,7 @@ export async function mountCpu({
       worker = null;
       busy = false;
       try {
-        const { createRaster } = await import('./taku-raster.js?v=studio-3');
+        const { createRaster } = await import('./taku-raster.js?v=field-1');
         const instance = kernel ? await WebAssembly.instantiate(kernel).catch(() => null) : null;
         if (dead) return;
         raster = createRaster(payload, instance);
@@ -528,14 +572,29 @@ export async function mountCpu({
     await first;
     return {
       setView,
+      selectPart,
+      setEngaged,
+      pickAt,
+      anchorsReady: () =>
+        busy || dirty
+          ? new Promise((resolve) => anchorWaiters.add(resolve))
+          : Promise.resolve(visibleAnchors),
       zoom,
       orbitStep: (yaw, pitch) => adjust(yaw, -pitch),
       reset: () => setView('overview'),
       dispose,
       getState: () => ({
         currentView: id,
+        selectedId: selected,
+        selectedSide,
+        engaged,
+        cameraSpace: 'world',
         side,
-        camera: [...orbit],
+        camera: [
+          target[0] + orbit[2] * Math.sin(orbit[0]) * Math.cos(orbit[1]),
+          target[1] + orbit[2] * Math.sin(orbit[1]),
+          target[2] + orbit[2] * Math.cos(orbit[0]) * Math.cos(orbit[1]),
+        ],
         target: [...target],
         renderedFrames,
         submitted,

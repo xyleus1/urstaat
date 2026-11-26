@@ -187,8 +187,15 @@ export function createAtlas(root) {
     globe?.select(item, focus);
     const e = item.kind === 'edge' ? edges[item.id] : null;
     for (const b of index.querySelectorAll('[data-site]')) {
-      if (item.kind === 'node' && b.dataset.site === item.id) b.setAttribute('aria-current', 'true');
-      else b.removeAttribute('aria-current');
+      if (item.kind === 'node' && b.dataset.site === item.id) {
+        b.setAttribute('aria-current', 'true');
+        if (focus === true && sequence.scrollWidth > sequence.clientWidth) {
+          const card = b.getBoundingClientRect();
+          const viewport = sequence.getBoundingClientRect();
+          if (card.left < viewport.left) sequence.scrollLeft += card.left - viewport.left;
+          else if (card.right > viewport.right) sequence.scrollLeft += card.right - viewport.right;
+        }
+      } else b.removeAttribute('aria-current');
       b.classList.toggle('is-endpoint', !!e && (b.dataset.site === e.from || b.dataset.site === e.to));
     }
     for (const line of index.querySelectorAll('[data-wire]')) {

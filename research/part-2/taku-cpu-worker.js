@@ -1,4 +1,4 @@
-import { createRaster } from './taku-raster.js?v=studio-3';
+import { createRaster } from './taku-raster.js?v=field-1';
 
 let raster;
 self.onmessage = async ({ data }) => {
@@ -13,13 +13,15 @@ self.onmessage = async ({ data }) => {
       self.postMessage({ type: data.type, tag: raster.pick(data.x, data.y), request: data.request });
     } else if (data.type === 'render') {
       const started = performance.now();
-      const { pixels, width, height, submitted, projection } = raster.render(data.pose);
+      const { pixels, width, height, submitted, projection, visible } = raster.render(data.pose);
       const output = {
         type: 'frame',
         revision: data.revision,
         width,
         height,
         projection,
+        visible,
+        orientation: { yaw: data.pose.orbit[0], pitch: data.pose.orbit[1] },
         submitted,
         cost: performance.now() - started,
       };

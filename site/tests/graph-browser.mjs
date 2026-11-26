@@ -139,14 +139,15 @@ try {
         const r = document.querySelector(selector).getBoundingClientRect();
         return { left: r.left, right: r.right, top: r.top, bottom: r.bottom };
       };
-      return { information: box('.hero-information'), subtitle: box('.hero-information .subtitle'), authors: box('.hero-information .authors'), nav: box('.header nav'), header: box('.header'), width: innerWidth, scrollWidth: document.documentElement.scrollWidth };
+      return { title: box('.hero-title'), quote: box('.hero-epigraph'), authors: box('.hero-byline'), art: box('.hero-art'), nav: box('.header nav'), header: box('.header'), width: innerWidth, scrollWidth: document.documentElement.scrollWidth };
     });
-    assert.ok(Math.abs(bounds.subtitle.left - bounds.information.left) < 2, 'Subtitle aligns to the left edge');
-    assert.ok(Math.abs(bounds.authors.right - bounds.information.right) < 2, 'Authors align to the right edge');
-    assert.ok(bounds.subtitle.right <= bounds.authors.left, 'Subtitle and authors remain separate columns');
+    assert.ok(bounds.title.bottom <= bounds.quote.top && bounds.authors.bottom <= bounds.art.top, 'The epigraph and research byline sit between the title and artwork');
+    if (bounds.width <= 760) assert.ok(bounds.quote.bottom <= bounds.authors.top, 'The research byline follows the quote on small screens');
+    else assert.ok(bounds.quote.right <= bounds.authors.left, 'The research byline sits beside the quote at desktop widths');
     assert.ok(Math.abs(bounds.nav.right - bounds.header.right) < 2, 'Navigation remains right aligned');
     assert.ok(bounds.scrollWidth <= bounds.width, 'Homepage has no horizontal overflow');
-    assert.match(await page.$eval('.hero-information .authors', node => node.innerText), /Nima Kamali[\s\S]*Ava Poole/);
+    assert.match(await page.$eval('.hero-epigraph cite a', node => node.href), /DeleuzeGuattari_Becoming\.pdf#page=14$/);
+    assert.match(await page.$eval('.hero-information .authors', node => node.innerText), /Nima Kamali[\s\S]*Ava Poole[\s\S]*Mert Turna/);
   };
   const verifySources = async () => {
     const text = await page.$eval('body', node => node.innerText);
@@ -492,7 +493,7 @@ try {
   const mobileResearch = await verifyResearch();
   await page.screenshot({ path: resolve(outputDirectory, 'editorial-research-mobile.png') });
   await page.$('.essay-body figure').then(element => element.screenshot({ path: resolve(outputDirectory, 'editorial-research-figure-mobile.png') }));
-  report.checks.push('Desktop/mobile clean header, two-column subtitle/authors, simplified Sources with contributors and retained provenance, runtime model available');
+  report.checks.push('Desktop/mobile header, sourced epigraph and research byline, Sources with contributors and retained provenance, runtime model available');
   report.checks.push(`Research desktop/mobile: ${desktopResearch.figures}/${mobileResearch.figures} loaded figures; ${desktopResearch.quotations}/${mobileResearch.quotations} italic quotations; captions, originals, section links and column bounds verified`);
   assert.deepEqual(errors, []);
   assert.deepEqual(futureArtworkRequests, [], 'Placeholders do not request missing sketches');

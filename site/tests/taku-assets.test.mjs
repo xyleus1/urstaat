@@ -28,14 +28,33 @@ test('the three fixed Taku exports are self-contained GLBs within their transfer
   assert.ok(sizes[0] < sizes[1] && sizes[1] < sizes[2], 'The three fixed exports have distinct budgets');
 });
 
-test('each desktop and portrait still has a visible hit region for its selected CAD component',async()=>{
-  const regions=JSON.parse(await readFile(new URL('still-regions.json',base),'utf8'));
-  const shots=['overview','side','face','shoulder','elbow','wrist','claw','waist','base','right-shoulder','right-elbow','right-wrist','right-claw'];
-  assert.equal(Object.keys(regions).length,shots.length*2);
-  for(const shot of shots)for(const suffix of ['', '-mobile']){
-    const name=shot+suffix+'.webp';
-    const [width,height,encoded]=regions[name],bits=Buffer.from(encoded,'base64');
-    assert.equal(bits.length,Math.ceil(width*height/8));
-    assert.ok(bits.some(byte=>byte!==0)&&bits.some(byte=>byte!==255),name);
+test('desktop and portrait poster anchors land on their own visible CAD surfaces', async () => {
+  const [anchors, surfaces] = await Promise.all(['still-anchors.json', 'still-surfaces.json']
+    .map(name => readFile(new URL(name, base), 'utf8').then(JSON.parse)));
+  const views = ['overview', 'side', 'face', 'shoulder', 'elbow', 'wrist', 'claw', 'waist', 'base'];
+  const shots = [...views, 'right-shoulder', 'right-elbow', 'right-wrist', 'right-claw'];
+  assert.equal(Object.keys(surfaces).length, shots.length * 2);
+  assert.deepEqual(Object.keys(anchors).sort(), Object.keys(surfaces).sort());
+  for (const shot of shots) for (const suffix of ['', '-mobile']) {
+    const name = shot + suffix + '.webp';
+    const [width, height, encoded] = surfaces[name], runs = Buffer.from(encoded, 'base64');
+    const labels = new Uint8Array(width * height);
+    let cursor = 0;
+    for (let i = 0; i < runs.length; i += 2) {
+      assert.ok(runs[i] && i + 1 < runs.length, name);
+      labels.fill(runs[i + 1], cursor, cursor + runs[i]);
+      cursor += runs[i];
+    }
+    assert.equal(cursor, labels.length, name);
+    assert.ok(anchors[name].length && labels.includes(0), name);
+    const visible = new Set(labels);
+    visible.delete(0);
+    for (const { id, side, x, y } of anchors[name]) {
+      assert.ok(views.includes(id) && ['left', 'right'].includes(side) && x > 0 && x < 1 && y > 0 && y < 1, name);
+      const code = views.indexOf(id) + 1 + (side === 'right' ? 9 : 0);
+      assert.equal(labels[Math.floor(y * height) * width + Math.floor(x * width)], code, name + ' ' + id);
+      assert.ok(visible.delete(code), name + ' contains a duplicate anchor');
+    }
+    assert.equal(visible.size, 0, 'Every labeled surface gets a hotspot on ' + name);
   }
 });
