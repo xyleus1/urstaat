@@ -129,9 +129,16 @@ export async function mountCpu({
     dirty = true;
     if (!dead && !busy && !raf && meta && !document.hidden) raf = requestAnimationFrame(draw);
   }
+  function startFirstFrame() {
+    if (ready || dead || busy || !registration || (!worker && !raster)) return;
+    // The first image does not need an animation tick. A background tab can delay rAF
+    // indefinitely even when the worker is otherwise ready to paint its first pose.
+    cancelAnimationFrame(raf);
+    draw(performance.now());
+  }
   function draw(now) {
     raf = 0;
-    if (dead || busy || !dirty || !meta || !cssWidth) return;
+    if (dead || busy || !dirty || !registration || (!worker && !raster)) return;
     if (tween) {
       const q = Math.min(1, (now - tween.start) / 400),
         t = q * q * (3 - 2 * q);
@@ -155,8 +162,17 @@ export async function mountCpu({
     const message = { type: 'render', pose, revision };
     if (worker) {
       message.buffer = returnedBuffer;
-      worker.postMessage(message, returnedBuffer ? [returnedBuffer] : []);
-      returnedBuffer = undefined;
+      try {
+        if (!ready) {
+          // Startup has two separate replies: model metadata, then the render buffer.
+          clearTimeout(workerTimer);
+          workerTimer = setTimeout(recoverWorker, 6500);
+        }
+        worker.postMessage(message, returnedBuffer ? [returnedBuffer] : []);
+        returnedBuffer = undefined;
+      } catch {
+        recoverWorker();
+      }
     } else {
       try {
         const t = performance.now(),
@@ -209,6 +225,7 @@ export async function mountCpu({
       onProjection?.(data.projection);
       if (limits) onZoomChange?.(zoomAvailability(limits, orbit[2]));
       if (!ready) {
+        clearTimeout(workerTimer);
         ready = true;
         firstResolve();
       }
@@ -219,32 +236,17 @@ export async function mountCpu({
     }
     // Pointer events may have updated the pose while a frame was in flight.
     // Submit the newest pose as soon as the worker is free.
-    if (worker && dirty && !document.hidden) draw(performance.now());
+    if (worker && dirty && (!ready || !document.hidden)) draw(performance.now());
     else if (tween || dirty) invalidate();
   }
   function messageReceived(data) {
     if (data.type === 'ready') {
       clearTimeout(workerTimer);
-      const restore = meta ? { orbit, target, selected, selectedSide } : null;
       meta = data.meta;
       resize();
-      setView(id, { immediate: true, side });
-      if (restore) {
-        orbit = restore.orbit;
-        target = restore.target;
-        selectPart(restore.selected, restore.selectedSide);
-      } else if (previous?.camera && previous.cameraSpace === 'world') {
-        if (previous.selectedId) selectPart(previous.selectedId, previous.selectedSide);
-        target = [...previous.target];
-        const delta = previous.camera.map((v, i) => v - target[i]),
-          distance = Math.hypot(...delta);
-        if (distance)
-          orbit = [
-            Math.atan2(delta[0], delta[2]),
-            Math.asin(clamp(delta[1] / distance, -1, 1)),
-            clamp(distance, limits.min, limits.max),
-          ];
-      }
+      initializeCamera();
+      invalidate();
+      startFirstFrame();
     } else if (data.type === 'frame') framePresented(data);
     else if (data.type === 'error') {
       if (worker && recoverWorker) recoverWorker();
@@ -325,6 +327,21 @@ export async function mountCpu({
     onViewChange?.(id, arms.has(id) ? side : undefined);
     invalidate();
   }
+  function initializeCamera() {
+    if (!meta || !cssWidth || registration) return;
+    setView(id, { immediate: true, side });
+    if (!previous?.camera || previous.cameraSpace !== 'world') return;
+    if (previous.selectedId) selectPart(previous.selectedId, previous.selectedSide);
+    target = [...previous.target];
+    const delta = previous.camera.map((value, i) => value - target[i]);
+    const distance = Math.hypot(...delta);
+    if (distance)
+      orbit = [
+        Math.atan2(delta[0], delta[2]),
+        Math.asin(clamp(delta[1] / distance, -1, 1)),
+        clamp(distance, limits.min, limits.max),
+      ];
+  }
   function resize() {
     const rect = canvas.getBoundingClientRect();
     if (!rect.width || !rect.height || (rect.width === cssWidth && rect.height === cssHeight)) return;
@@ -340,8 +357,10 @@ export async function mountCpu({
       limits = zoomRange(id, registration.orbit[2]);
       orbit[2] = clamp((orbit[2] * registration.orbit[2]) / oldDefault, limits.min, limits.max);
     }
+    initializeCamera();
     revision++;
     invalidate();
+    startFirstFrame();
   }
   function adjust(yaw, pitch, scale = 1) {
     tween = null;
@@ -541,11 +560,16 @@ export async function mountCpu({
         /* Main-thread Canvas 2D is also supported. */
       }
     }
-    recoverWorker = async () => {
+    let recovery;
+    async function useMainThread() {
       clearTimeout(workerTimer);
-      worker?.terminate();
-      worker = null;
+      if (worker) {
+        worker.onmessage = worker.onerror = worker.onmessageerror = null;
+        worker.terminate();
+        worker = null;
+      }
       busy = false;
+      dirty = true;
       try {
         const { createRaster } = await import('./taku-raster.js?v=field-1');
         const instance = kernel ? await WebAssembly.instantiate(kernel).catch(() => null) : null;
@@ -555,11 +579,19 @@ export async function mountCpu({
       } catch (error) {
         fail(error);
       }
-    };
+    }
+    recoverWorker = () => (recovery ??= useMainThread());
     if (worker) {
-      worker.onmessage = ({ data }) => messageReceived(data);
-      worker.onerror = (e) => {
-        e.preventDefault();
+      worker.onmessage = ({ data }) => {
+        try {
+          messageReceived(data);
+        } catch (error) {
+          fail(error);
+        }
+      };
+      worker.onmessageerror = recoverWorker;
+      worker.onerror = (event) => {
+        event.preventDefault();
         recoverWorker();
       };
       workerTimer = setTimeout(recoverWorker, 4000);
