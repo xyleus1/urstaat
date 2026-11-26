@@ -1,127 +1,233 @@
-import { createInspector } from './part-inspector.js?v=studio-4';
+import { createInspector } from './part-inspector.js?v=field-1';
+import { robotParts } from './robot-parts.js?v=inline-1';
+import { mountCallouts } from './robot-callouts.js?v=field-1';
+import { mountTakuAtmosphere } from './taku-atmosphere.js?v=field-1';
 
 const stage = document.querySelector('.taku-stage');
-let canvas = stage.querySelector('canvas');
-const still = stage.querySelector('picture');
-const views = document.querySelector('#views');
-const links = new Map([...views.querySelectorAll('[data-shot]')].map((link) => [link.dataset.shot, link]));
+const surface = stage.querySelector('.taku-surface');
+let canvas = document.querySelector('#taku-canvas');
+const still = document.querySelector('#still');
+const image = still.querySelector('img');
 const status = stage.querySelector('.stage-status');
 const tools = stage.querySelector('.stage-tools');
+const engageButton = document.querySelector('#engage-model');
 const zoomButtons = [...tools.querySelectorAll('[data-zoom]')];
 const mobile = matchMedia('(max-width: 760px), (pointer: coarse) and (max-width: 1100px)');
-const bilateral = new Set(['shoulder', 'elbow', 'wrist', 'claw']);
-function linkedView() {
-  const fragment = location.hash.slice(1);
-  if (fragment.startsWith('right-') && bilateral.has(fragment.slice(6))) return [fragment.slice(6), 'right'];
-  return [links.has(fragment) ? fragment : 'overview', 'left'];
-}
-let [current, side] = linkedView();
-let controller;
-let stillRegions;
-let disposed = false;
-const inspector = createInspector();
+const normalizeSide = (id, side) => robotParts[id].bilateral && side === 'right' ? 'right' : 'left';
 
-function select(id, which = 'left', syncUrl = true) {
-  if (!links.has(id)) return;
-  current = id;
-  side = which === 'right' && bilateral.has(id) ? 'right' : 'left';
-  inspector.select(id, side);
-  stage.dataset.view = id;
-  if (bilateral.has(id)) stage.dataset.side = side;
-  else delete stage.dataset.side;
-  const hash = id === 'overview' ? '' : '#' + (side === 'right' ? 'right-' : '') + id;
-  if (syncUrl && location.hash !== hash)
-    history.replaceState(history.state, '', location.pathname + location.search + hash);
-  for (const [shot, link] of links) {
-    if (shot === id) link.setAttribute('aria-current', 'true');
-    else link.removeAttribute('aria-current');
+function linkedView() {
+  const fragment = location.hash.slice(1) || 'overview';
+  const right = fragment.startsWith('right-');
+  const id = right ? fragment.slice(6) : fragment;
+  if (!Object.hasOwn(robotParts, id) || (right && !robotParts[id].bilateral)) return null;
+  return [id, right ? 'right' : 'left'];
+}
+let [cameraView, cameraSide] = linkedView() || ['overview', 'left'];
+let selectedPart = cameraView, selectedSide = cameraSide, openKey;
+let controller, engaged = false, disposed = false;
+let posterAnchors, posterSurfaces, decodedPlate;
+const surfaceIds = ['overview', 'side', 'face', 'shoulder', 'elbow', 'wrist', 'claw', 'waist', 'base'];
+const atmosphere = mountTakuAtmosphere(stage);
+const callouts = mountCallouts(stage.querySelector('.robot-callouts'), document.querySelector('#part-study'), openStudy);
+const inspector = createInspector({
+  onAtlasSelect(id, side) {
+    mark(id, side);
+    if (stage.dataset.mode === 'stills') showStill(id, normalizeSide(id, side));
+  },
+  onCloseStudy() {
+    openKey = undefined;
+    callouts.select(selectedPart, selectedSide, openKey);
+  },
+});
+
+function mark(id, side) {
+  if (!Object.hasOwn(robotParts, id)) return;
+  selectedPart = id;
+  selectedSide = normalizeSide(id, side);
+  stage.dataset.part = selectedPart;
+  stage.dataset.side = selectedSide;
+  controller?.selectPart(selectedPart, selectedSide);
+  callouts.select(selectedPart, selectedSide, openKey);
+}
+function openStudy(id, side, opener) {
+  if (!Object.hasOwn(robotParts, id)) return;
+  const which = normalizeSide(id, side);
+  const studyKey = id + '-' + which;
+  if (openKey === studyKey && opener?.matches('[data-callout]')) {
+    inspector.close();
+    return;
+  }
+  inspector.open(id, which, opener || canvas);
+  openKey = studyKey;
+  mark(id, which);
+  if (matchMedia('(max-width: 1039px)').matches) {
+    const box = document.querySelector('#part-study').getBoundingClientRect();
+    const extra = box.top + Math.min(box.height, 210) + 12 - innerHeight;
+    if (extra > 0) window.scrollBy({
+      top: extra, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth',
+    });
   }
 }
 
-function showStill() {
-  const url =
-    side === 'right' ? 'stills/right-' + current + '.webp?v=studio-3' : links.get(current).getAttribute('href');
-  still.querySelector('source').srcset = url.replace('.webp', '-mobile.webp');
-  const image = still.querySelector('img');
-  image.src = url;
-  const label = (bilateral.has(current) ? side + ' ' : '') + links.get(current).textContent.toLowerCase();
-  image.alt = 'Dyna Taku, ' + label + ' view.';
+function setEngaged(value) {
+  engaged = Boolean(value && controller && stage.dataset.mode === 'live');
+  controller?.setEngaged(engaged);
+  stage.dataset.engaged = String(engaged);
+  engageButton.textContent = engaged ? 'Done' : 'Explore in 3D';
+  engageButton.setAttribute('aria-pressed', String(engaged));
+}
+function activate() {
+  setEngaged(true);
+  if (engaged) canvas.focus({ preventScroll: true });
 }
 
+function showStill(id = cameraView, side = cameraSide) {
+  const base = 'stills/' + (side === 'right' ? 'right-' : '') + id;
+  still.dataset.part = id;
+  still.dataset.side = side;
+  still.querySelector('source').srcset = base + '-mobile.webp?v=field-1';
+  image.src = base + '.webp?v=field-1';
+  image.alt = 'Dyna Taku, ' + (robotParts[id].bilateral ? side + ' ' : '') + robotParts[id].label.toLowerCase() + ' view.';
+  if (stage.dataset.mode === 'stills' && image.complete) updatePosterLinks();
+}
+function posterGeometry() {
+  if (!image.naturalWidth || !image.naturalHeight) return;
+  const rect = image.getBoundingClientRect();
+  const scale = Math.min(rect.width / image.naturalWidth, rect.height / image.naturalHeight);
+  const width = image.naturalWidth * scale, height = image.naturalHeight * scale;
+  return { rect, width, height, left: (rect.width - width) / 2, top: (rect.height - height) / 2 };
+}
+function updatePosterLinks() {
+  if (stage.dataset.mode !== 'stills') return;
+  const g = posterGeometry();
+  if (!g || !g.rect.width || !image.currentSrc) return;
+  const name = new URL(image.currentSrc).pathname.split('/').pop();
+  callouts.update((posterAnchors?.[name] || []).map(a => ({
+    ...a, x: (g.left + a.x * g.width) / g.rect.width, y: (g.top + a.y * g.height) / g.rect.height,
+  })));
+}
+image.addEventListener('load', updatePosterLinks);
+const posterSize = new ResizeObserver(updatePosterLinks);
+posterSize.observe(surface);
 function useStills() {
+  controller?.dispose();
+  controller = undefined;
   stage.dataset.mode = 'stills';
   delete stage.dataset.settled;
+  setEngaged(false);
   tools.hidden = true;
   canvas.removeAttribute('tabindex');
   canvas.setAttribute('aria-hidden', 'true');
   status.textContent = '';
-  showStill();
-  if (!stillRegions) {
-    fetch(new URL('assets/still-regions.json?v=studio-3', import.meta.url))
-      .then(async (response) => {
-        if (!response.ok || disposed) return;
-        const masks = await response.json();
-        stillRegions = new Map(
-          Object.entries(masks).map(([key, [width, height, bits]]) => [
-            key,
-            { width, height, bits: atob(bits) },
-          ]),
-        );
-      })
-      .catch(() => {});
+  showStill(selectedPart, selectedSide);
+  if (!posterAnchors) fetch(new URL('assets/still-anchors.json?v=field-1', import.meta.url))
+    .then(r => r.ok ? r.json() : {}).then(value => { posterAnchors = value; updatePosterLinks(); }).catch(() => {});
+  if (!posterSurfaces) fetch(new URL('assets/still-surfaces.json?v=field-1', import.meta.url))
+    .then(r => r.ok ? r.json() : {}).then(value => { posterSurfaces = value; }).catch(() => {});
+}
+function posterHit(event) {
+  const g = posterGeometry();
+  if (stage.dataset.mode !== 'stills' || !g || !image.currentSrc) return;
+  const filename = new URL(image.currentSrc).pathname.split('/').pop();
+  const plate = posterSurfaces?.[filename];
+  if (!plate) return;
+  const [cols, rows, data] = plate;
+  if (decodedPlate?.filename !== filename) {
+    const runs = atob(data), pixels = new Uint8Array(cols * rows);
+    let cursor = 0;
+    for (let i = 0; i < runs.length; i += 2) {
+      const count = runs.charCodeAt(i);
+      pixels.fill(runs.charCodeAt(i + 1), cursor, cursor + count);
+      cursor += count;
+    }
+    decodedPlate = { filename, pixels };
   }
+  const x = Math.floor((event.clientX - g.rect.left - g.left) / g.width * cols);
+  const y = Math.floor((event.clientY - g.rect.top - g.top) / g.height * rows);
+  if (x < 0 || y < 0 || x >= cols || y >= rows) return;
+  const code = decodedPlate.pixels[y * cols + x];
+  if (code) return [surfaceIds[(code - 1) % 9], code > 9 ? 'right' : 'left'];
 }
-
-function overStillPart(event) {
-  if (stage.dataset.mode !== 'stills' || !stillRegions) return false;
-  const image = still.querySelector('img');
-  if (!image.complete || !image.naturalWidth) return false;
-  const mask = stillRegions.get(new URL(image.currentSrc).pathname.split('/').pop());
-  if (!mask) return false;
-  const rect = image.getBoundingClientRect();
-  const scale = Math.min(rect.width / image.naturalWidth, rect.height / image.naturalHeight);
-  const width = image.naturalWidth * scale,
-    height = image.naturalHeight * scale;
-  const x = Math.floor(((event.clientX - rect.left - (rect.width - width) / 2) * mask.width) / width);
-  const y = Math.floor(((event.clientY - rect.top - (rect.height - height) / 2) * mask.height) / height);
-  if (x < 0 || x >= mask.width || y < 0 || y >= mask.height) return false;
-  const bit = y * mask.width + x;
-  return !!(mask.bits.charCodeAt(bit >> 3) & (1 << (bit & 7)));
-}
-still.addEventListener('pointermove', (event) => {
-  still.style.cursor = overStillPart(event) ? 'pointer' : '';
+still.addEventListener('pointermove', event => {
+  still.style.cursor = posterHit(event) ? 'pointer' : '';
 });
-still.addEventListener('click', (event) => {
-  if (overStillPart(event)) inspector.inspect(current, side);
+still.addEventListener('click', event => {
+  const hit = posterHit(event);
+  if (hit) openStudy(...hit, still);
 });
 
-function goTo(id, which = 'left', syncUrl = true) {
-  select(id, which, syncUrl);
-  if (stage.dataset.mode === 'live' && controller) {
-    delete stage.dataset.settled;
-    controller.setView(current, { side });
-  } else {
-    showStill();
-  }
+function setCamera(id, which) {
+  cameraView = id;
+  cameraSide = which;
+  stage.dataset.view = id;
+  if (controller) controller.setView(id, { side: which });
+  else showStill();
 }
-
-views.addEventListener('click', (event) => {
-  const link = event.target.closest('[data-shot]');
-  if (!link || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-  event.preventDefault();
-  goTo(link.dataset.shot);
-});
-
 addEventListener('hashchange', () => {
-  const [id, which] = linkedView();
-  if (id !== 'overview' || !location.hash || location.hash === '#overview') goTo(id, which, false);
+  const target = linkedView();
+  if (!target) return;
+  inspector.close({ restoreFocus: false });
+  setCamera(...target);
+  mark(...target);
+  inspector.init(...target);
 });
 
-tools.addEventListener('click', (event) => {
-  const button = event.target.closest('button');
-  if (!button || !controller) return;
-  if (button.id === 'reset') controller.reset();
-  else controller.zoom(Number(button.dataset.zoom));
+// An ordinary touch swipe belongs to the page. An inactive mouse press may start a drag immediately.
+let inactiveTouch;
+surface.addEventListener('pointerdown', event => {
+  if (event.target !== canvas || !controller || engaged || event.button !== 0) return;
+  if (event.pointerType === 'mouse') activate();
+  else if (!event.isPrimary || inactiveTouch) inactiveTouch = null;
+  else inactiveTouch = { id: event.pointerId, x: event.clientX, y: event.clientY };
+}, true);
+surface.addEventListener('pointermove', event => {
+  if (inactiveTouch?.id === event.pointerId && Math.hypot(event.clientX - inactiveTouch.x, event.clientY - inactiveTouch.y) > 7)
+    inactiveTouch = null;
+});
+surface.addEventListener('pointercancel', () => { inactiveTouch = null; });
+surface.addEventListener('pointerup', event => {
+  if (!engaged && event.target === canvas && inactiveTouch?.id === event.pointerId) {
+    activate();
+    controller?.pickAt(event.clientX, event.clientY);
+  }
+  inactiveTouch = null;
+});
+document.addEventListener('pointerdown', event => {
+  if (engaged && !stage.contains(event.target)) setEngaged(false);
+}, true);
+document.addEventListener('focusin', event => {
+  if (engaged && !stage.contains(event.target)) setEngaged(false);
+});
+document.addEventListener('keydown', event => {
+  if (event.target === canvas && !engaged && (event.key === 'Enter' || event.key === ' ')) {
+    event.preventDefault();
+    event.stopPropagation();
+    activate();
+  }
+}, true);
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape' && (engaged || openKey)) {
+    event.preventDefault();
+    if (openKey) inspector.close();
+    setEngaged(false);
+  }
+});
+tools.addEventListener('click', event => {
+  const b = event.target.closest('button');
+  if (!controller || !b) return;
+  if (b === engageButton) {
+    if (engaged) setEngaged(false);
+    else activate();
+  } else if (b.id === 'reset') {
+    cameraView = 'overview';
+    cameraSide = 'left';
+    stage.dataset.view = cameraView;
+    controller.reset();
+    controller.selectPart(selectedPart, selectedSide);
+  } else {
+    activate();
+    controller.zoom(Number(b.dataset.zoom));
+  }
 });
 
 function graphicsReady() {
@@ -151,10 +257,6 @@ function graphicsReady() {
 let generation = 0;
 let request;
 let deadline;
-function project(value) {
-  stage.takuProjection = value;
-  stage.dispatchEvent(new CustomEvent('taku-projection', { detail: value }));
-}
 async function openRenderer(graphics) {
   const session = ++generation;
   clearTimeout(deadline);
@@ -183,25 +285,27 @@ async function openRenderer(graphics) {
     oldCanvas.replaceWith(fresh);
     canvas = fresh;
   }
-  const opening = current,
-    openingSide = side;
+  const opening = cameraView,
+    openingSide = cameraSide;
   const stale = () => disposed || session !== generation;
   const callbacks = {
     canvas: fresh,
     initialView: opening,
     initialSide: openingSide,
     previous,
-    onViewChange(id, which) {
-      if (!stale() && stage.dataset.mode === 'live') {
-        delete stage.dataset.settled;
-        select(id, which);
-      }
-    },
     onSettled(id) {
       if (!stale()) stage.dataset.settled = id;
     },
-    onInspect(id, which) {
-      if (!stale()) inspector.inspect(id, which);
+    onPick(id, side) {
+      if (!stale()) openStudy(id, side, canvas);
+    },
+    onInspect(id, side) {
+      if (!stale()) openStudy(id, side, canvas);
+    },
+    onAnchors(anchors, pose) {
+      if (stale()) return;
+      callouts.update(anchors);
+      if (pose) atmosphere.setPose(pose);
     },
     onZoomChange({ canZoomIn, canZoomOut }) {
       if (stale()) return;
@@ -209,9 +313,6 @@ async function openRenderer(graphics) {
         const disabled = Number(b.dataset.zoom) > 1 ? !canZoomIn : !canZoomOut;
         if (b.disabled !== disabled) b.disabled = disabled;
       }
-    },
-    onProjection(value) {
-      if (!stale()) project(value);
     },
     onError(error) {
       if (stale()) return;
@@ -235,7 +336,7 @@ async function openRenderer(graphics) {
         return response.arrayBuffer();
       });
       assetData.catch(() => {});
-      const [{ mountTaku }] = await Promise.all([import('./taku-viewer.min.js?v=studio-3'), assetData]);
+      const [{ mountTaku }] = await Promise.all([import('./taku-viewer.min.js?v=field-1'), assetData]);
       if (stale()) return;
       deadline = setTimeout(() => {
         if (!stale()) openRenderer('unavailable');
@@ -251,7 +352,7 @@ async function openRenderer(graphics) {
         },
       });
     } else {
-      const { mountCpu } = await import('./taku-cpu.js?v=studio-3');
+      const { mountCpu } = await import('./taku-cpu.js?v=field-1');
       if (stale()) return;
       next = await mountCpu(callbacks);
     }
@@ -271,8 +372,10 @@ async function openRenderer(graphics) {
     if (hardware) stage.dataset.graphics = 'hardware';
     stage.dataset.tier = tier;
     stage.dataset.mode = 'live';
-    if (current !== opening || side !== openingSide) controller.setView(current, { immediate: true, side });
-    else stage.dataset.settled = current;
+    if (cameraView !== opening || cameraSide !== openingSide) controller.setView(cameraView, { immediate: true, side: cameraSide });
+    else stage.dataset.settled = cameraView;
+    controller.selectPart(selectedPart, selectedSide);
+    setEngaged(engaged);
     status.textContent = '';
     tools.hidden = false;
     canvas.removeAttribute('aria-hidden');
@@ -306,10 +409,15 @@ addEventListener('pagehide', (event) => {
   disposed = true;
   clearTimeout(deadline);
   request?.abort();
+  callouts.dispose();
+  atmosphere.dispose();
+  posterSize.disconnect();
   inspector.dispose();
   controller?.dispose();
 });
 
-select(current, side, false);
-if (current !== 'overview') showStill();
+stage.dataset.view = cameraView;
+mark(selectedPart, selectedSide);
+inspector.init(cameraView, cameraSide);
+showStill();
 start();

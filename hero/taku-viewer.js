@@ -1,13 +1,13 @@
 import { zoomRange, zoomAvailability } from '../research/part-2/taku-composition.js';
+import { installZoomGestures } from '../research/part-2/taku-gestures.js';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
-import { createTakuBackdrop } from './taku-backdrop.js';
 import { applyTakuMaterials } from './taku-material.js';
 import { createSoftwareStudio, prefersSoftwareStudio } from './taku-software-studio.js';
 import { batchTakuMeshes } from './taku-draw.js';
-import { bilateral, createTakuOutline, identifySurface, partCode, preservePartMask } from './taku-outline.js';
+import { bilateral, createTakuOutline, identifySurface, partCode } from './taku-outline.js';
 import { dressTakuJoints } from './taku-joint-detail.js';
 
 // Target, eye direction, and vertical framing (metres) for the neutral CAD pose.
@@ -33,11 +33,11 @@ function ground(scene, bounds) {
   const material = new THREE.ShaderMaterial({
     transparent: true,
     depthWrite: false,
-    ...preservePartMask(THREE),
+
     vertexShader:
       'varying vec2 p; void main(){p=uv*2.-1.;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
     fragmentShader:
-      'varying vec2 p; void main(){float r=dot(p,p);float a=.66*exp(-5.2*r)*(1.-smoothstep(.55,1.,r));gl_FragColor=vec4(.009,.011,.012,a);}',
+      'layout(location=1) out highp vec4 partData; varying vec2 p; void main(){float r=dot(p,p);float a=.4*exp(-5.2*r)*(1.-smoothstep(.55,1.,r));gl_FragColor=vec4(.009,.011,.012,a);partData=vec4(0.);}',
   });
   const plane = new THREE.Mesh(geometry, material);
   plane.rotation.x = -Math.PI / 2;
@@ -70,6 +70,8 @@ export async function mountTaku({
   mobile = false,
   initialView = 'overview',
   initialSide = 'left',
+  initialEngaged = false,
+  previous,
   lighting = 'auto',
   antialiasing = 'auto',
   onViewChange,
@@ -78,6 +80,8 @@ export async function mountTaku({
   onError,
   onInspect,
   onProjection,
+  onAnchors,
+  onPick,
   onZoomChange,
   onSlow,
 }) {
@@ -85,6 +89,7 @@ export async function mountTaku({
   // The visible framebuffer receives only the composited full-resolution image.
   const renderer = new THREE.WebGLRenderer({
     canvas,
+    alpha: true,
     antialias: false,
     depth: false,
     premultipliedAlpha: false,
@@ -94,7 +99,7 @@ export async function mountTaku({
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 0.99;
   // The render target contains display-encoded RGB and the visible selection mask.
-  renderer.setClearColor(new THREE.Color(16 / 255, 20 / 255, 21 / 255), 0);
+  renderer.setClearColor(0x000000, 0);
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(30, 1, 0.009, 22);
   const controls = new OrbitControls(camera, canvas);
@@ -103,7 +108,6 @@ export async function mountTaku({
   controls.maxPolarAngle = Math.PI * 0.88;
   controls.enablePan = false;
   controls.enableDamping = false;
-  canvas.style.touchAction = 'none';
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   const fine = matchMedia('(hover: hover) and (pointer: fine)');
   const listeners = new AbortController();
@@ -120,9 +124,11 @@ export async function mountTaku({
     anchors = new Map();
   const pickBounds = [];
   const activePointers = new Set();
-  let robot, bounds, backdrop, freeGround, resizeObserver, visibilityObserver, down;
+  let robot, bounds, freeGround, resizeObserver, visibilityObserver, down;
   let id = Object.hasOwn(shots, initialView) ? initialView : 'overview';
   let side = initialSide === 'right' && armViews.has(id) ? 'right' : 'left';
+  let selected = id,
+    selectedSide = side;
   let desired,
     transition,
     frame = 0,
@@ -135,11 +141,16 @@ export async function mountTaku({
     renderedFrames = 0;
   const gl = renderer.getContext(),
     projectedPart = new THREE.Vector3();
+  let shotRevision = 0,
+    presentedRevision = -1;
+  const anchorWaiters = new Set();
   let fence,
     firstPoll = 0,
     blockedFrames = 0;
   let hoverFrame = 0,
     hoverPoint;
+
+  setEngaged(initialEngaged);
 
   function invalidate() {
     if (canRender && !dead && !frame && onscreen && !document.hidden) frame = requestAnimationFrame(draw);
@@ -192,22 +203,44 @@ export async function mountTaku({
     }
     camera.updateMatrixWorld();
     softwareStudio?.update(camera, controls.target);
-    backdrop?.update(camera, id, desired, controls.target);
     batches?.updateVisible(camera);
     outline.render(scene, camera, partBoxes.get(activePart.value), bounds);
     if (onSlow) {
       fence = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
       gl.flush();
     }
-    if (onProjection) {
-      partBoxes.get(activePart.value).getCenter(projectedPart).project(camera);
-      const x = (1 + projectedPart.x) / 2,
-        y = (1 - projectedPart.y) / 2;
-      onProjection({ x, y, visible: x >= 0 && x <= 1 && y >= 0 && y <= 1 && Math.abs(projectedPart.z) <= 1 });
+    const centers = new Map();
+    for (const [code, box] of partBoxes) {
+      box.getCenter(projectedPart).project(camera);
+      centers.set(code, { x: (1 + projectedPart.x) / 2, y: (1 - projectedPart.y) / 2 });
     }
+    const orientation = { yaw: controls.getAzimuthalAngle(), pitch: Math.PI / 2 - controls.getPolarAngle() };
+    const submittedRevision = shotRevision;
+    outline
+      .readAnchors(centers, (list) => {
+        if (dead || submittedRevision !== shotRevision) return;
+        presentedRevision = submittedRevision;
+        onAnchors?.(list, orientation);
+        if (!frame && !transition) {
+          for (const resolve of anchorWaiters) resolve(list);
+          anchorWaiters.clear();
+        }
+        const point = list.find((p) => p.id === selected && p.side === selectedSide);
+        onProjection?.(point ? { ...point, visible: true } : { x: 0, y: 0, visible: false });
+      })
+      .catch((error) => {
+        if (!dead) fail(error);
+      });
     if (limits) onZoomChange?.(zoomAvailability(limits, camera.position.distanceTo(controls.target)));
     renderedFrames++;
     if (finished) onSettled?.(id, side);
+  }
+  function anchorsReady() {
+    if (dead) return Promise.resolve([]);
+    if (frame || transition || presentedRevision !== shotRevision) {
+      return new Promise((resolve) => anchorWaiters.add(resolve));
+    }
+    return outline.anchorsReady();
   }
   function pose() {
     const [fallback, direction, span] = shots[id];
@@ -225,7 +258,7 @@ export async function mountTaku({
     if (id === 'wrist') {
       robot.getObjectByName(side + '_wrist_inspection_interface')?.getWorldPosition(target);
     } else if (id === 'base') {
-      partBoxes.get(activePart.value)?.getCenter(target);
+      partBoxes.get(partCode(id, side))?.getCenter(target);
     }
     let viewSpan = span;
     if (id === 'overview' || id === 'side') {
@@ -235,14 +268,32 @@ export async function mountTaku({
       target.copy(center);
     }
     const distance =
-      (viewSpan / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2))) * Math.max(1, 0.84 / camera.aspect);
+      (viewSpan / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2))) *
+      Math.max(1, 0.84 / camera.aspect);
     return { target, position: ray.normalize().multiplyScalar(distance).add(target) };
+  }
+  function selectPart(name, which = 'left') {
+    if (!Object.hasOwn(shots, name) || dead) return;
+    selected = name;
+    selectedSide = bilateral.has(name) && which === 'right' ? 'right' : 'left';
+    activePart.value = partCode(selected, selectedSide);
+    invalidate();
+  }
+  function setEngaged(value) {
+    controls.enabled = Boolean(value);
+    if (!controls.enabled) {
+      down = null;
+      activePointers.clear();
+    }
+    canvas.style.touchAction = value ? 'none' : 'pan-y pinch-zoom';
+    canvas.style.cursor = value ? 'grab' : '';
   }
   function setView(name, { immediate = false, side: nextSide = 'left' } = {}) {
     if (dead || !Object.hasOwn(shots, name)) return;
+    shotRevision++;
     id = name;
     side = nextSide === 'right' && armViews.has(name) ? 'right' : 'left';
-    activePart.value = partCode(id, side);
+    selectPart(id, side);
     desired = pose();
     limits = zoomRange(id, desired.position.distanceTo(desired.target));
     controls.minDistance = limits.min;
@@ -289,7 +340,11 @@ export async function mountTaku({
         .add(controls.target);
       controls.update();
       invalidate();
-    } else setView(id, { side, immediate: true });
+    } else {
+      const prior = [selected, selectedSide];
+      setView(id, { side, immediate: true });
+      selectPart(...prior);
+    }
   }
   function interrupt() {
     if (limits) {
@@ -300,7 +355,7 @@ export async function mountTaku({
     userAdjusted = true;
   }
   function inspect() {
-    if (!dead) onInspect?.(id, armViews.has(id) ? side : undefined);
+    if (!dead) (onInspect || onPick)?.(selected, selectedSide);
   }
   function zoom(factor) {
     if (dead || !Number.isFinite(factor) || factor <= 0) return;
@@ -339,9 +394,17 @@ export async function mountTaku({
     if (info) return info;
     return null;
   }
+  function pickAt(clientX, clientY) {
+    const hit = pick({ clientX, clientY });
+    if (!hit) return;
+    selectPart(hit.id, hit.side);
+    onPick?.(selected, selectedSide);
+  }
   function dispose() {
     if (dead) return;
     dead = true;
+    for (const resolve of anchorWaiters) resolve([]);
+    anchorWaiters.clear();
     cancelAnimationFrame(frame);
     listeners.abort();
     cancelAnimationFrame(hoverFrame);
@@ -350,7 +413,6 @@ export async function mountTaku({
     visibilityObserver?.disconnect();
     controls.removeEventListener('change', invalidate);
     controls.dispose();
-    backdrop?.dispose();
     freeGround?.();
     freeMaterials?.();
     batches?.dispose();
@@ -416,17 +478,21 @@ export async function mountTaku({
         partBoxes.get(info.code).union(box);
       }
     });
-    freeMaterials = applyTakuMaterials(THREE, robot, activePart, softwareStudio, softwareAA);
+    freeMaterials = applyTakuMaterials(THREE, robot, activePart, softwareStudio);
     batches = batchTakuMeshes(THREE, robot, hitMetadata);
     scene.add(batches.group);
     freeGround = ground(scene, bounds);
-    backdrop = createTakuBackdrop({ THREE, scene, renderer, mobile, reducedMotion: reduced, invalidate });
     controls.addEventListener('change', invalidate);
-    canvas.addEventListener('wheel', interrupt, { signal, passive: true });
+    installZoomGestures(canvas, {
+      engaged: () => controls.enabled,
+      hasPointers: () => activePointers.size > 0,
+      zoom,
+      signal,
+    });
     resizeObserver = new ResizeObserver(resize);
     resizeObserver.observe(canvas);
-    visibilityObserver = new IntersectionObserver(([entry]) => {
-      onscreen = entry.isIntersecting;
+    visibilityObserver = new IntersectionObserver((entries) => {
+      onscreen = entries.at(-1).isIntersecting;
       if (onscreen) invalidate();
     });
     visibilityObserver.observe(canvas);
@@ -441,6 +507,7 @@ export async function mountTaku({
     canvas.addEventListener(
       'pointerdown',
       (event) => {
+        if (!controls.enabled) return;
         activePointers.add(event.pointerId);
         if (activePointers.size === 1 && event.button === 0)
           down = { id: event.pointerId, x: event.clientX, y: event.clientY };
@@ -454,6 +521,7 @@ export async function mountTaku({
     canvas.addEventListener(
       'pointermove',
       (event) => {
+        if (!controls.enabled) return;
         if (down && Math.hypot(event.clientX - down.x, event.clientY - down.y) > 5) {
           down = null;
           interrupt();
@@ -465,10 +533,12 @@ export async function mountTaku({
               hoverFrame = 0;
               if (!hoverPoint || dead || activePointers.size) return;
               pointRay(hoverPoint);
-              const hit = pickBounds.some((box) => raycaster.ray.intersectsBox(box)) ? pick(hoverPoint) : null;
+              const hit = pickBounds.some((box) => raycaster.ray.intersectsBox(box))
+                ? pick(hoverPoint)
+                : null;
               const selected = hit?.code === activePart.value;
               canvas.dataset.partHovered = String(selected);
-              canvas.style.cursor = selected ? 'pointer' : hit ? 'zoom-in' : 'grab';
+              canvas.style.cursor = hit ? 'pointer' : 'grab';
             });
         }
       },
@@ -479,7 +549,7 @@ export async function mountTaku({
       () => {
         hoverPoint = null;
         canvas.dataset.partHovered = 'false';
-        canvas.style.cursor = 'grab';
+        canvas.style.cursor = controls.enabled ? 'grab' : '';
       },
       { signal },
     );
@@ -492,13 +562,7 @@ export async function mountTaku({
           !activePointers.size &&
           Math.hypot(event.clientX - down.x, event.clientY - down.y) <= 5
         ) {
-          const hit = pick(event);
-          const onOutline =
-            onInspect &&
-            (hit?.code === activePart.value ||
-              outline.containsVisibleEdge((pointer.x + 1) * 0.5, (pointer.y + 1) * 0.5));
-          if (onOutline) inspect();
-          else if (hit) setView(hit.id, { side: hit.side });
+          if (controls.enabled) pickAt(event.clientX, event.clientY);
         }
         down = null;
       },
@@ -515,11 +579,11 @@ export async function mountTaku({
     canvas.addEventListener(
       'keydown',
       (event) => {
-        if (event.ctrlKey || event.metaKey || event.altKey) return;
+        if (!controls.enabled || event.ctrlKey || event.metaKey || event.altKey) return;
         switch (event.key) {
           case 'Enter':
           case ' ':
-            if (onInspect) inspect();
+            if (onInspect || onPick) inspect();
             else return;
             break;
           case 'Home':
@@ -552,12 +616,26 @@ export async function mountTaku({
       { signal },
     );
     resize();
-    await backdrop.ready;
+    if (previous?.cameraSpace === 'world' && previous.camera) {
+      camera.position.fromArray(previous.camera);
+      controls.target.fromArray(previous.target);
+      controls.update();
+      userAdjusted = true;
+      selectPart(previous.selectedId || id, previous.selectedSide || side);
+    }
     if (dead) throw new Error('Viewer initialization was interrupted.');
     canRender = true;
     draw(performance.now());
     const controller = {
       setView,
+      selectPart,
+      setEngaged,
+      pickAt,
+      anchorsReady,
+      async readStudyMask() {
+        await anchorsReady();
+        return outline.readStudyMask();
+      },
       zoom,
       orbitStep,
       inspect,
@@ -565,6 +643,10 @@ export async function mountTaku({
       dispose,
       getState: () => ({
         currentView: id,
+        cameraSpace: 'world',
+        selectedId: selected,
+        selectedSide,
+        engaged: controls.enabled,
         side,
         transitioning: !!transition,
         renderedFrames,

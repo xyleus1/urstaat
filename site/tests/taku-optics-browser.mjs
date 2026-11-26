@@ -31,25 +31,28 @@ async function run(canvas2D) {
     await page.evaluate(async () => {
       const host = document.createElement('div');
       document.body.replaceChildren(host);
-      const { mountTakuCutaway } = await import('/hero/taku-cutaways.js');
-      window.mount = async (part) => {
+      host.id = 'part-study-host';
+      const { mountInlineStudy } = await import('/research/part-2/part-inspector.js');
+      window.mount = async (id) => {
         window.study?.destroy();
-        window.study = mountTakuCutaway(host, {
-          part,
-          onTrace: (id) => {
-            window.lastRoute = id;
+        window.study = mountInlineStudy(host, id, 'left', {
+          onTrace: (node) => {
+            window.lastRoute = node;
           },
         });
         return window.study.ready;
       };
-      await window.mount('optics');
+      await window.mount('face');
     });
     assert.equal(
       await page.$eval('[data-cutaway-renderer]', (e) => e.dataset.cutawayRenderer),
       canvas2D ? 'canvas2d' : 'webgl',
     );
     assert.equal(await spinning(page), false, 'reduced motion starts paused');
-    assert.equal(await page.$$eval('.cutaway-part', (items) => items.length), routes.length);
+    assert.equal(await page.$('.cutaway-slider, .cutaway-explode'), null);
+    await page.click('.cutaway-trace');
+    assert.equal(await page.evaluate(() => window.lastRoute), 'window');
+    assert.equal(await page.$$eval('.study-piece', (items) => items.length), routes.length);
     // Each point is inside a different visible surface in the default exploded projection.
     // Coordinates are expressed in viewport heights relative to the image center.
     const samples = [
@@ -72,22 +75,17 @@ async function run(canvas2D) {
       );
       await page.click('.cutaway-trace');
       assert.equal(await page.evaluate(() => window.lastRoute), routes[index]);
-      await page.click('.cutaway-part:nth-child(' + (index + 1) + ')');
+      await page.click('.study-piece[aria-pressed="true"]');
       assert.equal(await page.$eval('.cutaway-study', (e) => e.dataset.selected), '-1');
     }
 
     await reduce(page, false);
     await page.waitForFunction(() => document.querySelector('.cutaway-study').dataset.spinning === 'true');
-    const part = await (await page.$('.cutaway-part')).boundingBox();
-    await page.mouse.move(part.x + 12, part.y + 12);
-    await page.mouse.down();
-    assert.equal(await spinning(page), false);
-    assert.equal(await spinRequested(page), true, 'holding a subpart preserves requested spin');
-    await page.mouse.up();
-    assert.equal(await spinning(page), true, 'choosing resumes spin');
-    await page.click('.cutaway-part');
-    assert.equal(await spinning(page), true, 'deselecting also resumes spin');
-
+    await page.click('.study-piece[data-piece="1"]');
+    assert.equal(await spinning(page), true, 'choosing a piece preserves spin');
+    await page.click('.study-piece[aria-pressed="true"]');
+    assert.equal(await spinning(page), true, 'deselecting preserves spin');
+    assert.equal(await spinRequested(page), true);
     await page.mouse.move(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
     await page.mouse.down();
     await page.mouse.move(5, bounds.y + bounds.height + 30, { steps: 4 });
@@ -95,7 +93,7 @@ async function run(canvas2D) {
     await page.mouse.up();
     assert.equal(await spinning(page), true, 'outside release resumes after orbit');
     await page.evaluate(() => {
-      const control = document.querySelector('.cutaway-part');
+      const control = document.querySelector('.study-piece');
       for (const id of [51, 52])
         control.dispatchEvent(
           new PointerEvent('pointerdown', { pointerId: id, pointerType: 'touch', button: 0, bubbles: true }),
@@ -111,17 +109,18 @@ async function run(canvas2D) {
     assert.notDeepEqual(await canvas.screenshot(), a, 'resumed rotation actually changes the picture');
 
     await page.click('.cutaway-spin');
-    for (const id of ['actuator', 'wrist', 'panel', 'optics']) {
-      assert.equal(await page.evaluate((part) => window.study.setPart(part), id), true);
-      await page.click('.cutaway-part');
-      await page.click('.cutaway-reset');
+    for (const id of ['elbow', 'wrist', 'overview', 'face']) {
+      assert.equal(await page.evaluate((part) => window.mount(part), id), true);
+      await page.click('.study-piece[data-piece="1"]');
+      await page.focus('.cutaway-canvas');
+      await page.keyboard.press('Home');
       assert.equal(await spinning(page), false, id + ' respects explicit pause');
     }
-    await page.evaluate(() => window.mount('optics'));
+    await page.evaluate(() => window.mount('face'));
     assert.equal(await spinning(page), false, 'closing and reopening retains explicit pause');
     await reduce(page, true);
     await page.click('.cutaway-spin');
-    await page.click('.cutaway-part');
+    await page.click('.study-piece[data-piece="1"]');
     assert.equal(await spinning(page), true, 'explicit opt-in works with reduced motion');
     await page.setViewport({ width: 390, height: 844 });
     const cdp = await page.createCDPSession();
@@ -147,12 +146,12 @@ async function run(canvas2D) {
       request.url().endsWith('/cutaways/optics.bin.gz') ? request.abort() : request.continue(),
     );
     await page.setCacheEnabled(false);
-    assert.equal(await page.evaluate(() => window.mount('optics')), false);
+    assert.equal(await page.evaluate(() => window.mount('face')), false);
     await page.waitForFunction(() => {
       const image = document.querySelector('.cutaway-poster');
       return !image.hidden && image.naturalWidth === 1080;
     });
-    await page.click('.cutaway-part:nth-child(6)');
+    await page.click('.study-piece[data-piece="5"]');
     await page.click('.cutaway-trace');
     assert.equal(await page.evaluate(() => window.lastRoute), 'window');
     await afterDraw(page);

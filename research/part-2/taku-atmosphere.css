@@ -1,0 +1,21 @@
+.taku-atmosphere {
+  position: absolute;
+  inset: -14px;
+  pointer-events: none;
+  overflow: hidden;
+  transition: transform 160ms ease-out;
+}
+.taku-stage .taku-atmosphere canvas,
+.taku-stage[data-mode='live'] .taku-atmosphere canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  opacity: 1;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .taku-atmosphere { transition: none; }
+}
+.taku-stage[data-tier='cpu'] .taku-atmosphere { transition: none; }

@@ -32,7 +32,7 @@ Camera movement uses the same device export, studio shading and pixel ratio as a
 
 The main model and exploded assemblies share a warm key light and rectangular studio reflections. The main model uses a satin pewter shell, dark graphite collars and smoked lens covers. The source chest lettering, jaw pads, selection contour and joint geometry are preserved. The finish overrides live in `hero/taku-finishes.json`. The WebGL shader evaluates the studio directly. The Canvas renderer interpolates captures of the same studio across orbit angles.
 
-The backdrop uses the original two sculptures for each named view. Five world-space planes register their dots into silhouettes of the head, claw or folding linkage. Free orbit and zoom reveal the separation between those planes.
+The robot orbits above one continuous mechanical dot field. Two passive canvas layers draw stationary dot currents and animated bearing rings. Orbit adds parallax, and reduced motion keeps the field still. Fallback posters include the same field and publish depth-tested anchors and surface IDs for picking.
 
 From the repository root, bake the finish texture, build the viewer and render the matching posters and selection masks.
 

@@ -134,3 +134,84 @@
   .hero-study .hero-waves { mask-image: linear-gradient(to bottom, transparent 18%, black 30%, black 52%, transparent 67%); }
 }
 @media (prefers-reduced-motion: reduce) { .hero-study .hero-pause { display: none; } }
+
+.hero.hero-study.has-epigraph {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-height: 0;
+  height: auto;
+  padding: 20px 0 16px;
+}
+.has-epigraph .hero-title { position: static; order: 1; }
+.hero-study.has-epigraph .hero-information {
+  position: static;
+  order: 2;
+  width: fit-content;
+  max-width: 100%;
+  margin: 26px auto 0;
+  display: grid;
+  grid-template-columns: minmax(0, 40ch) auto;
+  align-items: center;
+  gap: clamp(24px, 3vw, 46px);
+}
+.hero-epigraph { margin: 0; }
+.hero-epigraph p {
+  color: var(--bright);
+  font-size: clamp(20px, 1.65vw, 26px);
+  line-height: 1.25;
+  letter-spacing: -.025em;
+  text-wrap: balance;
+}
+.hero-epigraph cite, .hero-byline .byline-label {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+  font-style: normal;
+}
+.hero-epigraph cite { display: block; margin-top: 7px; }
+.hero-epigraph a, .hero-byline a { text-underline-offset: 3px; }
+.hero-epigraph a:hover, .hero-byline a:hover { color: var(--bright); text-decoration: underline; }
+.hero-byline { padding-left: clamp(24px, 3vw, 46px); border-left: 1px solid var(--line); }
+.hero-byline .byline-label { margin-bottom: 5px; }
+.hero-study.has-epigraph .authors {
+  display: flex;
+  justify-self: stretch;
+  justify-content: flex-start;
+  flex-direction: row;
+  flex-wrap: wrap;
+  column-gap: clamp(15px, 2.2vw, 34px);
+  row-gap: 5px;
+  margin: 0;
+  color: var(--ink);
+  font-size: 14px;
+}
+.hero-study.has-epigraph .authors span { color: var(--muted); font-size: 12px; }
+.hero-study.has-epigraph .hero-art {
+  position: relative;
+  inset: auto;
+  z-index: 0;
+  order: 3;
+  width: 100%;
+  height: clamp(320px, 33.5vw, 485px);
+  margin-top: 10px;
+}
+.hero-study.has-epigraph .hero-motor { top: 0; height: 100%; }
+.hero-study.has-epigraph .hero-waves {
+  mask-image: linear-gradient(to bottom, transparent, black 20%, black 85%, transparent);
+}
+@media (max-width: 760px) {
+  .hero.hero-study.has-epigraph { padding: 18px 0 8px; }
+  .hero-study.has-epigraph .hero-information {
+    width: min(470px, 100%);
+    grid-template-columns: 1fr;
+    gap: 15px;
+    margin-top: 20px;
+  }
+  .hero-epigraph p { max-width: 33ch; }
+  .hero-epigraph cite { margin-top: 4px; }
+  .hero-byline { padding: 0; border: 0; }
+  .hero-study.has-epigraph .authors { column-gap: 21px; font-size: 13px; }
+  .hero-study.has-epigraph .authors span { font-size: 11px; }
+  .hero-study.has-epigraph .hero-art { height: clamp(270px, 72vw, 370px); margin-top: 6px; }
+}

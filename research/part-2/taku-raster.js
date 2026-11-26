@@ -1,9 +1,7 @@
-import { arrangements, layoutSculpture } from './taku-composition.js?v=studio-3';
 // A depth-buffered Canvas renderer. The worker consumes only the latest camera
 // pose; the UI thread remains free to receive drag, scroll and inspection input.
 const near = 0.009;
 const rgba = (r, g, b) => (255 << 24) | (b << 16) | (g << 8) | r;
-const background = rgba(16, 20, 21);
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 function unpack(bytes, kernel) {
   const data = new DataView(bytes),
@@ -33,26 +31,6 @@ function unpack(bytes, kernel) {
   return meta;
 }
 
-function decodeDots(bytes) {
-  const data = new DataView(bytes);
-  let at = 10;
-  return [0, 1, 2].map((_, j) => {
-    const count = data.getUint16(4 + j * 2, true);
-    const dots = new Float32Array(count * 5);
-    for (let i = 0; i < count; i++, at += 3) {
-      const packed = data.getUint8(at + 2),
-        layer = packed >> 5,
-        ink = layer < 5 ? (packed & 31) / 31 : 1.22;
-      const k = i * 5;
-      dots[k] = data.getInt8(at) / 125;
-      dots[k + 1] = data.getInt8(at + 1) / 125;
-      dots[k + 2] = layer < 5 ? layer : (layer - 5) * 2;
-      dots[k + 3] = 1.75 + ink * 1.8;
-      dots[k + 4] = 0.19 + 0.81 * ink;
-    }
-    return dots;
-  });
-}
 function basis(pose) {
   const [yaw, pitch, radius] = pose.orbit;
   const a = Math.sin(yaw),
@@ -66,18 +44,15 @@ function basis(pose) {
 }
 const dot = (x, y, z, a) => x * a[0] + y * a[1] + z * a[2];
 
-export function createRaster({ model, lights, ink, inkSize, dots }, kernel) {
-  const meta = unpack(model, kernel),
-    patterns = dots ? decodeDots(dots) : [[], [], []];
+export function createRaster({ model, lights, ink, inkSize }, kernel) {
+  const meta = unpack(model, kernel);
   const palette = new Uint32Array(13 * 6400);
   let paletteKey = '',
-    backKey = '',
     width = 0,
     height = 0,
     pixels,
     depths,
-    surface,
-    back;
+    surface;
   const wasm = kernel?.exports,
     memory = wasm?.memory;
   let cursor = Number(wasm?.__heap_base || 0),
@@ -85,11 +60,14 @@ export function createRaster({ model, lights, ink, inkSize, dots }, kernel) {
     cameraPtr,
     scratchPtr,
     inkPtr,
-    viewportPtr;
+    viewportPtr,
+    centerPtr,
+    nearestPtr;
   function reserve(bytes) {
     const offset = cursor;
     cursor = (cursor + bytes + 15) & ~15;
-    if (cursor > memory.buffer.byteLength) memory.grow(Math.ceil((cursor - memory.buffer.byteLength) / 65536));
+    if (cursor > memory.buffer.byteLength)
+      memory.grow(Math.ceil((cursor - memory.buffer.byteLength) / 65536));
     return offset;
   }
   function copy(array) {
@@ -110,6 +88,8 @@ export function createRaster({ model, lights, ink, inkSize, dots }, kernel) {
       part.geom = null;
       part.tri = null;
     }
+    centerPtr = reserve(64 * 4);
+    nearestPtr = reserve(32 * 4);
     viewportPtr = cursor;
   }
   let outputPtr, depthPtr, idPtr;
@@ -144,108 +124,6 @@ export function createRaster({ model, lights, ink, inkSize, dots }, kernel) {
       }
     }
     if (wasm) new Uint32Array(memory.buffer, palettePtr, palette.length).set(palette);
-  }
-  function setBackground(pose, camera) {
-    const key = [width, height, pose.cssWidth, pose.id, ...pose.orbit, ...pose.target].join('/');
-    if (backKey === key) return;
-    backKey = key;
-    back.fill(background);
-    const registration = pose.preset || pose,
-      distance = registration.orbit[2],
-      aspect = width / height;
-    const halfAngle = Math.tan(Math.PI / 12),
-      focal = height / (halfAngle * 2);
-    const dpr = (width / pose.cssWidth) * (pose.mobile ? 0.88 : 1);
-    const smooth = (x) => {
-      const v = clamp(x, 0, 1);
-      return v * v * (3 - 2 * v);
-    };
-    const ref = basis(registration);
-    const d = ref.pos.map((v, k) => v - camera.pos[k]);
-    const projectAxis = (axis) => [
-      dot(...d, axis),
-      dot(...ref.right, axis),
-      dot(...ref.up, axis),
-      dot(...ref.eye, axis),
-    ];
-    const rx = projectAxis(camera.right),
-      ry = projectAxis(camera.up),
-      rz = projectAxis(camera.eye);
-    for (let i = 0; i < 2; i++) {
-      const spec = layoutSculpture(arrangements[pose.id][i], i, aspect),
-        points = patterns[spec.shape];
-      // Each cloud spans only five planes. Project an entire plane's basis once;
-      // a plane outside the frustum can skip all of its point and ink samples.
-      const planes = Array.from({ length: 5 }, (_, layer) => {
-        const distanceToPlane = distance * (1.32 + 0.21 * layer),
-          planeHalf = distanceToPlane * halfAngle;
-        const x = spec.x * aspect * planeHalf,
-          y = spec.y * planeHalf,
-          radius = spec.radius * planeHalf;
-        const sheetAxis = (a, sign) => [
-          (a[0] + a[1] * x + a[2] * y - a[3] * distanceToPlane) * sign,
-          a[1] * radius * sign,
-          a[2] * radius * sign,
-        ];
-        const xAxis = sheetAxis(rx, 1),
-          yAxis = sheetAxis(ry, 1),
-          depth = sheetAxis(rz, -1);
-        const outside = (a, slope, sign) =>
-          slope * depth[0] +
-            sign * a[0] +
-            Math.abs(slope * depth[1] + sign * a[1]) +
-            Math.abs(slope * depth[2] + sign * a[2]) <
-          0;
-        const visible =
-          depth[0] + Math.abs(depth[1]) + Math.abs(depth[2]) > 0.001 &&
-          !outside(xAxis, aspect * halfAngle, 1) &&
-          !outside(xAxis, aspect * halfAngle, -1) &&
-          !outside(yAxis, halfAngle, 1) &&
-          !outside(yAxis, halfAngle, -1);
-        return { xAxis, yAxis, depth, visible, distanceToPlane };
-      });
-      if (!planes.some((p) => p.visible)) continue;
-      for (let j = 0; j < points.length; j += pose.mobile ? 10 : 5) {
-        const u = points[j],
-          v = points[j + 1],
-          sheet = planes[points[j + 2]];
-        if (!sheet.visible) continue;
-        const z = sheet.depth,
-          depth = z[0] + u * z[1] + v * z[2];
-        if (depth <= 0.001) continue;
-        const x = sheet.xAxis,
-          y = sheet.yAxis,
-          scale = focal / depth,
-          plane = sheet.distanceToPlane;
-        const cx = width * 0.5 + scale * (x[0] + u * x[1] + v * x[2]),
-          cy = height * 0.5 - scale * (y[0] + u * y[1] + v * y[2]);
-        if (cx < 0 || cy < 0 || cx >= width || cy >= height) continue;
-        const size = dpr * clamp(points[j + 3] * Math.pow(plane / depth, 0.42), 1.4, 4.4);
-        const radius = size * 0.5,
-          density = points[j + 4] * spec.ink * smooth((depth / distance - 0.16) / 0.42);
-        const core2 = (0.33 * size) ** 2,
-          radius2 = radius * radius;
-        const y0 = Math.max(0, Math.ceil(cy - radius - 0.5)),
-          y1 = Math.min(height - 1, Math.floor(cy + radius - 0.5));
-        const x0 = Math.max(0, Math.ceil(cx - radius - 0.5)),
-          x1 = Math.min(width - 1, Math.floor(cx + radius - 0.5));
-        for (let py = y0; py <= y1; py++)
-          for (let px = x0; px <= x1; px++) {
-            const dx = px + 0.5 - cx,
-              dy = py + 0.5 - cy,
-              r2 = dx * dx + dy * dy;
-            if (r2 >= radius2) continue;
-            const coverage = r2 <= core2 ? 1 : 1 - smooth((Math.sqrt(r2) / size - 0.33) / 0.17);
-            const alpha = clamp(density * coverage, 0, 1),
-              index = py * width + px,
-              current = back[index];
-            const r = current & 255,
-              g = (current >>> 8) & 255,
-              b = (current >>> 16) & 255;
-            back[index] = rgba(r + (135 - r) * alpha, g + (143 - g) * alpha, b + (145 - b) * alpha);
-          }
-      }
-    }
   }
   function paint(a, ai, b, bi, c, ci, tag, printed) {
     const ax = a[ai],
@@ -328,6 +206,37 @@ export function createRaster({ model, lights, ink, inkSize, dots }, kernel) {
       }
     }
   }
+  // Central perspective takes a convex box's extrema to its projected corners
+  // whenever all eight corners are in front of the near plane.
+  const corners = Array.from({ length: 8 }, (_, i) =>
+    meta.center.map((c, k) => c + (i & (1 << k) ? 1 : -1) * meta.size[k] * 0.5),
+  );
+  function contourRegion(camera, focal, wide) {
+    let xmin = width,
+      xmax = 0,
+      ymin = height,
+      ymax = 0;
+    const full = [wide, wide, width - wide, height - wide];
+    for (const corner of corners) {
+      const dx = corner[0] - camera.pos[0],
+        dy = corner[1] - camera.pos[1],
+        dz = corner[2] - camera.pos[2];
+      const z = -dot(dx, dy, dz, camera.eye);
+      if (z <= near) return full;
+      const x = width * 0.5 + (focal * dot(dx, dy, dz, camera.right)) / z;
+      const y = height * 0.5 - (focal * dot(dx, dy, dz, camera.up)) / z;
+      xmin = Math.min(xmin, x);
+      ymin = Math.min(ymin, y);
+      xmax = Math.max(xmax, x);
+      ymax = Math.max(ymax, y);
+    }
+    return [
+      Math.max(wide, Math.floor(xmin) - wide - 1),
+      Math.max(wide, Math.floor(ymin) - wide - 1),
+      Math.min(width - wide, Math.ceil(xmax) + wide + 1),
+      Math.min(height - wide, Math.ceil(ymax) + wide + 1),
+    ];
+  }
   function render(pose) {
     if (width !== pose.width || height !== pose.height) {
       width = pose.width;
@@ -346,11 +255,9 @@ export function createRaster({ model, lights, ink, inkSize, dots }, kernel) {
         depths = new Float32Array(count);
         surface = new Uint16Array(count);
       }
-      back = new Uint32Array(count);
     }
     setPalette(pose.orbit[0], pose.orbit[1]);
-    setBackground(pose, basis(pose));
-    pixels.set(back);
+    pixels.fill(0);
     depths.fill(0);
     surface.fill(0);
     const { right, up, eye, pos } = basis(pose),
@@ -430,7 +337,8 @@ export function createRaster({ model, lights, ink, inkSize, dots }, kernel) {
           paint(s, a, s, b, s, c, tag, part.finish === 8);
           continue;
         }
-        if ((za <= 0 || za >= 1 / near) && (zb <= 0 || zb >= 1 / near) && (zc <= 0 || zc >= 1 / near)) continue;
+        if ((za <= 0 || za >= 1 / near) && (zb <= 0 || zb >= 1 / near) && (zc <= 0 || zc >= 1 / near))
+          continue;
         // Clip against the near plane when zooming into, or through, a linkage.
         const corners = [a, b, c];
         let n = 0;
@@ -454,76 +362,67 @@ export function createRaster({ model, lights, ink, inkSize, dots }, kernel) {
           paint(scratch[0], 0, scratch[k], 0, scratch[k + 1], 0, tag, part.finish === 8);
       }
     }
-    const center = meta.targets[selected],
-      dx = center[0] - pos[0],
-      dy = center[1] - pos[1],
-      dz = center[2] - pos[2];
-    const [px, py] = screen(dot(dx, dy, dz, right), dot(dx, dy, dz, up), -dot(dx, dy, dz, eye));
-    let best = Infinity,
-      bestX = 0,
-      bestY = 0;
-    const inner = rgba(244, 182, 116),
-      outer = rgba(174, 99, 60),
-      dark = rgba(54, 47, 40);
-    // Mask and color share a Z test. Occluded portions of the part never appear in the keyline.
-    const step = Math.max(1, Math.round(width / pose.cssWidth)),
-      wide = step * 2,
-      dyStep = step * width,
-      dyWide = wide * width;
-    if (wasm) {
-      const nearest = wasm.outline(selected, step, px, py);
-      return {
-        pixels,
-        width,
-        height,
-        submitted,
-        projection: {
-          x: (nearest % width) / width,
-          y: Math.floor(nearest / width) / height,
-          visible: nearest >= 0,
-        },
-      };
+    const centers = wasm ? new Float32Array(memory.buffer, centerPtr, 64) : new Float32Array(64);
+    const nearest = wasm ? new Int32Array(memory.buffer, nearestPtr, 32) : new Int32Array(32);
+    for (const [code, center] of targetEntries) {
+      const dx = center[0] - pos[0],
+        dy = center[1] - pos[1],
+        dz = center[2] - pos[2];
+      const [px, py] = screen(dot(dx, dy, dz, right), dot(dx, dy, dz, up), -dot(dx, dy, dz, eye));
+      centers[code * 2] = px;
+      centers[code * 2 + 1] = py;
     }
-    for (let y = wide; y < height - wide; y++)
-      for (let x = wide, i = y * width + wide; x < width - wide; x++, i++) {
-        const on = (surface[i] & tagMask) === selected;
-        if (on) {
-          const distance = (x - px) ** 2 + (y - py) ** 2;
-          if (distance < best) {
-            best = distance;
-            bestX = x;
-            bestY = y;
+    const step = Math.max(1, Math.round(width / pose.cssWidth));
+    const [x0, y0, x1, y1] = contourRegion({ pos, right, up, eye }, focal, step * 2);
+    if (wasm) wasm.outline(selected, step, centerPtr, nearestPtr, x0, y0, x1, y1);
+    else {
+      nearest.fill(-1);
+      const best = new Float64Array(32).fill(Infinity);
+      const wide = step * 2,
+        dy = step * width;
+      for (let y = y0; y < y1; y++) {
+        for (let x = x0, i = y * width + x0; x < x1; x++, i++) {
+          const code = surface[i] & tagMask,
+            left = surface[i - step] & tagMask,
+            right = surface[i + step] & tagMask,
+            above = surface[i - dy] & tagMask,
+            below = surface[i + dy] & tagMask;
+          if (code) {
+            const d = (x - centers[code * 2]) ** 2 + (y - centers[code * 2 + 1]) ** 2;
+            if (d < best[code]) {
+              best[code] = d;
+              nearest[code] = i;
+            }
+            if (left !== code || right !== code || above !== code || below !== code) {
+              const light = pixels[i] & 255;
+              if (code === selected) pixels[i] = light > 177 ? rgba(131, 64, 36) : rgba(244, 182, 116);
+              else pixels[i] = light > 150 ? rgba(117, 97, 80) : rgba(185, 161, 134);
+            }
           }
-        }
-        const major =
-          (surface[i - step] & tagMask) === selected ||
-          (surface[i + step] & tagMask) === selected ||
-          (surface[i - dyStep] & tagMask) === selected ||
-          (surface[i + dyStep] & tagMask) === selected;
-        if (on) {
-          if (
-            (surface[i - step] & tagMask) !== selected ||
-            (surface[i + step] & tagMask) !== selected ||
-            (surface[i - dyStep] & tagMask) !== selected ||
-            (surface[i + dyStep] & tagMask) !== selected
+          if (code === selected) continue;
+          if (left === selected || right === selected || above === selected || below === selected)
+            pixels[i] = rgba(54, 47, 40);
+          else if (
+            (surface[i - wide] & 31) === selected ||
+            (surface[i + wide] & 31) === selected ||
+            (surface[i - 2 * dy] & 31) === selected ||
+            (surface[i + 2 * dy] & 31) === selected
           )
-            pixels[i] = (pixels[i] & 255) > 177 ? rgba(131, 64, 36) : inner;
-        } else if (major) pixels[i] = dark;
-        else if (
-          (surface[i - wide] & tagMask) === selected ||
-          (surface[i + wide] & tagMask) === selected ||
-          (surface[i - dyWide] & tagMask) === selected ||
-          (surface[i + dyWide] & tagMask) === selected
-        )
-          pixels[i] = outer;
+            pixels[i] = rgba(174, 99, 60);
+        }
       }
-    return {
-      pixels,
-      width,
-      height,
-      submitted,
-      projection: { x: bestX / width, y: bestY / height, visible: best < Infinity },
-    };
+    }
+    const visible = [];
+    let projection = { x: 0, y: 0, visible: false };
+    for (const [code] of targetEntries) {
+      const index = nearest[code];
+      if (index < 0) continue;
+      const x = ((index % width) + 0.5) / width,
+        y = (Math.floor(index / width) + 0.5) / height;
+      visible.push({ code, x, y });
+      if (code === selected) projection = { x, y, visible: true };
+    }
+    return { pixels, width, height, submitted, projection, visible };
   }
   function pick(x, y) {
     const px = clamp(Math.floor(x * width), 0, width - 1),
@@ -531,5 +430,6 @@ export function createRaster({ model, lights, ink, inkSize, dots }, kernel) {
     return surface[py * width + px] || 0;
   }
   const { anchors, targets, center, size } = meta;
+  const targetEntries = Object.entries(targets).map(([code, point]) => [Number(code), point]);
   return { render, pick, meta: { anchors, targets, center, size } };
 }

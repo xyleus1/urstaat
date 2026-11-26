@@ -12,20 +12,21 @@
   <meta property="og:title" content="Run before you walk — Part 2">
   <meta property="og:description" content="An interactive study of Dyna Taku, from the articulated wrist to the folding waist.">
   <meta property="og:url" content="https://runbeforeyouwalk.com/research/part-2/">
-  <meta property="og:image" content="https://runbeforeyouwalk.com/research/part-2/stills/overview.webp?v=studio-3">
+  <meta property="og:image" content="https://runbeforeyouwalk.com/research/part-2/stills/overview.webp?v=field-1">
   <meta property="og:image:alt" content="Dyna Taku in three-quarter view against a gray dot sculpture.">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" href="../../site/media/cog.svg" type="image/svg+xml">
   <link rel="stylesheet" href="../../revision/styles.css?v=hero-refinement-20261118-1">
   <link rel="stylesheet" href="../../site/site.css?v=read-part-2-20261122-1">
-  <link rel="stylesheet" href="explorer.css?v=studio-3">
-  <link rel="stylesheet" href="supply-map.css?v=studio-3">
+  <link rel="stylesheet" href="explorer.css?v=field-1">
+  <link rel="stylesheet" href="taku-atmosphere.css?v=field-1">
+  <link rel="stylesheet" href="supply-map.css?v=field-1">
   <link rel="stylesheet" href="supply-identity.css?v=orbit-2">
-  <link rel="stylesheet" href="cutaways/cutaways.css?v=orbit-2">
-  <script type="module" src="explorer.js?v=studio-4"></script>
+  <link rel="stylesheet" href="cutaways/cutaways.css?v=field-1">
+  <script type="module" src="explorer.js?v=field-1"></script>
 </head>
 <body>
-  <a class="skip" href="#views">Skip to camera views</a>
+  <a class="skip" href="#supply-title">Skip to component sources</a>
   <main class="page taku-page">
     <article>
       <header class="reading-header">
@@ -37,37 +38,25 @@
           <h2 id="model-title">Dyna Taku</h2>
         </div>
         <div class="taku-instrument">
-        <div class="taku-stage" data-mode="stills" data-view="overview">
-          <picture id="still">
-            <source media="(max-width: 760px) and (orientation: portrait)" srcset="stills/overview-mobile.webp?v=studio-3">
-            <img src="stills/overview.webp?v=studio-3" width="1440" height="702" fetchpriority="high" alt="Three-quarter view of Dyna Taku on its wheeled base.">
-          </picture>
-          <canvas id="taku-canvas" aria-label="Interactive Dyna Taku model" aria-describedby="keyboard-hint" aria-hidden="true"></canvas>
-          <span id="keyboard-hint" class="screen-reader">Use the arrow keys to orbit, plus and minus to zoom, and Home to reset. Select the outlined part to move to its inputs.</span>
-          <div class="stage-status" role="status" aria-live="polite"></div>
-          <div class="stage-tools" role="group" aria-label="View controls" hidden>
-            <button type="button" data-zoom="1.25" aria-label="Zoom in">+</button>
-            <button type="button" data-zoom="0.8" aria-label="Zoom out">−</button>
-            <button type="button" id="reset">Reset view</button>
+          <div class="taku-stage" data-mode="stills" data-view="overview">
+            <div class="taku-surface">
+              <picture id="still">
+                <source media="(max-width: 760px) and (orientation: portrait)" srcset="stills/overview-mobile.webp?v=field-1">
+                <img src="stills/overview.webp?v=field-1" width="1440" height="702" fetchpriority="high" alt="Dyna Taku on its wheeled base, with both arms and its optical assembly visible.">
+              </picture>
+              <canvas class="robot-canvas" id="taku-canvas" aria-label="Interactive Dyna Taku model" aria-describedby="keyboard-hint" aria-hidden="true"></canvas>
+              <div class="robot-callouts" role="group" aria-label="Exploded studies" hidden></div>
+              <div class="stage-status" role="status" aria-live="polite"></div>
+            </div>
+            <span id="keyboard-hint" class="screen-reader">Press Enter to explore. Use arrow keys to orbit, plus and minus to zoom, and Home to reset. Escape returns to page scrolling. Choose a labeled part to inspect it.</span>
+            <div class="stage-tools" role="group" aria-label="Robot controls" hidden>
+              <button type="button" id="engage-model" aria-controls="taku-canvas" aria-pressed="false">Explore in 3D</button>
+              <button type="button" data-zoom="0.8" aria-label="Zoom out">−</button>
+              <button type="button" data-zoom="1.25" aria-label="Zoom in">+</button>
+              <button type="button" id="reset">Reset</button>
+            </div>
           </div>
-        </div>
-        <div class="part-inspector" id="part-inspector" hidden>
-          <div class="part-name"><span class="contour-key" aria-hidden="true"></span><span id="focused-part"></span></div>
-          <div class="part-actions">
-            <button type="button" id="show-cutaway" aria-haspopup="dialog"><img id="cutaway-preview" alt="" width="124" height="64"><span class="cutaway-label">Exploded view <span aria-hidden="true">⤢</span></span></button>
-          </div>
-        </div>
-        </div>
-        <div class="camera-views" id="views" role="group" aria-label="Camera views" tabindex="-1">
-          <a href="stills/overview.webp?v=studio-3" data-shot="overview" aria-current="true">Overview</a>
-          <a href="stills/side.webp?v=studio-3" data-shot="side">Side</a>
-          <a href="stills/face.webp?v=studio-3" data-shot="face">Face</a>
-          <a href="stills/shoulder.webp?v=studio-3" data-shot="shoulder">Shoulder</a>
-          <a href="stills/elbow.webp?v=studio-3" data-shot="elbow">Elbow</a>
-          <a href="stills/wrist.webp?v=studio-3" data-shot="wrist">Wrist</a>
-          <a href="stills/claw.webp?v=studio-3" data-shot="claw">DynaClaw</a>
-          <a href="stills/waist.webp?v=studio-3" data-shot="waist">Folding waist</a>
-          <a href="stills/base.webp?v=studio-3" data-shot="base">Wheel base</a>
+          <section id="part-study" class="part-study" aria-label="Selected robot part" hidden><div id="part-study-host"></div></section>
         </div>
         <noscript><p class="static-studies">Exploded studies
           <a href="cutaways/actuator.webp">Rotary actuator</a>
@@ -76,9 +65,10 @@
           <a href="cutaways/panel.webp">Enclosure panel</a>
         </p></noscript>
       </section>
-      <section class="supply-map" id="supply-map" aria-labelledby="supply-title" hidden>
+      <section class="supply-map" id="supply-map" aria-labelledby="supply-title">
         <div class="supply-heading">
-          <div><p class="map-kicker">Inputs</p><h2 id="supply-title" tabindex="-1"></h2></div>
+          <div><p class="map-kicker">Inputs</p><h2 id="supply-title" tabindex="-1">Torso enclosure</h2></div>
+          <div id="atlas-parts" class="atlas-parts" role="group" aria-label="Robot parts"></div>
         </div>
         <p id="supply-summary" class="supply-summary"></p>
         <p class="atlas-scope">Industrial examples. Dyna has not published a full supplier list for Taku.</p>
@@ -130,12 +120,6 @@
           </details>
         </div>
       </section>
-      <dialog id="cutaway-dialog" aria-labelledby="cutaway-title">
-        <div class="cutaway-heading"><div><p class="map-kicker">Exploded view</p><h2 id="cutaway-title"></h2></div>
-          <button type="button" id="close-cutaway" class="text-control" aria-label="Close exploded view">Close <span aria-hidden="true">×</span></button>
-        </div>
-        <div id="cutaway-host"></div>
-      </dialog>
       <footer class="model-credit">
         <span>Model adapted from <a href="https://github.com/dyna-robotics/dyna_robot_description/tree/afa61685f434a9a2a61e255711788bcfe2f42f92/dyna_taku">Dyna Robotics</a>.</span>
         <a href="assets/LICENSE-Dyna.txt" rel="license">Apache 2.0</a>

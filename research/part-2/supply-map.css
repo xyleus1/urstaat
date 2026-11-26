@@ -1,23 +1,5 @@
-.part-inspector[hidden],
-.supply-map [hidden],
-#show-cutaway[hidden],
-.supply-map[hidden] {
-  display: none;
-}
-.part-inspector {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px 24px;
-  padding: 8px 0;
-  border-block-end: 1px solid var(--line);
-}
-.part-name,
-.part-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
+.supply-map[hidden],
+.supply-map [hidden] { display: none; }
 .taku-instrument {
   position: relative;
 }
@@ -35,99 +17,21 @@
   flex-wrap: wrap;
   row-gap: 0;
 }
-#cutaway-preview {
-  display: none;
-}
-#cutaway-preview[hidden] {
-  display: none;
-}
-#show-cutaway .cutaway-label {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  font-size: 14px;
-}
-@media (min-width: 901px) {
-  #part-inspector #show-cutaway {
-    position: absolute;
-    top: 16px;
-    left: var(--viewer-inset);
-    display: grid;
-    width: 142px;
-    gap: 0;
-    padding: 3px;
-    background: var(--paper);
-    color: #dfe5e4;
-    border: 1px solid #495454;
-    text-align: left;
-  }
-  #part-inspector #show-cutaway[hidden] {
-    display: none;
-  }
-  #cutaway-preview {
-    display: block;
-    width: 100%;
-    height: 65px;
-    object-fit: cover;
-  }
-  #show-cutaway .cutaway-label {
-    padding: 5px 6px;
-    font-size: 12px;
-  }
-  #part-inspector #show-cutaway:hover {
-    border-color: #cd9d85;
-    color: #fff;
-  }
-}
-.part-name {
-  font-size: 16px;
-  letter-spacing: -0.035em;
-  color: var(--bright);
-}
-.contour-key {
-  height: 12px;
-  width: 12px;
-  flex: none;
-  border: 1px solid #fa9675;
-  box-shadow:
-    2px -2px 0 #080a0b,
-    3px -3px 0 #a05543;
-  transform: rotate(-15deg);
-}
-.part-actions button,
 .text-control,
 .map-toolbar button,
 .supply-map button {
   font: inherit;
   cursor: pointer;
 }
-.part-actions button,
 .text-control {
   background: transparent;
   border: 0;
   color: var(--ink);
   min-height: 44px;
 }
-.part-actions button {
-  display: flex;
-  gap: 14px;
-  align-items: center;
-  padding: 0 14px;
-  font-size: 14px;
-}
-.part-actions button span {
-  font-size: 17px;
-}
-.part-actions button:hover,
 .text-control:hover {
   color: white;
   background: #253033;
-}
-.part-actions button:focus-visible,
-#cutaway-dialog :focus-visible {
-  outline: 2px solid #f9a68c;
-  outline-offset: 2px;
 }
 .supply-map :is(button, a, summary, canvas):focus-visible {
   outline: 2px solid #ededed;
@@ -139,15 +43,13 @@
 }
 .supply-heading,
 .index-header,
-.cutaway-heading,
 .map-toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
 }
-.supply-heading,
-.cutaway-heading {
+.supply-heading {
   align-items: flex-start;
 }
 .map-kicker,
@@ -394,43 +296,6 @@
   font-size: 14px;
   margin: 0 0 14px;
 }
-#cutaway-dialog {
-  box-sizing: border-box;
-  position: fixed;
-  inset: 0;
-  margin: auto;
-  color: var(--ink);
-  background: #101617;
-  border: 1px solid #4c5a5c;
-  padding: 0;
-  width: min(960px, 95vw);
-  max-height: 94svh;
-  overflow: auto;
-}
-#cutaway-dialog::backdrop {
-  background: rgba(1, 5, 6, 0.82);
-}
-.cutaway-heading {
-  padding: 18px 22px 13px;
-  border-bottom: 1px solid var(--line);
-}
-.cutaway-heading h2 {
-  margin: 4px 0 0;
-  font-size: clamp(24px, 2.6vw, 34px);
-  line-height: 1.06;
-  letter-spacing: -0.055em;
-  font-weight: 450;
-}
-#cutaway-host > img {
-  display: block;
-  width: 100%;
-  max-height: 65svh;
-  object-fit: contain;
-}
-#cutaway-host > p {
-  padding: 0 18px 12px;
-  font-size: 14px;
-}
 @media (max-width: 900px) {
   .atlas-spread {
     grid-template-columns: 1fr;
@@ -448,26 +313,6 @@
   }
 }
 @media (max-width: 600px) {
-  .part-inspector {
-    gap: 8px;
-  }
-  .part-name {
-    flex: 1;
-    min-width: 0;
-    font-size: 16px;
-    line-height: 1.25;
-    min-height: 32px;
-  }
-  #show-cutaway .cutaway-label { gap: 5px; }
-  .part-actions {
-    gap: 4px;
-    margin-left: auto;
-  }
-  .part-actions button {
-    padding: 0 9px;
-    font-size: 13px;
-    gap: 7px;
-  }
   .map-toolbar {
     padding: 9px 10px 0;
   }
@@ -484,9 +329,6 @@
   }
   .supply-summary {
     margin-bottom: 17px;
-  }
-  .cutaway-heading {
-    padding: 12px;
   }
 }
 .sequence-window {
@@ -607,4 +449,38 @@
 @media (max-width: 600px) {
   .index-header { flex-wrap: wrap; gap: 8px; }
   .index-tools { justify-content: space-between; width: 100%; }
+}
+.atlas-parts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 18px;
+  border-block-end: 1px solid var(--line);
+  width: 100%;
+}
+.supply-heading:has(.atlas-parts) {
+  align-items: stretch;
+  flex-direction: column;
+  gap: 12px;
+}
+.atlas-parts .atlas-part {
+  position: relative;
+  min-height: 44px;
+  padding: 0 1px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 14px;
+}
+.atlas-part[aria-pressed="true"] { color: var(--bright); }
+.atlas-part[aria-pressed="true"]::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0;
+  height: 2px;
+  background: currentColor;
+}
+.atlas-part:hover { color: var(--bright); }
+@media (max-width: 600px) {
+  .atlas-parts { gap: 0 15px; }
 }
